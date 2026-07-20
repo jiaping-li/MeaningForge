@@ -50,7 +50,6 @@ import type {
 } from "@/types/literaryMapping";
 
 type InterpretationDecision = "pending" | "kept" | "revise" | "recorded";
-type UsageMode = "reader" | "study";
 
 const expressionTypes: ExpressionType[] = [
   "lexical_metaphor",
@@ -458,17 +457,6 @@ const conditionLabels: Record<StudyCondition, { label: string; description: stri
   interactive_reworking: {
     label: "C3 重制",
     description: "通过可编辑的替换比较来构建意义。",
-  },
-};
-
-const usageModeLabels: Record<UsageMode, { label: string; description: string }> = {
-  reader: {
-    label: "阅读使用",
-    description: "默认隐藏实验记录，把替换测试作为可选深度检验。",
-  },
-  study: {
-    label: "研究实验",
-    description: "显示条件、日志和过程数据，便于课堂或 user study。",
   },
 };
 
@@ -985,43 +973,6 @@ function StudyLogPanel({ events }: { events: StudyLogEvent[] }) {
   );
 }
 
-function UsageModeSwitch({
-  mode,
-  onChange,
-}: {
-  mode: UsageMode;
-  onChange: (mode: UsageMode) => void;
-}) {
-  return (
-    <section className="border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
-        <BookOpen className="h-4 w-4" />
-        使用场景
-      </div>
-      <div className="mt-3 grid gap-2">
-        {(Object.keys(usageModeLabels) as UsageMode[]).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => onChange(item)}
-            className={cx(
-              "border p-3 text-left transition",
-              mode === item
-                ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
-            )}
-          >
-            <div className="text-sm font-semibold">{usageModeLabels[item].label}</div>
-            <div className={cx("mt-1 text-xs leading-5", mode === item ? "text-slate-200" : "text-slate-500")}>
-              {usageModeLabels[item].description}
-            </div>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function StudySessionPanel({
   condition,
   workspaceMode,
@@ -1307,10 +1258,8 @@ function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
-  const [usageMode, setUsageMode] = useState<UsageMode>("reader");
   const [studyCondition, setStudyCondition] = useState<StudyCondition>("interactive_reworking");
   const [workspaceMode, setWorkspaceMode] = useState<MappingWorkspaceMode>("focused");
-  const [isDeepTestingOpen, setIsDeepTestingOpen] = useState(false);
   const [selectedTheoryLenses, setSelectedTheoryLenses] = useState<TheoryLens[]>(
     defaultTheoryLensesForWork(activeWork)
   );
@@ -1346,10 +1295,8 @@ function App() {
     if (!query) return true;
     return `${passage.label} ${passage.chapter || ""} ${passage.text}`.toLowerCase().includes(query);
   });
-  const isStudyMode = usageMode === "study";
   const showMappingScaffold = studyCondition !== "explanation" && workflowMappingGenerated;
-  const canShowReworking = studyCondition === "interactive_reworking" && workflowMappingGenerated;
-  const showReworking = canShowReworking && (isStudyMode || isDeepTestingOpen);
+  const showReworking = studyCondition === "interactive_reworking" && workflowMappingGenerated;
   const activePassageIndex = activeWork.passages.findIndex((passage) => passage.id === activePassage.id);
   const passagePosition = activePassageIndex >= 0 ? activePassageIndex + 1 : 1;
   const passageCount = activeWork.passages.length;
@@ -1401,7 +1348,6 @@ function App() {
     setEvidenceReview({});
     setReplacementReview({});
     setWorkflowMappingGenerated(false);
-    setIsDeepTestingOpen(false);
     setInterpretationDecision("pending");
     setSelectedCandidateId("");
     setSelectedCandidateIds([]);
@@ -1434,7 +1380,6 @@ function App() {
     setEvidenceReview({});
     setReplacementReview({});
     setWorkflowMappingGenerated(false);
-    setIsDeepTestingOpen(false);
     setInterpretationDecision("pending");
     setSelectedCandidateId("");
     setSelectedCandidateIds([]);
@@ -1454,7 +1399,6 @@ function App() {
     setEvidenceReview({});
     setReplacementReview({});
     setWorkflowMappingGenerated(false);
-    setIsDeepTestingOpen(false);
     setInterpretationDecision("pending");
     setSelectedCandidateId("");
     setSelectedCandidateIds([]);
@@ -1477,7 +1421,6 @@ function App() {
     setEvidenceReview({});
     setReplacementReview({});
     setWorkflowMappingGenerated(false);
-    setIsDeepTestingOpen(false);
     setInterpretationDecision("pending");
     setSelectedCandidateId("");
     setSelectedCandidateIds([]);
@@ -1510,7 +1453,6 @@ function App() {
     }
     setReplacementReview({});
     setWorkflowMappingGenerated(false);
-    setIsDeepTestingOpen(false);
     setInterpretationDecision("pending");
     setStatus(`已选择候选：${candidate.label}。可以先确认或修订，再生成细致映射。`);
     logEvent("candidate_selected", `${candidate.detectionMethod || "candidate"}: ${candidate.span}`);
@@ -1537,7 +1479,6 @@ function App() {
       setSelectedSpan(reviewedSpan);
       setReplacementReview({});
       setWorkflowMappingGenerated(false);
-      setIsDeepTestingOpen(false);
       setInterpretationDecision("pending");
     } else if (review === "rejected") {
       setSelectedCandidateIds((previous) => previous.filter((id) => id !== candidate.id));
@@ -1584,7 +1525,6 @@ function App() {
       setSelectedCandidateIds([]);
       setSelectedSpan("");
       setWorkflowMappingGenerated(false);
-      setIsDeepTestingOpen(false);
       setInterpretationDecision("pending");
       setStatus(`扫描完成：来自 ${result.source} 的 ${result.scan.candidates.length} 个候选。请先在“读者确认”中选中、接受或修订一个候选。`);
       logEvent("candidate_scan_generated", `${result.source}: ${result.scan.candidates.length} candidates`);
@@ -1662,7 +1602,6 @@ function App() {
       setEvidenceReview({});
       setReplacementReview({});
       setWorkflowMappingGenerated(true);
-      setIsDeepTestingOpen(false);
       setInterpretationDecision("pending");
       setStatus(
         workspaceMode === "multi"
@@ -1745,15 +1684,6 @@ function App() {
     logEvent("condition_changed", conditionLabels[condition].label);
   };
 
-  const handleUsageModeChange = (mode: UsageMode) => {
-    setUsageMode(mode);
-    if (mode === "reader") {
-      setIsDeepTestingOpen(false);
-      setStudyCondition("interactive_reworking");
-    }
-    logEvent("usage_mode_changed", usageModeLabels[mode].label);
-  };
-
   const handleActivateReplacement = (replacementId: string) => {
     setReplacementIdByMapping((previous) => ({ ...previous, [activeMapping.id]: replacementId }));
     setReplacementReview({});
@@ -1813,11 +1743,7 @@ function App() {
 
       <div className="mx-auto grid max-w-[1560px] gap-5 px-5 py-5 xl:grid-cols-[340px_1fr_380px]">
         <aside className="space-y-4">
-          <UsageModeSwitch mode={usageMode} onChange={handleUsageModeChange} />
-
-          {isStudyMode ? (
-            <StudyModeSwitch condition={studyCondition} onChange={handleStudyConditionChange} />
-          ) : null}
+          <StudyModeSwitch condition={studyCondition} onChange={handleStudyConditionChange} />
 
           <section className="border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
@@ -2501,30 +2427,6 @@ function App() {
             </section>
           ) : null}
 
-          {canShowReworking && !showReworking ? (
-            <section className="border border-teal-200 bg-teal-50 p-4">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-teal-950">深度检验</div>
-                  <div className="mt-1 text-xs leading-5 text-teal-800">
-                    当前解释已经可以阅读和保存。需要判断这个意象是否真的不可替换时，再打开替换探针。
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsDeepTestingOpen(true);
-                    logEvent("deep_testing_opened", activeMapping.selectedSpan);
-                  }}
-                  className="inline-flex items-center justify-center gap-2 border border-teal-700 bg-teal-700 px-3 py-2 text-sm font-medium text-white"
-                >
-                  <GitCompareArrows className="h-4 w-4" />
-                  打开替换探针
-                </button>
-              </div>
-            </section>
-          ) : null}
-
           {showReworking ? (
           <section>
             <div className="mb-3 border border-teal-200 bg-teal-50 p-4">
@@ -2536,15 +2438,6 @@ function App() {
                     读者也可以输入新的替换意象；每个方向都需要再次确认影响。
                   </div>
                 </div>
-                {!isStudyMode ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsDeepTestingOpen(false)}
-                    className="border border-teal-300 bg-white px-3 py-2 text-sm font-medium text-teal-900 hover:border-teal-600"
-                  >
-                    收起深度检验
-                  </button>
-                ) : null}
                 <div className="grid gap-1 text-center text-[11px] font-medium">
                   <div className="border border-teal-200 bg-white px-2 py-1 text-teal-950">
                     <div className="font-semibold">{replacementDecisionCount}/{replacementComparisonCount}</div>
@@ -2726,25 +2619,21 @@ function App() {
             />
           ) : null}
 
-          {isStudyMode ? (
-            <>
-              <StudySessionPanel
-                condition={studyCondition}
-                workspaceMode={workspaceMode}
-                selectedCandidateCount={selectedCandidateIds.length}
-                candidateMarkedCount={candidateMarkedCount}
-                evidenceDecisionCount={evidenceDecisionCount}
-                activeEvidenceCount={activeEvidenceCount}
-                replacementDecisionCount={replacementDecisionCount}
-                replacementComparisonCount={replacementComparisonCount}
-                interpretationDecision={interpretationDecision}
-                mapping={activeMapping}
-                eventCount={studyLog.length}
-              />
+          <StudySessionPanel
+            condition={studyCondition}
+            workspaceMode={workspaceMode}
+            selectedCandidateCount={selectedCandidateIds.length}
+            candidateMarkedCount={candidateMarkedCount}
+            evidenceDecisionCount={evidenceDecisionCount}
+            activeEvidenceCount={activeEvidenceCount}
+            replacementDecisionCount={replacementDecisionCount}
+            replacementComparisonCount={replacementComparisonCount}
+            interpretationDecision={interpretationDecision}
+            mapping={activeMapping}
+            eventCount={studyLog.length}
+          />
 
-              <StudyLogPanel events={studyLog} />
-            </>
-          ) : null}
+          <StudyLogPanel events={studyLog} />
         </aside>
       </div>
     </main>
