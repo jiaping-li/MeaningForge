@@ -4,13 +4,14 @@ MeaningForge is a CHI27 demo prototype for making literary meaning construction 
 
 It uses a Plotscape-inspired structured substrate: passages, mapping relations, evidence links, and replacement-comparison states. Its interaction design follows the VeriForge lesson more closely: the system surfaces scaffolded material while readers keep control over final interpretation.
 
-## Reader Workflows and Research Layer
+## Reader Workflows and Research Panels
 
-The demo separates two reader-facing workflows from the instrumentation used for studies:
+The demo separates reader-facing workflows from optional study instrumentation:
 
 - **Light Reading** keeps the workflow low-friction: choose a passage, scan candidate carriers, select one, generate a mapping, and copy an evidence-grounded close reading draft.
 - **Interpretation Polishing** expands the structured workspace with evidence checking, mapping graphs, and replacement probes for coursework, seminar discussion, or paper paragraphs.
-- **Research Layer** is not a third reader workflow. It adds study conditions, event logs, and structured measures on top of the polishing workspace for formative studies and controlled user studies.
+
+Researchers can additionally enable **Research Panels**. This is a separate instrumentation toggle, not a third reader workflow. It reveals study conditions, event logs, and structured measures for formative studies and controlled user studies.
 
 ## Design Lineage
 

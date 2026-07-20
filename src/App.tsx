@@ -50,7 +50,7 @@ import type {
 } from "@/types/literaryMapping";
 
 type InterpretationDecision = "pending" | "kept" | "revise" | "recorded";
-type AppExperienceMode = "reader" | "polish" | "research";
+type AppExperienceMode = "reader" | "polish";
 
 const expressionTypes: ExpressionType[] = [
   "lexical_metaphor",
@@ -111,10 +111,6 @@ const appExperienceLabels: Record<AppExperienceMode, { label: string; descriptio
   polish: {
     label: "解释打磨",
     description: "可切换多映射，比较多个候选载体，用于作业、展示或论文段落。",
-  },
-  research: {
-    label: "研究工具层",
-    description: "不是新的读者流程；等于解释打磨加上 study 条件、日志和导出指标。",
   },
 };
 
@@ -924,10 +920,10 @@ function AppExperienceSwitch({
     <section className="border border-slate-200 bg-white p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
         <BookOpen className="h-4 w-4" />
-        读者工作流 / 研究工具
+        读者工作流
       </div>
       <p className="mt-2 text-xs leading-5 text-slate-500">
-        前两项是读者实际使用方式；研究工具层只为实验记录和论文评估打开额外面板。
+        选择读者真正会使用的工作流：快速读懂一个主载体，或展开多个候选进行打磨。
       </p>
       <div className="mt-3 grid gap-2">
         {(Object.keys(appExperienceLabels) as AppExperienceMode[]).map((item) => (
@@ -948,6 +944,42 @@ function AppExperienceSwitch({
             </div>
           </button>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function ResearchPanelToggle({
+  enabled,
+  onToggle,
+}: {
+  enabled: boolean;
+  onToggle: (enabled: boolean) => void;
+}) {
+  return (
+    <section className="border border-slate-200 bg-white p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+            <ClipboardCheck className="h-4 w-4" />
+            研究记录面板
+          </div>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            仅供实验员使用。打开后显示 study 条件、交互日志和导出指标；它不会改变读者任务本身。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onToggle(!enabled)}
+          className={cx(
+            "shrink-0 border px-3 py-2 text-xs font-medium",
+            enabled
+              ? "border-slate-900 bg-slate-900 text-white"
+              : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+          )}
+        >
+          {enabled ? "已打开" : "打开"}
+        </button>
       </div>
     </section>
   );
@@ -1387,6 +1419,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
   const [appMode, setAppMode] = useState<AppExperienceMode>("reader");
+  const [showResearchTools, setShowResearchTools] = useState(false);
   const [studyCondition, setStudyCondition] = useState<StudyCondition>("interactive_reworking");
   const [workspaceMode, setWorkspaceMode] = useState<MappingWorkspaceMode>("focused");
   const [selectedTheoryLenses, setSelectedTheoryLenses] = useState<TheoryLens[]>(
@@ -1426,8 +1459,7 @@ function App() {
   });
   const showMappingScaffold = studyCondition !== "explanation" && workflowMappingGenerated;
   const showReworking = studyCondition === "interactive_reworking" && workflowMappingGenerated;
-  const showResearchTools = appMode === "research";
-  const showDeepControls = appMode !== "reader";
+  const showDeepControls = appMode === "polish" || showResearchTools;
   const activePassageIndex = activeWork.passages.findIndex((passage) => passage.id === activePassage.id);
   const passagePosition = activePassageIndex >= 0 ? activePassageIndex + 1 : 1;
   const passageCount = activeWork.passages.length;
@@ -1882,6 +1914,17 @@ function App() {
                 setWorkspaceMode("focused");
               }
               logEvent("experience_mode_changed", appExperienceLabels[mode].label);
+            }}
+          />
+
+          <ResearchPanelToggle
+            enabled={showResearchTools}
+            onToggle={(enabled) => {
+              setShowResearchTools(enabled);
+              if (enabled) {
+                setAppMode("polish");
+              }
+              logEvent("research_panels_toggled", enabled ? "enabled" : "disabled");
             }}
           />
 
