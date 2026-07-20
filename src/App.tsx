@@ -113,8 +113,8 @@ const appExperienceLabels: Record<AppExperienceMode, { label: string; descriptio
     description: "可切换多映射，比较多个候选载体，用于作业、展示或论文段落。",
   },
   research: {
-    label: "研究模式",
-    description: "可切换多映射，并显示 study 条件、日志和完整结构指标。",
+    label: "研究工具层",
+    description: "不是新的读者流程；等于解释打磨加上 study 条件、日志和导出指标。",
   },
 };
 
@@ -924,8 +924,11 @@ function AppExperienceSwitch({
     <section className="border border-slate-200 bg-white p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
         <BookOpen className="h-4 w-4" />
-        使用场景
+        读者工作流 / 研究工具
       </div>
+      <p className="mt-2 text-xs leading-5 text-slate-500">
+        前两项是读者实际使用方式；研究工具层只为实验记录和论文评估打开额外面板。
+      </p>
       <div className="mt-3 grid gap-2">
         {(Object.keys(appExperienceLabels) as AppExperienceMode[]).map((item) => (
           <button
