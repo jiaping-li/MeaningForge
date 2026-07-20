@@ -50,6 +50,7 @@ import type {
 } from "@/types/literaryMapping";
 
 type InterpretationDecision = "pending" | "kept" | "revise" | "recorded";
+type AppExperienceMode = "reader" | "polish" | "research";
 
 const expressionTypes: ExpressionType[] = [
   "lexical_metaphor",
@@ -101,6 +102,21 @@ const detectionMethods: DetectionMethod[] = [
   "Narrative structure",
   "LLM semantic scan",
 ];
+
+const appExperienceLabels: Record<AppExperienceMode, { label: string; description: string }> = {
+  reader: {
+    label: "轻量阅读",
+    description: "只保留阅读、扫描、生成解释和快速替换，适合真实使用入口。",
+  },
+  polish: {
+    label: "解释打磨",
+    description: "展开证据校验、映射结构和替换探针，用于写作业、展示或论文段落。",
+  },
+  research: {
+    label: "研究模式",
+    description: "显示 study 条件、日志和完整结构指标，用于 formative/user study。",
+  },
+};
 
 const statusStyles: Record<ComparisonStatus, { label: string; className: string; icon: LucideIcon }> = {
   preserved: {
@@ -897,6 +913,115 @@ function MeaningCanvas({
   );
 }
 
+function AppExperienceSwitch({
+  mode,
+  onChange,
+}: {
+  mode: AppExperienceMode;
+  onChange: (mode: AppExperienceMode) => void;
+}) {
+  return (
+    <section className="border border-slate-200 bg-white p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+        <BookOpen className="h-4 w-4" />
+        使用场景
+      </div>
+      <div className="mt-3 grid gap-2">
+        {(Object.keys(appExperienceLabels) as AppExperienceMode[]).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => onChange(item)}
+            className={cx(
+              "border px-3 py-2 text-left transition",
+              mode === item
+                ? "border-teal-700 bg-teal-700 text-white"
+                : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+            )}
+          >
+            <div className="text-sm font-semibold">{appExperienceLabels[item].label}</div>
+            <div className={cx("mt-1 text-xs leading-5", mode === item ? "text-teal-50" : "text-slate-500")}>
+              {appExperienceLabels[item].description}
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InterpretationOutputPanel({
+  mapping,
+  replacement,
+  relation,
+  evidence,
+  reflection,
+}: {
+  mapping: LiteraryMapping;
+  replacement: ReplacementAnalysis;
+  relation?: MappingRelation;
+  evidence: LiteraryEvidence[];
+  reflection: string;
+}) {
+  const preserved = replacement.comparisons.filter((item) => item.status === "preserved");
+  const broken = replacement.comparisons.filter((item) => item.status === "broken");
+  const emergent = replacement.comparisons.filter((item) => item.status === "emergent");
+  const primaryRelation = relation ?? mapping.mappingRelations[0];
+  const primaryEvidence = evidence[0] ?? mapping.evidence[0];
+  const draft = [
+    `In ${mapping.workTitle}, "${mapping.selectedSpan}" works as a concrete carrier for ${mapping.broaderMeaningHypotheses[0] || "a broader interpretive meaning"}.`,
+    primaryRelation
+      ? `The key relation is that ${primaryRelation.carrierRelation.toLowerCase()} maps onto ${primaryRelation.meaningRelation.toLowerCase()}.`
+      : "",
+    primaryEvidence ? `This reading is grounded in the passage detail: ${primaryEvidence.excerpt}` : "",
+    replacement
+      ? `The replacement probe "${replacement.replacementCarrier}" clarifies the boundary of the interpretation: ${preserved[0]?.title || "some relations remain"}, while ${broken[0]?.title || "some original associations weaken"}${emergent[0] ? `, and ${emergent[0].title.toLowerCase()} appears` : ""}.`
+      : "",
+    reflection.trim(),
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const discussionQuestions = [
+    `Which concrete details make "${mapping.selectedSpan}" more than a decorative image?`,
+    `What would be lost if the carrier became "${replacement.replacementCarrier}"?`,
+    `Which evidence is textual, and which evidence depends on cultural or critical context?`,
+  ];
+
+  return (
+    <section className="border border-teal-200 bg-white p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+            <PencilLine className="h-4 w-4" />
+            可带走的解释产物
+          </div>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            把映射、证据和替换测试收束成 close reading 草稿，而不是只留下操作记录。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigator.clipboard?.writeText(draft)}
+          className="inline-flex items-center gap-1 border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:border-slate-400"
+        >
+          <Download className="h-3 w-3" />
+          复制
+        </button>
+      </div>
+      <div className="mt-3 border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-800">
+        {draft}
+      </div>
+      <div className="mt-3 grid gap-2 text-xs">
+        {discussionQuestions.map((question) => (
+          <div key={question} className="border border-slate-200 bg-white p-2 leading-5 text-slate-600">
+            {question}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function StudyModeSwitch({
   condition,
   onChange,
@@ -1258,6 +1383,7 @@ function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
+  const [appMode, setAppMode] = useState<AppExperienceMode>("reader");
   const [studyCondition, setStudyCondition] = useState<StudyCondition>("interactive_reworking");
   const [workspaceMode, setWorkspaceMode] = useState<MappingWorkspaceMode>("focused");
   const [selectedTheoryLenses, setSelectedTheoryLenses] = useState<TheoryLens[]>(
@@ -1297,6 +1423,8 @@ function App() {
   });
   const showMappingScaffold = studyCondition !== "explanation" && workflowMappingGenerated;
   const showReworking = studyCondition === "interactive_reworking" && workflowMappingGenerated;
+  const showResearchTools = appMode === "research";
+  const showDeepControls = appMode !== "reader";
   const activePassageIndex = activeWork.passages.findIndex((passage) => passage.id === activePassage.id);
   const passagePosition = activePassageIndex >= 0 ? activePassageIndex + 1 : 1;
   const passageCount = activeWork.passages.length;
@@ -1728,22 +1856,35 @@ function App() {
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-teal-800">
               <BookOpen className="h-4 w-4" />
-              Mapping Meaning / CHI27 demo
+              MeaningForge / CHI27 demo
             </div>
             <h1 className="mt-1 text-2xl font-semibold tracking-normal text-slate-950">
-              Dynamic literary meaning construction through metaphor reworking
+              Close reading workspace for visible metaphor meaning construction
             </h1>
           </div>
           <div className="border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-5 text-slate-700">
-            Plotscape-inspired substrate: structured document objects, relation nodes, evidence links, and traceable
-            comparison states. CHI27-specific layer: literary mapping and reworking.
+            Start light: read a passage, inspect a candidate carrier, then take away an evidence-grounded interpretation
+            draft. Deeper mapping, replacement, and study logging stay available when needed.
           </div>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-[1560px] gap-5 px-5 py-5 xl:grid-cols-[340px_1fr_380px]">
         <aside className="space-y-4">
-          <StudyModeSwitch condition={studyCondition} onChange={handleStudyConditionChange} />
+          <AppExperienceSwitch
+            mode={appMode}
+            onChange={(mode) => {
+              setAppMode(mode);
+              if (mode === "reader") {
+                setWorkspaceMode("focused");
+              }
+              logEvent("experience_mode_changed", appExperienceLabels[mode].label);
+            }}
+          />
+
+          {showResearchTools ? (
+            <StudyModeSwitch condition={studyCondition} onChange={handleStudyConditionChange} />
+          ) : null}
 
           <section className="border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
@@ -1843,7 +1984,7 @@ function App() {
             </div>
           </section>
 
-          {showMappingScaffold ? (
+          {showMappingScaffold && showDeepControls ? (
           <section className="border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
               <FilePlus className="h-4 w-4" />
@@ -1870,7 +2011,7 @@ function App() {
           </section>
           ) : null}
 
-          {showMappingScaffold ? (
+          {showMappingScaffold && showDeepControls ? (
           <section className="border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
               <Sparkles className="h-4 w-4" />
@@ -1945,6 +2086,7 @@ function App() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
+                {showDeepControls ? (
                 <div className="inline-flex border border-slate-200 bg-white p-1">
                   {(["focused", "multi"] as MappingWorkspaceMode[]).map((mode) => (
                     <button
@@ -1967,6 +2109,8 @@ function App() {
                     </button>
                   ))}
                 </div>
+                ) : null}
+                {showDeepControls ? (
                 <div className="flex flex-wrap gap-1 border border-slate-200 bg-white p-1">
                   {theoryLenses.map((lens) => {
                     const isSelected = selectedTheoryLenses.includes(lens);
@@ -1994,6 +2138,7 @@ function App() {
                     );
                   })}
                 </div>
+                ) : null}
                 <button
                   type="button"
                   onClick={handleUseVisibleSection}
@@ -2238,7 +2383,7 @@ function App() {
                         {candidate.evidenceExcerpt}
                       </div>
                     ) : null}
-                    {candidate.theoryTrace &&
+                    {showResearchTools && candidate.theoryTrace &&
                     Object.values(candidate.theoryTrace).some((trace) => Boolean(trace?.trim())) ? (
                       <div className="mt-2 border border-indigo-100 bg-indigo-50 p-2 text-[11px] leading-5 text-indigo-950">
                         <div className="font-semibold">理论追踪</div>
@@ -2256,13 +2401,15 @@ function App() {
                         </div>
                       </div>
                     ) : null}
+                    {showDeepControls ? (
                     <div className="mt-2 flex gap-2 text-[11px] font-medium uppercase text-slate-500">
                       <span>优先级：{candidate.priority}</span>
                       <span>显著性：{candidate.readerSalience}</span>
                       <span>置信：{candidate.confidence}</span>
                       <span>可替换性：{candidate.replaceability}</span>
                     </div>
-                    {candidate.scores ? (
+                    ) : null}
+                    {showResearchTools && candidate.scores ? (
                       <div className="mt-2 grid grid-cols-5 gap-1 text-center text-[10px] text-slate-500">
                         <div className="border border-slate-200 bg-white p-1">MIP {candidate.scores.mipTension}</div>
                         <div className="border border-slate-200 bg-white p-1">Poet {candidate.scores.poeticImagery}</div>
@@ -2278,6 +2425,7 @@ function App() {
                         placeholder={`修订候选表达，默认：${candidate.span}`}
                         className="w-full border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900"
                       />
+                      {showDeepControls ? (
                       <div className="grid grid-cols-5 gap-1">
                         <button
                           type="button"
@@ -2302,6 +2450,41 @@ function App() {
                           </button>
                         ))}
                       </div>
+                      ) : (
+                      <div className="grid grid-cols-3 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleSelectCandidate(candidate)}
+                          className="border border-teal-700 bg-teal-700 px-2 py-1.5 text-[11px] font-medium text-white"
+                        >
+                          用这个分析
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCandidateReview(candidate, "accepted")}
+                          className={cx(
+                            "border px-2 py-1.5 text-[11px] font-medium",
+                            review === "accepted"
+                              ? "border-emerald-700 bg-emerald-700 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                          )}
+                        >
+                          说得通
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCandidateReview(candidate, "rejected")}
+                          className={cx(
+                            "border px-2 py-1.5 text-[11px] font-medium",
+                            review === "rejected"
+                              ? "border-rose-700 bg-rose-700 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                          )}
+                        >
+                          不成立
+                        </button>
+                      </div>
+                      )}
                     </div>
                   </article>
                   );
@@ -2334,7 +2517,7 @@ function App() {
             </section>
           ) : null}
 
-          {showMappingScaffold ? (
+          {showMappingScaffold && showDeepControls ? (
             <DualStreamPanel
               mapping={activeMapping}
               activeRelationId={activeRelationId}
@@ -2342,7 +2525,7 @@ function App() {
             />
           ) : null}
 
-          {showMappingScaffold ? (
+          {showMappingScaffold && showDeepControls ? (
           <div ref={resultsRef}>
             <div className="mb-2 flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">意义映射结构</h2>
@@ -2397,7 +2580,7 @@ function App() {
           </div>
           ) : null}
 
-          {showMappingScaffold ? (
+          {showMappingScaffold && showDeepControls ? (
             <section className="border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -2427,7 +2610,7 @@ function App() {
             </section>
           ) : null}
 
-          {showReworking ? (
+          {showReworking && showDeepControls ? (
           <section>
             <div className="mb-3 border border-teal-200 bg-teal-50 p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -2611,6 +2794,28 @@ function App() {
 
         <aside className="space-y-4">
           {showMappingScaffold ? (
+            <InterpretationOutputPanel
+              mapping={activeMapping}
+              replacement={activeReplacement}
+              relation={activeRelation}
+              evidence={activeEvidence}
+              reflection={reflection}
+            />
+          ) : (
+            <section className="border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                <Sparkles className="h-4 w-4" />
+                轻量工作流
+              </div>
+              <div className="mt-3 space-y-2 text-xs leading-5 text-slate-600">
+                <div className="border border-slate-200 bg-slate-50 p-2">1. 选择内置经典文本，或导入 `.txt`。</div>
+                <div className="border border-slate-200 bg-slate-50 p-2">2. 扫描候选意象，选择一个具体载体。</div>
+                <div className="border border-slate-200 bg-slate-50 p-2">3. 生成映射，右侧会出现可复制的解释草稿。</div>
+              </div>
+            </section>
+          )}
+
+          {showMappingScaffold && showDeepControls ? (
             <MeaningCanvas
               mapping={activeMapping}
               replacement={activeReplacement}
@@ -2619,6 +2824,7 @@ function App() {
             />
           ) : null}
 
+          {showResearchTools ? (
           <StudySessionPanel
             condition={studyCondition}
             workspaceMode={workspaceMode}
@@ -2632,8 +2838,9 @@ function App() {
             mapping={activeMapping}
             eventCount={studyLog.length}
           />
+          ) : null}
 
-          <StudyLogPanel events={studyLog} />
+          {showResearchTools ? <StudyLogPanel events={studyLog} /> : null}
         </aside>
       </div>
     </main>
