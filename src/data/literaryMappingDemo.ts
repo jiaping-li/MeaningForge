@@ -1,0 +1,278 @@
+import type { LiteraryMapping } from "@/types/literaryMapping";
+
+export const literaryMappingDemo: LiteraryMapping[] = [
+  {
+    id: "daiyu-fallen-flowers",
+    title: "Fallen Flowers and Self-Mourning",
+    workTitle: "Dream of the Red Chamber",
+    passageLabel: "Daiyu burying flowers",
+    passage:
+      "Daiyu gathers the fallen petals, carries them to the flower grave, and buries them while lamenting that once spring is gone, beauty has nowhere clean to return.",
+    selectedSpan: "fallen petals / burying flowers",
+    expressionTypes: [
+      "metaphorically_structured_image",
+      "metaphorically_structured_action",
+      "recurring_metaphorical_motif",
+    ],
+    literalScene: {
+      entities: ["Daiyu", "fallen flowers", "flower grave", "spring"],
+      actions: ["gather", "carry", "bury", "lament"],
+    },
+    concreteCarrier: {
+      name: "fallen flowers and burial",
+      attributes: ["fragile", "beautiful", "seasonal", "discarded", "ritually handled"],
+      relations: [
+        "Flowers bloom, are damaged by weather, then fall.",
+        "Daiyu treats discarded petals as bodies deserving burial.",
+        "The flower grave turns natural decay into a ritual of mourning.",
+      ],
+    },
+    broaderMeaningHypotheses: [
+      "youth and beauty are transient",
+      "female fate is socially vulnerable",
+      "Daiyu anticipates and mourns her own destiny",
+      "aesthetic care becomes a quiet form of resistance",
+    ],
+    mappingRelations: [
+      {
+        id: "r-flower-youth",
+        carrierRelation: "flowers bloom and then fall",
+        meaningRelation: "youth appears briefly and then declines",
+        importance: "high",
+        evidenceIds: ["e-local-action", "e-poetic-tradition"],
+      },
+      {
+        id: "r-weather-harm",
+        carrierRelation: "flowers are damaged by wind and rain",
+        meaningRelation: "vulnerable beauty is harmed by forces outside itself",
+        importance: "high",
+        evidenceIds: ["e-poetic-tradition", "e-critical"],
+      },
+      {
+        id: "r-burial-self",
+        carrierRelation: "Daiyu buries the petals",
+        meaningRelation: "Daiyu stages mourning for a fate she imagines as her own",
+        importance: "high",
+        evidenceIds: ["e-local-action", "e-character"],
+      },
+      {
+        id: "r-clean-return",
+        carrierRelation: "petals need a clean place to return",
+        meaningRelation: "a fragile life seeks dignity rather than contamination",
+        importance: "medium",
+        evidenceIds: ["e-local-action"],
+      },
+    ],
+    evidence: [
+      {
+        id: "e-local-action",
+        kind: "textual",
+        label: "Local action",
+        excerpt: "Daiyu gathers, carries, and buries the petals rather than letting them scatter.",
+        note: "The mapping depends on the action sequence, not only the image of flowers.",
+      },
+      {
+        id: "e-character",
+        kind: "textual",
+        label: "Character arc",
+        excerpt: "Daiyu's illness, isolation, and self-reflection make the flower ritual self-referential.",
+        note: "The carrier points back to Daiyu's imagined future.",
+      },
+      {
+        id: "e-poetic-tradition",
+        kind: "cultural",
+        label: "Poetic tradition",
+        excerpt: "Fallen flowers often carry associations of lost spring, beauty, and feminine vulnerability.",
+        note: "Cultural grounding explains why flowers can bear more than botanical meaning.",
+      },
+      {
+        id: "e-critical",
+        kind: "critical",
+        label: "Critical frame",
+        excerpt: "The scene can be read as both self-mourning and critique of a world that wastes beauty.",
+        note: "Multiple interpretations are compatible when they remain grounded in the ritual structure.",
+      },
+    ],
+    alternativeInterpretations: [
+      "self-mourning",
+      "aesthetic ritual",
+      "social critique",
+      "impermanence",
+    ],
+    replacements: [
+      {
+        id: "snow",
+        label: "Replace with melting snow",
+        replacementCarrier: "melting snow",
+        purpose: "Test whether fragility and disappearance are enough to sustain the original meaning.",
+        comparisons: [
+          {
+            id: "snow-preserve-season",
+            status: "preserved",
+            title: "Seasonal disappearance remains",
+            explanation: "Snow also appears briefly and vanishes, preserving a relation of transient beauty.",
+            relationIds: ["r-flower-youth"],
+          },
+          {
+            id: "snow-broken-burial",
+            status: "broken",
+            title: "Burial ritual collapses",
+            explanation: "Snow cannot be gathered into a flower grave without changing the material logic of the scene.",
+            relationIds: ["r-burial-self", "r-clean-return"],
+          },
+          {
+            id: "snow-broken-culture",
+            status: "broken",
+            title: "Flower-beauty tradition weakens",
+            explanation: "Snow adds purity and coldness but loses the gendered poetic associations of fallen flowers.",
+            relationIds: ["r-weather-harm"],
+          },
+          {
+            id: "snow-emergent-cold",
+            status: "emergent",
+            title: "Cold purity emerges",
+            explanation: "The replacement suggests silent dissolution and emotional coldness rather than injured spring.",
+            relationIds: [],
+          },
+        ],
+      },
+      {
+        id: "leaves",
+        label: "Replace with fallen leaves",
+        replacementCarrier: "fallen leaves",
+        purpose: "Test whether another fallen natural object preserves the self-mourning structure.",
+        comparisons: [
+          {
+            id: "leaves-preserve-fall",
+            status: "preserved",
+            title: "Falling and decay remain",
+            explanation: "Leaves preserve the visible movement from life to decline.",
+            relationIds: ["r-flower-youth"],
+          },
+          {
+            id: "leaves-broken-youth",
+            status: "broken",
+            title: "Youth becomes aging",
+            explanation: "Leaves often suggest autumnal maturity, so the youth-and-beauty mapping changes direction.",
+            relationIds: ["r-flower-youth", "r-weather-harm"],
+          },
+          {
+            id: "leaves-emergent-cycle",
+            status: "emergent",
+            title: "Natural cycle becomes stronger",
+            explanation: "The replacement makes seasonal recurrence more salient than singular personal mourning.",
+            relationIds: [],
+          },
+        ],
+      },
+    ],
+    uncertainty: "medium",
+  },
+  {
+    id: "gatsby-green-light",
+    title: "The Green Light as Reachable Distance",
+    workTitle: "The Great Gatsby",
+    passageLabel: "Gatsby watching the green light",
+    passage:
+      "Gatsby stretches his arms toward the dark water, where a single green light burns across the bay at the end of Daisy's dock.",
+    selectedSpan: "the green light",
+    expressionTypes: ["metaphorically_structured_image", "recurring_metaphorical_motif"],
+    literalScene: {
+      entities: ["Gatsby", "dark water", "green light", "Daisy's dock"],
+      actions: ["watch", "reach", "remain separated"],
+    },
+    concreteCarrier: {
+      name: "distant green light",
+      attributes: ["visible", "distant", "colored", "small", "fixed across water"],
+      relations: [
+        "The light can be seen but not touched.",
+        "Water separates the viewer from the object.",
+        "The light belongs to Daisy's dock but becomes larger than Daisy herself.",
+      ],
+    },
+    broaderMeaningHypotheses: [
+      "desire turns a person into a symbolic destination",
+      "hope depends on distance",
+      "the American dream is visible but structurally deferred",
+    ],
+    mappingRelations: [
+      {
+        id: "r-visible-unreachable",
+        carrierRelation: "the light is visible but physically unreachable",
+        meaningRelation: "Gatsby's desire is imaginable yet inaccessible",
+        importance: "high",
+        evidenceIds: ["e-gesture", "e-distance"],
+      },
+      {
+        id: "r-green-hope",
+        carrierRelation: "green suggests permission, money, and newness",
+        meaningRelation: "hope mixes with wealth and forward motion",
+        importance: "medium",
+        evidenceIds: ["e-color"],
+      },
+      {
+        id: "r-dock-daisy",
+        carrierRelation: "the light marks Daisy's dock",
+        meaningRelation: "Daisy becomes condensed into a target of longing",
+        importance: "high",
+        evidenceIds: ["e-distance"],
+      },
+    ],
+    evidence: [
+      {
+        id: "e-gesture",
+        kind: "textual",
+        label: "Gesture",
+        excerpt: "Gatsby reaches toward the light across the water.",
+        note: "The body makes desire visible before any explanation does.",
+      },
+      {
+        id: "e-distance",
+        kind: "textual",
+        label: "Spatial relation",
+        excerpt: "The bay keeps the light near enough to see and too far to hold.",
+        note: "Distance is part of the metaphor's structure.",
+      },
+      {
+        id: "e-color",
+        kind: "cultural",
+        label: "Color association",
+        excerpt: "Green can evoke money, permission, freshness, and aspiration.",
+        note: "The color multiplies the meaning beyond romance.",
+      },
+    ],
+    alternativeInterpretations: ["romantic longing", "wealth", "American dream", "self-made illusion"],
+    replacements: [
+      {
+        id: "red-light",
+        label: "Replace with red light",
+        replacementCarrier: "red light",
+        purpose: "Test how color changes the moral and emotional direction of desire.",
+        comparisons: [
+          {
+            id: "red-preserve-distance",
+            status: "preserved",
+            title: "Visibility across distance remains",
+            explanation: "A red light can still be seen across the bay and remain unreachable.",
+            relationIds: ["r-visible-unreachable", "r-dock-daisy"],
+          },
+          {
+            id: "red-broken-green",
+            status: "broken",
+            title: "Forward hope becomes warning",
+            explanation: "Red shifts the signal toward danger, prohibition, or passion rather than hopeful permission.",
+            relationIds: ["r-green-hope"],
+          },
+          {
+            id: "red-emergent-danger",
+            status: "emergent",
+            title: "Danger becomes explicit",
+            explanation: "The image would foreshadow threat more directly, reducing the original ambiguity of aspiration.",
+            relationIds: [],
+          },
+        ],
+      },
+    ],
+    uncertainty: "medium",
+  },
+];
