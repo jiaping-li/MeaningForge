@@ -106,15 +106,15 @@ const detectionMethods: DetectionMethod[] = [
 const appExperienceLabels: Record<AppExperienceMode, { label: string; description: string }> = {
   reader: {
     label: "轻量阅读",
-    description: "只保留阅读、扫描、生成解释和快速替换，适合真实使用入口。",
+    description: "默认只追踪一个主载体，适合快速得到一版可用解释。",
   },
   polish: {
     label: "解释打磨",
-    description: "展开证据校验、映射结构和替换探针，用于写作业、展示或论文段落。",
+    description: "可切换多映射，比较多个候选载体，用于作业、展示或论文段落。",
   },
   research: {
     label: "研究模式",
-    description: "显示 study 条件、日志和完整结构指标，用于 formative/user study。",
+    description: "可切换多映射，并显示 study 条件、日志和完整结构指标。",
   },
 };
 
@@ -2317,7 +2317,9 @@ function App() {
                     <div>
                       <div className="text-sm font-semibold text-teal-950">读者确认</div>
                       <div className="mt-1 text-xs leading-5 text-teal-800">
-                        {workspaceMode === "multi"
+                        {appMode === "reader"
+                          ? "轻量阅读默认只选一个主载体，帮助读者先得到一版解释草稿；如果要同时比较多个候选，请切换到“解释打磨”。"
+                          : workspaceMode === "multi"
                           ? "多映射模式下，可以加入多个候选；接受或修订会把候选加入待生成映射集合。"
                           : "聚焦模式下，选择一个候选作为主分析对象；接受或修订会更新当前候选。"}
                       </div>
@@ -2325,7 +2327,7 @@ function App() {
                     <div className="grid grid-cols-3 gap-1 text-center text-[11px] font-medium">
                       <div className="border border-teal-200 bg-white px-2 py-1 text-teal-900">
                         <div className="font-semibold">{selectedCandidateIds.length}</div>
-                        <div>{workspaceMode === "multi" ? "已加入" : "已选中"}</div>
+                        <div>{workspaceMode === "multi" ? "已加入" : "主载体"}</div>
                       </div>
                       <div className="border border-teal-200 bg-white px-2 py-1 text-teal-900">
                         <div className="font-semibold">{candidateMarkedCount}</div>
@@ -2809,8 +2811,11 @@ function App() {
               </div>
               <div className="mt-3 space-y-2 text-xs leading-5 text-slate-600">
                 <div className="border border-slate-200 bg-slate-50 p-2">1. 选择内置经典文本，或导入 `.txt`。</div>
-                <div className="border border-slate-200 bg-slate-50 p-2">2. 扫描候选意象，选择一个具体载体。</div>
+                <div className="border border-slate-200 bg-slate-50 p-2">2. 扫描候选意象，选择一个主载体。</div>
                 <div className="border border-slate-200 bg-slate-50 p-2">3. 生成映射，右侧会出现可复制的解释草稿。</div>
+                <div className="border border-amber-200 bg-amber-50 p-2 text-amber-900">
+                  需要同时比较多个候选时，切换到左侧“解释打磨”，再选择“多映射”。
+                </div>
               </div>
             </section>
           )}
