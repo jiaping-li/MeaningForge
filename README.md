@@ -8,10 +8,21 @@ It uses a Plotscape-inspired structured substrate: passages, mapping relations, 
 
 The demo separates reader-facing workflows from optional study instrumentation:
 
-- **Light Reading** keeps the workflow low-friction: choose a passage, scan candidate carriers, select one, generate a mapping, and copy an evidence-grounded close reading draft.
+- **Light Reading** keeps the workflow low-friction: choose a passage, scan candidate carriers, select one, generate a Meaning Lens, and copy an evidence-grounded close reading draft. The lens uses scroll-like stages and replacement probes rather than exposing the mapping table first.
 - **Interpretation Polishing** expands the structured workspace with evidence checking, mapping graphs, and replacement probes for coursework, seminar discussion, or paper paragraphs.
 
 Researchers can additionally enable **Research Panels**. This is a separate instrumentation toggle, not a third reader workflow. It reveals study conditions, event logs, and structured measures for formative studies and controlled user studies.
+
+## Meaning Lens
+
+The default light-reading result is not a full text-to-image comic. Instead, it uses a controllable intermediate representation:
+
+1. a spotlighted passage with the selected carrier highlighted;
+2. a concrete carrier card with visible attributes;
+3. lightweight meaning-direction cards grounded in evidence;
+4. replacement probes that reveal what stays, breaks, or newly appears.
+
+This keeps the exploratory character of LLM output visible: generated interpretations are framed as revisable probes, not authoritative annotations.
 
 ## Design Lineage
 

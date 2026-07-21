@@ -1057,6 +1057,160 @@ function InterpretationOutputPanel({
   );
 }
 
+function MeaningLensPanel({
+  mapping,
+  replacement,
+  relation,
+  evidence,
+  onReplacementSelect,
+  onPolish,
+}: {
+  mapping: LiteraryMapping;
+  replacement: ReplacementAnalysis;
+  relation?: MappingRelation;
+  evidence: LiteraryEvidence[];
+  onReplacementSelect: (replacementId: string) => void;
+  onPolish: () => void;
+}) {
+  const grouped = {
+    preserved: replacement.comparisons.filter((item) => item.status === "preserved"),
+    broken: replacement.comparisons.filter((item) => item.status === "broken"),
+    emergent: replacement.comparisons.filter((item) => item.status === "emergent"),
+  };
+  const primaryEvidence = evidence[0] ?? mapping.evidence[0];
+  const spotlightText = mapping.passage || mapping.selectedSpan;
+  const highlightedText = spotlightText.includes(mapping.selectedSpan)
+    ? spotlightText.split(mapping.selectedSpan)
+    : [spotlightText];
+
+  return (
+    <section className="border border-teal-200 bg-white p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-teal-900">
+            <Sparkles className="h-4 w-4" />
+            Meaning Lens
+          </div>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">用替换看见意象如何承载意义</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            这里展示的是系统推测的阅读路径，不是标准答案。点击不同替换，可以观察哪些意义还在、哪些断裂、哪些新出现。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onPolish}
+          className="border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+        >
+          展开解释打磨
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-4">
+        <article className="border border-slate-200 bg-[#fbfbf8] p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">1. 原文聚光灯</div>
+          <p className="mt-3 text-sm leading-7 text-slate-800">
+            {highlightedText.length > 1
+              ? highlightedText.map((part, index) => (
+                  <span key={`${part}_${index}`}>
+                    {part}
+                    {index < highlightedText.length - 1 ? (
+                      <mark className="bg-amber-200 px-1 font-semibold text-slate-950">{mapping.selectedSpan}</mark>
+                    ) : null}
+                  </span>
+                ))
+              : spotlightText}
+          </p>
+        </article>
+
+        <article className="border border-amber-200 bg-amber-50 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-amber-800">2. 具体载体</div>
+          <div className="mt-3 text-lg font-semibold text-slate-950">{mapping.concreteCarrier.name}</div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {mapping.concreteCarrier.attributes.slice(0, 5).map((attribute, index) => (
+              <span key={`${attribute}_${index}`} className="border border-amber-200 bg-white px-2 py-1 text-xs text-amber-900">
+                {attribute}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-amber-900">
+            {relation?.carrierRelation || mapping.concreteCarrier.relations[0]}
+          </p>
+        </article>
+
+        <article className="border border-indigo-200 bg-indigo-50 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-800">3. 意义方向</div>
+          <div className="mt-3 space-y-2">
+            {mapping.broaderMeaningHypotheses.slice(0, 3).map((meaning, index) => (
+              <div key={`${meaning}_${index}`} className="border border-indigo-100 bg-white p-2 text-sm leading-5 text-slate-800">
+                {meaning}
+              </div>
+            ))}
+          </div>
+          {primaryEvidence ? (
+            <p className="mt-3 border-l-2 border-indigo-200 pl-2 text-xs leading-5 text-slate-600">
+              {primaryEvidence.excerpt}
+            </p>
+          ) : null}
+        </article>
+
+        <article className="border border-slate-200 bg-slate-50 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">4. 替换探针</div>
+          <div className="mt-3 space-y-2">
+            {mapping.replacements.slice(0, 4).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onReplacementSelect(item.id)}
+                className={cx(
+                  "w-full border px-3 py-2 text-left text-sm font-medium",
+                  item.id === replacement.id
+                    ? "border-teal-700 bg-teal-700 text-white"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                )}
+              >
+                换成：{item.replacementCarrier}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-slate-500">替换不是改写原文，而是测试原意象为什么重要。</p>
+        </article>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        {(["preserved", "broken", "emergent"] as const).map((status) => {
+          const style = statusStyles[status];
+          const Icon = style.icon;
+          const plainLabel = status === "preserved" ? "还在" : status === "broken" ? "丢了" : "新出现";
+          return (
+            <section key={status} className={cx("border p-4", style.className)}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  <h3 className="text-sm font-semibold">{plainLabel}</h3>
+                </div>
+                <span className="border border-white/70 bg-white/70 px-2 py-0.5 text-[11px] font-semibold">
+                  {grouped[status].length}
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {grouped[status].slice(0, 3).map((item) => (
+                  <div key={item.id} className="border border-white/70 bg-white/80 p-3">
+                    <div className="text-sm font-semibold">{item.title}</div>
+                    <p className="mt-1 text-xs leading-5">{item.explanation}</p>
+                  </div>
+                ))}
+                {grouped[status].length === 0 ? (
+                  <div className="border border-white/70 bg-white/70 p-3 text-xs leading-5">这次替换暂时没有这一类变化。</div>
+                ) : null}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function StudyModeSwitch({
   condition,
   onChange,
@@ -2565,6 +2719,22 @@ function App() {
             </section>
           ) : null}
 
+          {showMappingScaffold && !showDeepControls ? (
+            <div ref={resultsRef}>
+              <MeaningLensPanel
+                mapping={activeMapping}
+                replacement={activeReplacement}
+                relation={activeRelation}
+                evidence={activeEvidence}
+                onReplacementSelect={handleActivateReplacement}
+                onPolish={() => {
+                  setAppMode("polish");
+                  logEvent("polish_opened_from_lens", activeMapping.selectedSpan);
+                }}
+              />
+            </div>
+          ) : null}
+
           {showMappingScaffold && showDeepControls ? (
             <DualStreamPanel
               mapping={activeMapping}
@@ -2853,12 +3023,13 @@ function App() {
             <section className="border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                 <Sparkles className="h-4 w-4" />
-                轻量工作流
+                Meaning Lens 工作流
               </div>
               <div className="mt-3 space-y-2 text-xs leading-5 text-slate-600">
                 <div className="border border-slate-200 bg-slate-50 p-2">1. 选择内置经典文本，或导入 `.txt`。</div>
                 <div className="border border-slate-200 bg-slate-50 p-2">2. 扫描候选意象，选择一个主载体。</div>
-                <div className="border border-slate-200 bg-slate-50 p-2">3. 生成映射，右侧会出现可复制的解释草稿。</div>
+                <div className="border border-slate-200 bg-slate-50 p-2">3. 生成 Meaning Lens：原文聚光灯、载体、意义方向和替换变化。</div>
+                <div className="border border-slate-200 bg-slate-50 p-2">4. 右侧会保留可复制的解释草稿。</div>
                 <div className="border border-amber-200 bg-amber-50 p-2 text-amber-900">
                   需要同时比较多个候选时，切换到左侧“解释打磨”，再选择“多映射”。
                 </div>
