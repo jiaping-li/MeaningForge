@@ -1082,130 +1082,186 @@ function MeaningLensPanel({
   const highlightedText = spotlightText.includes(mapping.selectedSpan)
     ? spotlightText.split(mapping.selectedSpan)
     : [spotlightText];
+  const lensSteps = [
+    "点亮原文",
+    "看见载体",
+    "试换意象",
+    "观察变化",
+    "收束解释",
+  ];
+  const compactDraft = `${mapping.selectedSpan} suggests ${
+    mapping.broaderMeaningHypotheses[0] || "a broader meaning"
+  }; replacing it with ${replacement.replacementCarrier} shows what the original carrier makes possible.`;
 
   return (
-    <section className="border border-teal-200 bg-white p-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-teal-900">
-            <Sparkles className="h-4 w-4" />
-            Meaning Lens
-          </div>
-          <h2 className="mt-1 text-xl font-semibold text-slate-950">用替换看见意象如何承载意义</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            这里展示的是系统推测的阅读路径，不是标准答案。点击不同替换，可以观察哪些意义还在、哪些断裂、哪些新出现。
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onPolish}
-          className="border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-        >
-          展开解释打磨
-        </button>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-4">
-        <article className="border border-slate-200 bg-[#fbfbf8] p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">1. 原文聚光灯</div>
-          <p className="mt-3 text-sm leading-7 text-slate-800">
-            {highlightedText.length > 1
-              ? highlightedText.map((part, index) => (
-                  <span key={`${part}_${index}`}>
-                    {part}
-                    {index < highlightedText.length - 1 ? (
-                      <mark className="bg-amber-200 px-1 font-semibold text-slate-950">{mapping.selectedSpan}</mark>
-                    ) : null}
-                  </span>
-                ))
-              : spotlightText}
-          </p>
-        </article>
-
-        <article className="border border-amber-200 bg-amber-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-amber-800">2. 具体载体</div>
-          <div className="mt-3 text-lg font-semibold text-slate-950">{mapping.concreteCarrier.name}</div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {mapping.concreteCarrier.attributes.slice(0, 5).map((attribute, index) => (
-              <span key={`${attribute}_${index}`} className="border border-amber-200 bg-white px-2 py-1 text-xs text-amber-900">
-                {attribute}
-              </span>
-            ))}
-          </div>
-          <p className="mt-3 text-xs leading-5 text-amber-900">
-            {relation?.carrierRelation || mapping.concreteCarrier.relations[0]}
-          </p>
-        </article>
-
-        <article className="border border-indigo-200 bg-indigo-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-800">3. 意义方向</div>
-          <div className="mt-3 space-y-2">
-            {mapping.broaderMeaningHypotheses.slice(0, 3).map((meaning, index) => (
-              <div key={`${meaning}_${index}`} className="border border-indigo-100 bg-white p-2 text-sm leading-5 text-slate-800">
-                {meaning}
-              </div>
-            ))}
-          </div>
-          {primaryEvidence ? (
-            <p className="mt-3 border-l-2 border-indigo-200 pl-2 text-xs leading-5 text-slate-600">
-              {primaryEvidence.excerpt}
+    <section className="border border-teal-200 bg-white">
+      <div className="border-b border-teal-100 bg-teal-50 p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-semibold text-teal-900">
+              <Sparkles className="h-4 w-4" />
+              Metaphor Lens Story
+            </div>
+            <h2 className="mt-1 text-xl font-semibold text-slate-950">先体验意义怎么变，再展开解释</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-teal-900">
+              这不是漫画生成，也不是权威批注。系统只把一个可能的读法拆成可滚动、可替换、可挑战的推测步骤。
             </p>
-          ) : null}
-        </article>
-
-        <article className="border border-slate-200 bg-slate-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">4. 替换探针</div>
-          <div className="mt-3 space-y-2">
-            {mapping.replacements.slice(0, 4).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onReplacementSelect(item.id)}
-                className={cx(
-                  "w-full border px-3 py-2 text-left text-sm font-medium",
-                  item.id === replacement.id
-                    ? "border-teal-700 bg-teal-700 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
-                )}
-              >
-                换成：{item.replacementCarrier}
-              </button>
-            ))}
           </div>
-          <p className="mt-3 text-xs leading-5 text-slate-500">替换不是改写原文，而是测试原意象为什么重要。</p>
-        </article>
+          <button
+            type="button"
+            onClick={onPolish}
+            className="border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+          >
+            展开解释打磨
+          </button>
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-        {(["preserved", "broken", "emergent"] as const).map((status) => {
-          const style = statusStyles[status];
-          const Icon = style.icon;
-          const plainLabel = status === "preserved" ? "还在" : status === "broken" ? "丢了" : "新出现";
-          return (
-            <section key={status} className={cx("border p-4", style.className)}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  <h3 className="text-sm font-semibold">{plainLabel}</h3>
+      <div className="grid gap-0 lg:grid-cols-[170px_1fr]">
+        <aside className="hidden border-r border-slate-200 bg-slate-50 p-4 lg:block">
+          <div className="sticky top-4 space-y-2">
+            {lensSteps.map((step, index) => (
+              <div key={step} className="flex items-center gap-2 text-xs text-slate-600">
+                <div className="flex h-6 w-6 items-center justify-center border border-slate-300 bg-white font-semibold text-slate-800">
+                  {index + 1}
                 </div>
-                <span className="border border-white/70 bg-white/70 px-2 py-0.5 text-[11px] font-semibold">
-                  {grouped[status].length}
-                </span>
+                <span>{step}</span>
               </div>
-              <div className="mt-3 space-y-2">
-                {grouped[status].slice(0, 3).map((item) => (
-                  <div key={item.id} className="border border-white/70 bg-white/80 p-3">
-                    <div className="text-sm font-semibold">{item.title}</div>
-                    <p className="mt-1 text-xs leading-5">{item.explanation}</p>
-                  </div>
-                ))}
-                {grouped[status].length === 0 ? (
-                  <div className="border border-white/70 bg-white/70 p-3 text-xs leading-5">这次替换暂时没有这一类变化。</div>
-                ) : null}
+            ))}
+          </div>
+        </aside>
+
+        <div>
+          <article className="min-h-[360px] border-b border-slate-200 bg-[#fbfbf8] p-5 lg:p-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 1 / 点亮原文</div>
+            <p className="mt-4 max-w-3xl text-lg leading-9 text-slate-900">
+              {highlightedText.length > 1
+                ? highlightedText.map((part, index) => (
+                    <span key={`${part}_${index}`}>
+                      {part}
+                      {index < highlightedText.length - 1 ? (
+                        <mark className="bg-amber-200 px-1 font-semibold text-slate-950">{mapping.selectedSpan}</mark>
+                      ) : null}
+                    </span>
+                  ))
+                : spotlightText}
+            </p>
+            <div className="mt-5 inline-flex border border-amber-200 bg-white px-3 py-2 text-sm font-semibold text-amber-900">
+              先只看一个意象：{mapping.selectedSpan}
+            </div>
+          </article>
+
+          <article className="min-h-[320px] border-b border-slate-200 bg-white p-5 lg:p-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 2 / 看见载体</div>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[260px_1fr]">
+              <div className="border border-amber-200 bg-amber-50 p-5">
+                <div className="text-xs font-semibold uppercase tracking-wide text-amber-800">Concrete carrier</div>
+                <div className="mt-3 text-2xl font-semibold text-slate-950">{mapping.concreteCarrier.name}</div>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {mapping.concreteCarrier.attributes.slice(0, 5).map((attribute, index) => (
+                    <span
+                      key={`${attribute}_${index}`}
+                      className="border border-amber-200 bg-white px-2 py-1 text-xs text-amber-900"
+                    >
+                      {attribute}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </section>
-          );
-        })}
+              <div className="flex items-center border border-slate-200 bg-slate-50 p-5 text-base leading-7 text-slate-800">
+                {relation?.carrierRelation || mapping.concreteCarrier.relations[0]}
+              </div>
+            </div>
+          </article>
+
+          <article className="min-h-[320px] border-b border-slate-200 bg-indigo-50 p-5 lg:p-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-indigo-800">Step 3 / 试换意象</div>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-indigo-950">
+              替换不是改写原文，而是一个 meaning probe：如果载体换掉，原来的解释还能站住吗？
+            </p>
+            <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+              {mapping.replacements.slice(0, 4).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onReplacementSelect(item.id)}
+                  className={cx(
+                    "border px-4 py-3 text-left text-sm font-medium",
+                    item.id === replacement.id
+                      ? "border-teal-700 bg-teal-700 text-white"
+                      : "border-indigo-200 bg-white text-slate-800 hover:border-indigo-500"
+                  )}
+                >
+                  <div className="text-[11px] font-semibold uppercase opacity-75">Replace with</div>
+                  <div className="mt-1 text-base">{item.replacementCarrier}</div>
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="min-h-[360px] border-b border-slate-200 bg-white p-5 lg:p-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 4 / 观察变化</div>
+            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+              {(["preserved", "broken", "emergent"] as const).map((status) => {
+                const style = statusStyles[status];
+                const Icon = style.icon;
+                const plainLabel = status === "preserved" ? "还在" : status === "broken" ? "丢了" : "新出现";
+                return (
+                  <section key={status} className={cx("border p-4", style.className)}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4" />
+                        <h3 className="text-base font-semibold">{plainLabel}</h3>
+                      </div>
+                      <span className="border border-white/70 bg-white/70 px-2 py-0.5 text-[11px] font-semibold">
+                        {grouped[status].length}
+                      </span>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {grouped[status].slice(0, 3).map((item) => (
+                        <div key={item.id} className="border border-white/70 bg-white/80 p-3">
+                          <div className="text-sm font-semibold">{item.title}</div>
+                          <p className="mt-1 text-xs leading-5">{item.explanation}</p>
+                        </div>
+                      ))}
+                      {grouped[status].length === 0 ? (
+                        <div className="border border-white/70 bg-white/70 p-3 text-xs leading-5">
+                          这次替换暂时没有这一类变化。
+                        </div>
+                      ) : null}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="min-h-[300px] bg-slate-950 p-5 text-white lg:p-8">
+            <div className="text-xs font-semibold uppercase tracking-wide text-teal-200">Step 5 / 收束解释</div>
+            <p className="mt-5 max-w-3xl text-xl leading-8">{compactDraft}</p>
+            <div className="mt-5 grid gap-3 lg:grid-cols-2">
+              <div className="border border-white/20 bg-white/10 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-300">Evidence peek</div>
+                <p className="mt-2 text-sm leading-6 text-slate-100">
+                  {primaryEvidence ? primaryEvidence.excerpt : "Open interpretation polishing to inspect textual evidence."}
+                </p>
+              </div>
+              <div className="border border-white/20 bg-white/10 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-300">下一步</div>
+                <p className="mt-2 text-sm leading-6 text-slate-100">
+                  如果这条推测有启发，再展开解释打磨；如果不成立，回到候选或换一个替换意象。
+                </p>
+                <button
+                  type="button"
+                  onClick={onPolish}
+                  className="mt-3 border border-white bg-white px-3 py-2 text-sm font-medium text-slate-950"
+                >
+                  查看推理过程
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
   );

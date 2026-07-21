@@ -8,21 +8,22 @@ It uses a Plotscape-inspired structured substrate: passages, mapping relations, 
 
 The demo separates reader-facing workflows from optional study instrumentation:
 
-- **Light Reading** keeps the workflow low-friction: choose a passage, scan candidate carriers, select one, generate a Meaning Lens, and copy an evidence-grounded close reading draft. The lens uses scroll-like stages and replacement probes rather than exposing the mapping table first.
+- **Light Reading** keeps the workflow low-friction: choose a passage, scan candidate carriers, select one, generate a Metaphor Lens Story, and copy an evidence-grounded close reading draft. The story uses progressive disclosure and replacement probes rather than exposing the mapping table first.
 - **Interpretation Polishing** expands the structured workspace with evidence checking, mapping graphs, and replacement probes for coursework, seminar discussion, or paper paragraphs.
 
 Researchers can additionally enable **Research Panels**. This is a separate instrumentation toggle, not a third reader workflow. It reveals study conditions, event logs, and structured measures for formative studies and controlled user studies.
 
-## Meaning Lens
+## Metaphor Lens Story
 
-The default light-reading result is not a full text-to-image comic. Instead, it uses a controllable intermediate representation:
+The default light-reading result is not a full text-to-image comic and does not claim novelty in scrollytelling itself. Instead, it uses a controllable, progressive intermediate representation:
 
 1. a spotlighted passage with the selected carrier highlighted;
-2. a concrete carrier card with visible attributes;
-3. lightweight meaning-direction cards grounded in evidence;
-4. replacement probes that reveal what stays, breaks, or newly appears.
+2. a concrete carrier stage with visible attributes;
+3. replacement probes that invite readers to try alternate carriers;
+4. a consequence stage showing what stays, breaks, or newly appears;
+5. a short explanation with optional evidence peek.
 
-This keeps the exploratory character of LLM output visible: generated interpretations are framed as revisable probes, not authoritative annotations.
+This keeps the exploratory character of LLM output visible: generated interpretations are framed as revisable probes, not authoritative annotations. The advanced mapping workspace remains available only when readers choose to inspect the reasoning process.
 
 ## Design Lineage
 
