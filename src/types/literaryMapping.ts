@@ -6,9 +6,23 @@ export type ExpressionType =
   | "recurring_metaphorical_motif"
   | "metaphorically_structured_action";
 
+export type CarrierType =
+  | "object"
+  | "action"
+  | "discourse"
+  | "scene_ritual"
+  | "sensory_image";
+
 export type RelationImportance = "high" | "medium" | "low";
 
-export type ComparisonStatus = "preserved" | "broken" | "emergent";
+export type ComparisonStatus = "preserved" | "weakened" | "emergent" | "broken";
+
+export type PacketValidationStatus =
+  | "llm_draft"
+  | "researcher_curated"
+  | "expert_checked"
+  | "pilot_ready"
+  | "study_ready";
 
 export type TheoryLens =
   | "mip_mipvu"
@@ -66,6 +80,7 @@ export interface CandidateCarrier {
   id: string;
   span: string;
   label: string;
+  carrierTypes?: CarrierType[];
   whyCandidate: string;
   evidenceExcerpt: string;
   priority: RelationImportance;
@@ -99,6 +114,7 @@ export interface LiteraryMapping {
   passageLabel: string;
   passage: string;
   selectedSpan: string;
+  carrierTypes?: CarrierType[];
   expressionTypes: ExpressionType[];
   literalScene: {
     entities: string[];
@@ -121,6 +137,13 @@ export interface LiteraryMapping {
     theoryLenses: TheoryLens[];
     source: "llm" | "local_scaffold" | "demo";
     generatedAt?: string;
+    temporaryLens?: boolean;
+    packetProtocol?: {
+      status: PacketValidationStatus;
+      constructionMethod: "theory_guided_packet" | "llm_assisted_draft" | "local_scaffold";
+      validationNote: string;
+      requiredChecks: string[];
+    };
   };
   studyHooks?: {
     designGoal: string[];
@@ -185,6 +208,77 @@ export interface CandidateScanResult {
   passageLabel: string;
   preprocess: TextPreprocessResult;
   candidates: CandidateCarrier[];
+}
+
+export type LiterarySubstrateUnitKind =
+  | "narration"
+  | "dialogue"
+  | "description"
+  | "action"
+  | "scene_ritual";
+
+export type LiterarySubstrateCalibrationStatus =
+  | "unscanned"
+  | "uncalibrated_draft"
+  | "researcher_curated"
+  | "expert_checked"
+  | "study_ready";
+
+export interface LiterarySubstrateNode {
+  id: string;
+  passageId: string;
+  label: string;
+  chapter?: string;
+  unitKinds: LiterarySubstrateUnitKind[];
+  entities: string[];
+  actions: string[];
+  scenes: string[];
+  sensoryImages: string[];
+  repeatedTerms: string[];
+  semanticAnomalies: string[];
+  candidateIds: string[];
+  candidateCount: number;
+  calibrationStatus: LiterarySubstrateCalibrationStatus;
+}
+
+export interface CarrierRecurrence {
+  span: string;
+  label: string;
+  carrierTypes: CarrierType[];
+  occurrenceCount: number;
+  passageIds: string[];
+  distribution: string[];
+  calibrationStatus: LiterarySubstrateCalibrationStatus;
+  salienceSignals: {
+    recurrence: number;
+    distribution: number;
+    narrativeCentrality: number;
+    semanticAnomaly: number;
+    evidenceTrace: number;
+  };
+}
+
+export interface LiterarySubstrate {
+  id: string;
+  workId: string;
+  workTitle: string;
+  generatedAt: string;
+  coverage: {
+    scannedPassages: number;
+    totalPassages: number;
+    scanLimit: number;
+  };
+  nodes: LiterarySubstrateNode[];
+  nodesByPassageId: Record<string, LiterarySubstrateNode>;
+  passageScans: Record<string, CandidateScanResult>;
+  carrierIndex: CarrierRecurrence[];
+  summary: {
+    candidateCount: number;
+    curatedCandidateCount: number;
+    uncalibratedCandidateCount: number;
+    semanticAnomalyCount: number;
+    topRecurringCarriers: string[];
+  };
 }
 
 export interface CompareReplacementRequest {

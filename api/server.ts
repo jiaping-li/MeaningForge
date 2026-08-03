@@ -279,6 +279,105 @@ function meaningSystemPrompt(): string {
   ].join(" ");
 }
 
+function scanOutputContract() {
+  return {
+    scan: {
+      workTitle: "string",
+      passageLabel: "string",
+      preprocess: {
+        segments: ["short segment strings"],
+        entities: ["people, places, objects, named abstractions"],
+        images: ["concrete images, symbolic objects, motifs"],
+        actions: ["salient verbs/actions"],
+        repeatedTerms: ["repeated words or phrases"],
+        allusions: ["possible allusions or classical references"],
+        narrativeFrames: ["dream frame, mythic frame, social frame, dramatic frame, etc."],
+      },
+      candidates: [
+        {
+          id: "string",
+          span: "short exact phrase from passage",
+          label: "string",
+          whyCandidate: "why this may carry metaphorical/symbolic meaning",
+          evidenceExcerpt: "short excerpt from passage",
+          priority: "high | medium | low",
+          detectionMethod: "MIP/MIPVU | Chinese poetics | Symbol/motif | Narrative structure | LLM semantic scan",
+          basicMeaning: "basic/concrete/conventional meaning",
+          contextualMeaning: "meaning in this passage",
+          semanticTension: "basic-contextual tension or symbolic tension",
+          culturalResonance: "poetics, allusion, motif, genre, tradition",
+          readerSalience: "high | medium | low",
+          confidence: "high | medium | low",
+          replaceability: "high | medium | low",
+          theoryTrace: {
+            mipVu: "basic/contextual meaning comparison or why not applicable",
+            chinesePoetics: "比/兴/意象/寄托/典故/意境 reason or empty string",
+            symbolMotif: "symbolic or motif recurrence reason or empty string",
+            narrativeStructure: "how this carrier matters to scene, character, fate, or action",
+          },
+          scores: {
+            mipTension: "number 0-1",
+            poeticImagery: "number 0-1",
+            motifRecurrence: "number 0-1",
+            narrativeImportance: "number 0-1",
+            evidenceDensity: "number 0-1",
+          },
+        },
+      ],
+    },
+  };
+}
+
+function buildScanPayload({
+  task,
+  workTitle,
+  author,
+  language,
+  tradition,
+  theoryLenses,
+  passageLabel,
+  passage,
+  draftScan,
+}: {
+  task: string;
+  workTitle: string;
+  author: string;
+  language: string;
+  tradition: string;
+  theoryLenses: string[];
+  passageLabel: string;
+  passage: string;
+  draftScan?: unknown;
+}) {
+  return {
+    task,
+    outputContract: scanOutputContract(),
+    workTitle,
+    author,
+    language,
+    tradition,
+    theoryLenses,
+    passageLabel,
+    passage,
+    draftScan,
+    constraints: [
+      "This is a VeriForge-style scaffold: generate inspectable candidates, not a final answer.",
+      "Use all selected theoryLenses as complementary filters.",
+      "For Chinese classics, actively scan 比, 興, 意象, 寄托, 典故, 命名/諧音, 真假/夢幻 structures, recurring motifs, and narrative frames.",
+      "For MIP/MIPVU, explicitly compare basic meaning and contextual meaning.",
+      "Prefer candidates that a human reader would notice: repeated, strange, culturally loaded, narratively central, or emotionally salient images.",
+      "Prefer candidates that are productive under replacement: replacing the carrier should preserve, weaken, break, or create some mapping relations.",
+      "Penalize isolated proper names or literal objects unless you can state a contextual shift, cultural resonance, or narrative function.",
+      "Reject discourse fillers, reporting verbs, grammar-only actions, generic quantities, and broken phrase fragments such as 說著, 看著, 走了, 自然自然, 很多次, 这是包, 痨病都包.",
+      "Keep candidates only when they have carrier substance, relational load, evidence trace, or replacement diagnosticity.",
+      "If the passage has no suitable meaning carrier, return an empty candidates array instead of forcing a generic scene candidate.",
+      "Return 3-8 candidates when the passage is long enough; fewer is better than noisy candidates.",
+      "Rank candidates by readerSalience, evidenceDensity, culturalResonance, semanticTension, narrativeImportance, and replaceability.",
+      "Use short excerpts only. Do not invent quotations.",
+    ],
+  };
+}
+
 async function handleScanCandidates(request: http.IncomingMessage, response: http.ServerResponse): Promise<void> {
   const body = await readJsonBody(request);
   const payload = body && typeof body === "object" ? body as Record<string, unknown> : {};
@@ -297,59 +396,13 @@ async function handleScanCandidates(request: http.IncomingMessage, response: htt
     return;
   }
 
-  const data = await postChatCompletion({
+  const draftData = await postChatCompletion({
     messages: [
       { role: "system", content: meaningSystemPrompt() },
       {
         role: "user",
-        content: JSON.stringify({
-          task: "Scan this passage before interpretation. Do not produce a final reading. Produce preprocess data and ranked candidate carriers for later human/LLM selection.",
-          outputContract: {
-            scan: {
-              workTitle: "string",
-              passageLabel: "string",
-              preprocess: {
-                segments: ["short segment strings"],
-                entities: ["people, places, objects, named abstractions"],
-                images: ["concrete images, symbolic objects, motifs"],
-                actions: ["salient verbs/actions"],
-                repeatedTerms: ["repeated words or phrases"],
-                allusions: ["possible allusions or classical references"],
-                narrativeFrames: ["dream frame, mythic frame, social frame, dramatic frame, etc."],
-              },
-              candidates: [
-                {
-                  id: "string",
-                  span: "short exact phrase from passage",
-                  label: "string",
-                  whyCandidate: "why this may carry metaphorical/symbolic meaning",
-                  evidenceExcerpt: "short excerpt from passage",
-                  priority: "high | medium | low",
-                  detectionMethod: "MIP/MIPVU | Chinese poetics | Symbol/motif | Narrative structure | LLM semantic scan",
-                  basicMeaning: "basic/concrete/conventional meaning",
-                  contextualMeaning: "meaning in this passage",
-                  semanticTension: "basic-contextual tension or symbolic tension",
-                  culturalResonance: "poetics, allusion, motif, genre, tradition",
-                  readerSalience: "high | medium | low",
-                  confidence: "high | medium | low",
-                  replaceability: "high | medium | low",
-                  theoryTrace: {
-                    mipVu: "basic/contextual meaning comparison or why not applicable",
-                    chinesePoetics: "比/兴/意象/寄托/典故/意境 reason or empty string",
-                    symbolMotif: "symbolic or motif recurrence reason or empty string",
-                    narrativeStructure: "how this carrier matters to scene, character, fate, or action",
-                  },
-                  scores: {
-                    mipTension: "number 0-1",
-                    poeticImagery: "number 0-1",
-                    motifRecurrence: "number 0-1",
-                    narrativeImportance: "number 0-1",
-                    evidenceDensity: "number 0-1",
-                  },
-                },
-              ],
-            },
-          },
+        content: JSON.stringify(buildScanPayload({
+          task: "Round 1 work agent: scan this passage with high recall before interpretation. Produce preprocess data and ranked candidate meaning carriers for later critique.",
           workTitle,
           author,
           language,
@@ -357,26 +410,41 @@ async function handleScanCandidates(request: http.IncomingMessage, response: htt
           theoryLenses,
           passageLabel,
           passage,
-          constraints: [
-            "This is a VeriForge-style scaffold: generate inspectable candidates, not a final answer.",
-            "Use all selected theoryLenses as complementary filters.",
-            "For Chinese classics, actively scan 比, 興, 意象, 寄托, 典故, 命名/諧音, 真假/夢幻 structures, recurring motifs, and narrative frames.",
-            "For MIP/MIPVU, explicitly compare basic meaning and contextual meaning.",
-            "Prefer candidates that a human reader would notice: repeated, strange, culturally loaded, narratively central, or emotionally salient images.",
-            "Prefer candidates that are productive under replacement: replacing the carrier should preserve, break, or create some mapping relations.",
-            "Penalize isolated proper names or literal objects unless you can state a contextual shift, cultural resonance, or narrative function.",
-            "Return 5-10 candidates when the passage is long enough.",
-            "Rank candidates by readerSalience, evidenceDensity, culturalResonance, semanticTension, and narrativeImportance.",
-            "Use short excerpts only. Do not invent quotations.",
-          ],
-        }),
+        })),
       },
     ],
     response_format: { type: "json_object" },
   });
 
-  const parsed = parseJsonFromModel<{ scan: unknown }>(readChatContent(data));
-  sendJson(response, 200, parsed);
+  const draft = parseJsonFromModel<{ scan: unknown }>(readChatContent(draftData));
+  const refinementData = await postChatCompletion({
+    messages: [
+      { role: "system", content: meaningSystemPrompt() },
+      {
+        role: "user",
+        content: JSON.stringify(buildScanPayload({
+          task: [
+            "Round 2 loop agent: critique and revise the draft scan.",
+            "Delete false positives, broken spans, generic discourse markers, reporting verbs, grammar-only actions, and literal items with no contextual shift.",
+            "Add only missing carriers that have exact spans, evidence trace, relational load, or replacement diagnosticity.",
+            "Return the final refined scan only. Do not include critique prose.",
+          ].join(" "),
+          workTitle,
+          author,
+          language,
+          tradition,
+          theoryLenses,
+          passageLabel,
+          passage,
+          draftScan: draft.scan,
+        })),
+      },
+    ],
+    response_format: { type: "json_object" },
+  });
+
+  const refined = parseJsonFromModel<{ scan: unknown }>(readChatContent(refinementData));
+  sendJson(response, 200, refined);
 }
 
 async function handleAnalyzePassage(request: http.IncomingMessage, response: http.ServerResponse): Promise<void> {
@@ -405,6 +473,7 @@ async function handleAnalyzePassage(request: http.IncomingMessage, response: htt
     passageLabel: "string",
     passage: "string",
     selectedSpan: "string",
+    carrierTypes: ["object | action | discourse | scene_ritual | sensory_image"],
     expressionTypes: [
       "lexical_metaphor | metaphorically_structured_image | recurring_metaphorical_motif | metaphorically_structured_action",
     ],
@@ -437,6 +506,7 @@ async function handleAnalyzePassage(request: http.IncomingMessage, response: htt
         id: "string",
         span: "short literal phrase from the passage",
         label: "string",
+        carrierTypes: ["object | action | discourse | scene_ritual | sensory_image"],
         whyCandidate: "why this image or phrase may carry metaphorical meaning",
         evidenceExcerpt: "short excerpt from the supplied passage",
         priority: "high | medium | low",
@@ -467,7 +537,7 @@ async function handleAnalyzePassage(request: http.IncomingMessage, response: htt
         comparisons: [
           {
             id: "string",
-            status: "preserved | broken | emergent",
+            status: "preserved | weakened | emergent | broken",
             title: "string",
             explanation: "string",
             relationIds: ["string"],
@@ -515,6 +585,7 @@ async function handleAnalyzePassage(request: http.IncomingMessage, response: htt
             "For Chinese classics, scan for 比, 興, 意象, 寄托, 典故, 命名/諧音, 真假/夢幻 structures, and recurring cultural motifs.",
             "For symbol/motif candidates, prefer repeated, culturally loaded, narratively salient images rather than isolated nouns.",
             "First identify 4-8 candidate carriers/images/motifs in the passage, especially for long classic chapters.",
+            "Classify each selected carrier using carrierTypes: object, action, discourse, scene_ritual, or sensory_image. Use multiple types only when the passage-level relation truly combines them.",
             "Put those candidates in candidateCarriers with short exact spans, evidence excerpts, detectionMethod, basicMeaning, contextualMeaning, semanticTension, culturalResonance, readerSalience, and confidence.",
             "Rank candidates by reader salience, textual evidence density, cultural resonance, and interpretive productivity.",
             "Then choose one most promising candidate as selectedSpan/concreteCarrier for the detailed mapping.",
@@ -522,7 +593,7 @@ async function handleAnalyzePassage(request: http.IncomingMessage, response: htt
             "Create 2-4 mappingRelations with relationType and evidenceIds.",
             "Create 2-5 evidence items with sourceRole and groundedness. Textual evidence must quote only from the provided passage.",
             "Create 2-3 replacement candidates with different replacementStrategy values where possible.",
-            "Each replacement should include at least one preserved, one broken, and one emergent comparison. If a category is weak or uncertain, still include it and state that uncertainty for the reader to judge.",
+            "Each replacement should make preserved, weakened, emergent, or broken consequences explicit. Include the categories that are diagnostically useful rather than forcing all four every time.",
             "Each replacement comparison should include a diagnosticQuestion for the reader.",
             "Add analysisProvenance and studyHooks that make the system usable in a CHI user study.",
             "Do not invent long quotations. Use short excerpts from the provided passage or paraphrased cultural notes.",
@@ -565,7 +636,7 @@ async function handleCompareReplacement(request: http.IncomingMessage, response:
               comparisons: [
                 {
                   id: "string",
-                  status: "preserved | broken | emergent",
+                  status: "preserved | weakened | emergent | broken",
                   title: "string",
                   explanation: "string",
                   relationIds: ["string"],
