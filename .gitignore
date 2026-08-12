@@ -1,0 +1,8 @@
+# The demo has its own repository and release history.
+08_Demo_System/MeaningForge/
+
+# Local editor and runtime state.
+.DS_Store
+*.log
+__pycache__/
+.pytest_cache/

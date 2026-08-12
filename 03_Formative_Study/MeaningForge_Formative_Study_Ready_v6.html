@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MeaningForge Formative Study v6</title>
+<style>
+:root {
+  --ink:#1f2937; --muted:#667085; --line:#d8dee8; --bg:#f5f7fa; --card:#ffffff;
+  --accent:#244f73; --accent2:#e9f1f7; --warn:#8a5a12; --danger:#8b2d2d; --ok:#256b45;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;line-height:1.68}
+.top{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+.topin{max-width:1100px;margin:auto;padding:12px 20px;display:flex;gap:18px;align-items:center}
+.brand{font-weight:800;color:var(--accent)} .progress{height:7px;flex:1;background:#edf0f4;border-radius:999px;overflow:hidden} .progress>div{height:100%;background:var(--accent);width:0;transition:.25s}
+.stepname{font-size:13px;color:var(--muted);min-width:120px;text-align:right}
+main{max-width:1060px;margin:26px auto 80px;padding:0 18px}
+.screen{display:none} .screen.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;margin:0 0 18px;box-shadow:0 3px 14px rgba(20,40,60,.04)}
+h1,h2,h3{line-height:1.25;color:#18364e} h1{font-size:30px} h2{font-size:24px;margin-top:0} h3{font-size:18px}
+p.note,.note{background:var(--accent2);border-left:4px solid var(--accent);padding:12px 14px;border-radius:8px;color:#29465e}
+.warn{background:#fff7e7;border-left:4px solid #c78923;padding:12px 14px;border-radius:8px}
+.field{margin:18px 0} label{display:block;font-weight:700;margin-bottom:7px}
+input[type=text],select,textarea{width:100%;border:1px solid #cdd5df;border-radius:9px;padding:11px 12px;font:inherit;background:white}
+textarea{min-height:105px;resize:vertical}
+.small{font-size:13px;color:var(--muted)} .tiny{font-size:12px;color:var(--muted)}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap}
+button{border:1px solid #bcc7d2;background:white;border-radius:9px;padding:10px 16px;font:inherit;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:white;font-weight:700}
+button.secondary{background:#eef4f8;color:#234b69;border-color:#c7d7e4}
+button.danger{color:var(--danger);border-color:#ddbaba}
+button:disabled{opacity:.5;cursor:not-allowed}
+.reading{font-family:"Noto Serif SC","Songti SC","SimSun",serif;font-size:18px;line-height:2.05;max-width:820px;margin:auto}
+.reading p{margin:0 0 1.25em;text-indent:2em}
+.reader-tools{position:sticky;bottom:10px;z-index:10;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 5px 20px rgba(0,0,0,.08)}
+.evidence-chip{display:inline-flex;align-items:flex-start;gap:7px;background:#f0f5f8;border:1px solid #c8d7e3;border-radius:10px;padding:8px 10px;margin:5px 6px 5px 0;max-width:100%}
+.evidence-chip span{white-space:normal} .evidence-chip button{padding:0 5px;border:none;background:transparent;color:#8b2d2d}
+.scale{display:flex;gap:8px;flex-wrap:wrap} .scale label{font-weight:400;border:1px solid var(--line);padding:7px 10px;border-radius:8px;cursor:pointer}
+.probe{border:2px solid #d7e1e9;background:#fbfcfd;border-radius:15px;padding:20px;margin:18px 0}
+.probe-title{font-weight:800;color:#234f71;margin-bottom:10px}
+.evidence-list li{margin:.55em 0}
+.path{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:12px 0}
+.node{border:1px solid #c5d3df;border-radius:10px;padding:12px;background:white;min-width:150px;flex:1} .arrow{align-self:center;color:#6b7f90;font-size:22px}
+.skeleton{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start}
+.skelcol{background:#fff;border:1px solid #ccd7e0;border-radius:12px;padding:12px} .skelcol h4{margin:0 0 8px;color:#315a78}
+.relcard{border:1px solid #d3dde5;border-radius:12px;padding:14px;margin:10px 0;background:#fff}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef3f7;color:#3e6078;font-size:12px}
+.hidden{display:none!important}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:7px 14px} .kv .k{font-weight:700;color:#486075}
+hr{border:0;border-top:1px solid var(--line);margin:25px 0}
+@media(max-width:760px){.grid2,.grid3,.skeleton{grid-template-columns:1fr} .topin{padding:10px 12px} .stepname{display:none} .reading{font-size:17px} .card{padding:18px} .kv{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="topin">
+  <div class="brand">MeaningForge · Formative v6</div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="stepname" id="stepname">开始</div>
+</div></div>
+
+<main>
+<section class="screen active" id="s0">
+<div class="card">
+<h1>文学阅读研究</h1>
+<p>这项研究关注人们在阅读文学文本时如何形成自己的理解，以及不同的信息呈现方式可能怎样支持这个过程。</p>
+<p class="note"><strong>这里没有唯一标准答案，也不是文学知识考试。</strong> 请按你平时的方式阅读。阅读过程中如果自然想到什么，可以说出来，但不需要持续解释自己的每一步思考。</p>
+<div class="field"><label>Participant ID *</label><input id="pid" type="text" placeholder="例如 P01"/></div>
+<div class="grid2">
+  <div class="field"><label>本次 session 类型 *</label><select id="studyStage"><option value="">请选择</option><option value="pilot">Pilot / 材料与协议试跑</option><option value="main">Main formative</option></select></div>
+  <div class="field"><label>年龄范围 *</label><select id="age"><option value="">请选择</option><option>18–20</option><option>21–23</option><option>24–29</option><option>30+</option></select></div>
+</div>
+<div class="field"><label>专业/学科背景 *</label><input id="discipline" type="text"/></div>
+<div class="field"><label>你是否上过文学、人文或需要文本分析的课程？ *</label><select id="course"><option value="">请选择</option><option value="none">没有</option><option value="one">1 门左右</option><option value="some">2–3 门</option><option value="many">4 门及以上</option></select></div>
+<div class="field"><label>你是否写过需要引用文本证据的阅读报告/论文？ *</label><select id="essayExp"><option value="">请选择</option><option value="no">没有</option><option value="once">1 次</option><option value="some">2–5 次</option><option value="many">很多次</option></select></div>
+<div class="field"><label>你是否使用过 ChatGPT / 其他 AI 解释文学文本？ *</label><select id="aiUse"><option value="">请选择</option><option value="never">从未</option><option value="rare">偶尔</option><option value="sometimes">有时</option><option value="often">经常</option></select></div>
+<div class="field"><label><input type="checkbox" id="consentDone"/> 研究者已单独完成正式知情同意流程，本页面不是知情同意书的替代。 *</label></div>
+<div class="actions"><span></span><button class="primary" onclick="startStudy()">开始</button></div>
+</div>
+</section>
+
+<section class="screen" id="s1">
+<div class="card">
+<h2 id="materialLabel">阅读材料</h2>
+<p class="small">作者和题名暂不显示，以减少已有课堂印象的影响。你可以正常回看文本。</p>
+<div class="reading" id="readingText"></div>
+<hr/>
+<div class="field"><label>可选笔记</label><textarea id="naturalNote" placeholder="只有自然想到时再写；没有也没关系。"></textarea></div>
+<div class="reader-tools">
+  <button class="secondary" onclick="captureSelection('natural')">保存当前选中的文字</button>
+  <span class="small">可选：先用鼠标选中文字，再点击保存。不要为了研究强行找“关键句”。</span>
+</div>
+<div id="naturalEvidence"></div>
+<div class="actions"><span></span><button class="primary" onclick="finishReading()">我已读完</button></div>
+</div>
+</section>
+
+<section class="screen" id="s2">
+<div class="card">
+<h2>基本理解检查</h2>
+<p>这些问题只用于判断后续困难是否来自基本情节/字面理解，不是在考“正确解释”。请不要回看文本。</p>
+<div id="literalQs"></div>
+<div class="actions"><button onclick="show(1)">返回文本</button><button class="primary" onclick="saveLiteral()">继续</button></div>
+</div>
+</section>
+
+<section class="screen" id="s3">
+<div class="card">
+<h2>先写下你自己的理解</h2>
+<p class="note">这一步在任何结构化提示出现之前完成。请写你现在真实的理解，不需要猜研究者想要什么。</p>
+<div class="field"><label>请用 3–5 句话写出你目前对这段文本的理解。 *</label><textarea id="independentInterpretation" style="min-height:160px"></textarea></div>
+<div class="field"><label>如果只能选 2–4 处原文来支撑刚才的理解，你会选哪些？</label>
+<div class="reader-tools">
+  <button class="secondary" onclick="toggleReferenceText()">显示/隐藏原文</button>
+  <button class="secondary" onclick="captureSelection('independent')">保存当前选中的文字</button>
+</div>
+<div id="referenceText" class="reading hidden" style="margin-top:18px"></div>
+<div id="independentEvidence"></div>
+</div>
+<div class="actions"><span></span><button class="primary" onclick="saveIndependent()">继续</button></div>
+</div>
+</section>
+
+<section class="screen" id="s4">
+<div class="card">
+<h2>回顾你刚才是怎么形成这个理解的</h2>
+<p>下面的问题围绕<strong>你自己的解释</strong>，研究者不会纠正你的文学判断。</p>
+<div class="field"><label>Q1. 刚才哪些文字最让你产生这个想法？ *</label><textarea id="r1"></textarea></div>
+<div class="field"><label>Q2. 这些文字里，你具体注意到了什么？可能是某个词、动作、重复、语气、意象、人物关系或场景。 *</label><textarea id="r2"></textarea></div>
+<div class="field"><label>Q3. 这些细节之间有没有什么关系？还是它们各自独立地支持你的理解？ *</label><textarea id="r3"></textarea></div>
+<div class="field"><label>Q4. 为什么这些文字会让你得到刚才那个更大的理解？ *</label><textarea id="r4"></textarea></div>
+<div class="field"><label>Q5. 文本里还有没有别的地方会加强、削弱或改变这个理解？ *</label><textarea id="r5"></textarea></div>
+<div class="field"><label>Q6. 如果另一个读者不同意，你觉得他可能从哪里读出不同的理解？ *</label><textarea id="r6"></textarea></div>
+<div class="field"><label>Q7. 你的判断主要来自哪里？可多选并补充。</label>
+<div class="grid3">
+<label><input type="checkbox" class="src" value="primary_text"/> 原文</label>
+<label><input type="checkbox" class="src" value="background"/> 背景知识</label>
+<label><input type="checkbox" class="src" value="experience"/> 个人经验</label>
+<label><input type="checkbox" class="src" value="classroom"/> 课堂/既有解读</label>
+<label><input type="checkbox" class="src" value="ai"/> AI/网络解释</label>
+<label><input type="checkbox" class="src" value="other"/> 其他</label>
+</div>
+<textarea id="sourceExplain" placeholder="可选补充" style="margin-top:8px"></textarea>
+</div>
+<div class="actions"><span></span><button class="primary" onclick="saveReconstruction()">进入呈现方式比较</button></div>
+</div>
+</section>
+
+<section class="screen" id="s5">
+<div class="card">
+<h2>比较不同的信息呈现方式</h2>
+<p class="warn"><strong>下面出现的是“一个示例读者的可能解释”，不是标准答案。</strong> 四种呈现方式使用相同的核心信息，只是结构不同。你的任务是观察它们分别让你更容易/更难做什么。</p>
+<div id="probeContainer"></div>
+<div class="actions"><span></span><button class="primary" onclick="saveProbe()">完成这一种呈现</button></div>
+</div>
+</section>
+
+<section class="screen" id="s6">
+<div class="card">
+<h2>四种呈现方式的整体比较</h2>
+<div class="field"><label>如果你要追踪“这个解释为什么成立”，哪一种最有帮助？ *</label><select id="cmpWhy"><option value="">请选择</option><option value="A">A · 段落解释</option><option value="B">B · 证据列表</option><option value="C">C · 分层关系路径</option><option value="D">D · 全文骨架</option><option value="none">都没有明显帮助</option></select></div>
+<div class="field"><label>如果你要找出解释中最薄弱/最值得质疑的部分，哪一种最有帮助？ *</label><select id="cmpWeak"><option value="">请选择</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="none">都没有明显帮助</option></select></div>
+<div class="field"><label>如果文本长度变成现在的 3 倍，你觉得哪一种最能帮助你维持“全文关系”？ *</label><select id="cmpGlobal"><option value="">请选择</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="none">都没有明显帮助</option></select></div>
+<div class="field"><label>你觉得“全文骨架”是否真的有必要？ *</label><select id="networkNeed"><option value="">请选择</option><option value="yes">有必要</option><option value="depends">取决于文本/任务</option><option value="no">没有必要，较简单形式已足够</option></select></div>
+<div class="field"><label>请具体说明为什么。</label><textarea id="networkWhy"></textarea></div>
+<div class="field"><label>如果只能保留一个功能/呈现，你会保留什么？为什么？ *</label><textarea id="keepOne"></textarea></div>
+<div class="actions"><span></span><button class="primary" onclick="saveComparison()">继续</button></div>
+</div>
+</section>
+
+<section class="screen" id="s7">
+<div class="card">
+<h2>尝试几个小的交互</h2>
+<p>下面仍然围绕同一个“示例读者的可能解释”。重点不是同意它，而是看哪些交互能帮助你检查或修改 reasoning。</p>
+<div id="interactionArea"></div>
+<div class="field"><label>你还会添加哪一处原文证据？为什么？</label><textarea id="addEvidenceText"></textarea></div>
+<div class="field"><label>看到“另一种读法”后，你更倾向于：</label><select id="altReaction"><option value="">请选择</option><option value="retain">保留原路径</option><option value="combine">把两条路径结合起来</option><option value="switch">更倾向另一条路径</option><option value="both">认为两条都可成立</option><option value="rejectboth">两条都不太同意</option></select></div>
+<div class="field"><label>看到“反向/限制证据”后，你会如何调整示例解释？</label><textarea id="counterReaction"></textarea></div>
+<hr/>
+<h3>可选：替换 / 反事实探针</h3>
+<p id="replacementPrompt" class="note"></p>
+<div class="field"><label>这个操作对你来说：</label><select id="replacementUse"><option value="">请选择</option><option value="useful">明显帮助我理解原文中具体表达为什么重要</option><option value="some">有一点帮助，但不是核心</option><option value="game">更像人为的文字游戏</option><option value="confusing">让我更困惑</option><option value="na">不适合这篇文本/这个关系</option></select></div>
+<div class="field"><label>哪些关系会保留、变弱或断裂？（可选）</label><textarea id="replacementReason"></textarea></div>
+<div class="actions"><span></span><button class="primary" onclick="saveInteraction()">最后一步</button></div>
+</div>
+</section>
+
+<section class="screen" id="s8">
+<div class="card">
+<h2>结束与材料熟悉度</h2>
+<div class="field"><label>阅读过程中，你是否认出/以前读过或系统学过这篇材料？ *</label><select id="familiarity"><option value="">请选择</option><option value="no">没有印象</option><option value="maybe">似乎见过，但不确定</option><option value="read">确定读过，但不太记得解释</option><option value="studied">以前系统学过，并记得常见解读</option></select></div>
+<div class="field"><label>整个任务里，最像“系统在告诉你标准答案”的环节是什么？如果没有也请写“没有”。 *</label><textarea id="answerKeyRisk"></textarea></div>
+<div class="field"><label>整个任务里，最能帮助你自己进行文学推理的环节是什么？ *</label><textarea id="bestSupport"></textarea></div>
+<div class="field"><label>如果你平时要写阅读报告/课堂讨论，你会在什么情况下使用类似工具？ *</label><textarea id="realUse"></textarea></div>
+<div class="field"><label>其他意见（可选）</label><textarea id="finalComment"></textarea></div>
+<div class="note" id="sourceDebrief"></div>
+<div class="actions"><span></span><button class="primary" onclick="finishAll()">完成并导出</button></div>
+</div>
+</section>
+
+<section class="screen" id="s9">
+<div class="card">
+<h2>完成</h2>
+<p>感谢参与。请将导出的 JSON 文件交给研究者。</p>
+<div class="kv" id="summary"></div>
+<div class="actions">
+<button onclick="downloadJSON(false)">下载完整 JSON</button>
+<button class="secondary" onclick="downloadJSON(true)">下载匿名化 JSON</button>
+</div>
+<div id="researcherPanel" class="hidden">
+<hr/><h3>Researcher-only material note</h3>
+<pre id="researcherNote" style="white-space:pre-wrap;background:#f5f7fa;padding:12px;border-radius:8px"></pre>
+</div>
+</div>
+</section>
+</main>
+
+<script>
+const CASES = {"A": {"id": "xiaohong_chudong", "label": "阅读材料 A", "source": "萧红，《初冬》（1936），维基文库公开文本。 实验页面按原作顺序节选；仅做删节与页面排版，不把研究者改写内容混入原文。", "source_url": "https://zh.wikisource.org/wiki/%E5%88%9D%E5%86%AC", "relation_family": "意象 / 感官环境 × 重复话语 × 情感关系", "researcher_note": "低—中等 literal difficulty；关系主要依赖寒冷/漂流/声音/凝视的反复与弟弟的短暂情感支持。重点观察 participant 是否能把分散的意象与关系线索整合，而不是只复述“孤独”。", "text": "初冬，我走在清凉的街道上遇见了我的弟弟。\n\n“莹姐，你走到那里去？”\n\n“随便走走吧！”\n\n“我们去吃一杯咖啡，好不好？莹姐。”\n\n咖啡店的窗子在帘幕下挂着苍白的霜层。我把领口脱着毛的外衣搭在衣架上。我们开始搅着杯子玲啷的响了。\n\n“天冷了吧！并且也太孤寂了，你还是回家的好。”弟弟的眼睛是深黑色的。\n\n我摇了头，我说：“你们学校的篮球队近来怎么样？还活跃吗？你还很热心吗？”\n\n“我掷筐掷得更进步，可惜你总也没到我们球场上来了。你这样不畅快是不行的。”\n\n我仍搅着杯子，也许漂流久了的心情，就和离了岸的海水一般，若非遇到大风是不会翻起的。我开始弄着手帕。弟弟再向我说什么我已不去听清他，仿佛自己是沉坠在深远的幻想的井里。\n\n我不记得怎样咖啡被我吃干了杯了。茶匙在搅着空的杯子时，弟弟说：“再来一杯吧！”\n\n女侍者带着欢笑一般飞起的头发来到我们桌边，她又用很响亮的脚步摇摇的走了去。\n\n也许因为清早或天寒，再没有人走进这咖啡店。在弟弟默默看着我的时候，在我的思想凝静得玻璃一般平的时候，壁间暖气管小小嘶鸣的声音都听得到了。\n\n“天冷了，还是回家好，心情这样不畅快长久了是无益的。”\n\n“怎么！”\n\n“太坏的心情与你有什么好处呢？”\n\n“为什么要说我的心情不好呢？”\n\n我们又都搅着杯子。有外国人走进来，那响着嗓子的、嘴不住在说的女人，就坐在我们的近边。她离得我越近，我越嗅到她满衣的香气，那使我感到她离得我更辽远，也感到全人类离得我更辽远。也许她那安闲而幸福的态度与我一点联系也没有。\n\n我们搅着杯子，杯子不能像起初搅得发响了。街车好像渐渐多了起来，闪在窗子上的人影迅速而且烦多了。隔着窗子可以听到喑哑的笑声和喑哑的踏在行人道上的鞋子的声音。\n\n“莹姐，”弟弟的眼睛是深黑色的，“天冷了，再不能漂流下去，回家去吧！”弟弟说：“你的头发这样长了，怎么不到理发店去一次呢？”我不知道为什么被他这话所激动了。\n\n也许要熄灭的灯火在我心中复燃起来，热力和光明鼓荡着我：“那样的家我是不想回去的。”\n\n“那么漂流着，就这样漂流着？”弟弟的眼睛是深黑色的。他的杯子留在左手里边，另一只手在桌面上手心向上翻张了开来，要在空间摸索着什么似的。最后，他是捉住自己的领巾。\n\n“莹姐，我真担心你这个女浪人！”他牙齿好像更白了些，更大些，而且有力了，而且充满热情了。\n\n出了咖啡店，我们在结着薄碎的冰雪上面踏着脚。\n\n初冬，朝晨的红日扑着我们的头发，这样的红光使我感到欣快和寂寞。弟弟不住地在手下摇着帽子，肩头耸起了又落下了；心脏也是高了又低了。\n\n渺小的同情者和被同情者离开了市街。\n\n停在一个荒败的枣树园的前面时，他突然把很厚的手伸给了我，这是我们要告别了。\n\n“我到学校去上课！”他脱开我的手向着和我相反的方向背转过去。可是走了几步又转回来：“莹姐，我看你还是回家的好！”\n\n“那样的家我是不能回去的，我不愿意受和我站在两极端父亲的豢养……”\n\n“那么你要钱用吗？”\n\n“不要的。”\n\n“那么，你就这个样子吗？你瘦了！你快要生病了！你的衣服也太薄啊！”弟弟的眼睛是深黑色的，充满着祈祷和愿望。我们又握过手，分别方向走去。\n\n太阳在我的脸面上闪闪耀耀。仍和未遇见弟弟以前一样，我穿着街头，我无目的的走。寒风，刺着喉头，时时要发作小小的咳嗽。\n\n弟弟留给我的是深黑色的眼睛，这在我散漫与孤独的流荡人的心板上，怎能不微温了一个时刻？", "literal_questions": ["叙述者和弟弟主要在哪里交谈？", "弟弟反复建议叙述者做什么？", "两人分别之后，叙述者的生活状态有没有立刻发生根本改变？请简要说明。"], "probe_claim": "一个可能的读法是：文本把“寒冷、漂流、人与人之间的距离”与弟弟反复出现的关切并置，表现叙述者并没有因为亲情而摆脱孤独，但这种关系仍带来短暂而真实的温度。", "evidence": ["“漂流久了的心情，就和离了岸的海水一般”以及“沉坠在深远的幻想的井里”。", "陌生女人离得越近，叙述者反而觉得她以及“全人类”更辽远。", "弟弟的“深黑色的眼睛”反复出现，并在结尾留下一刻“微温”。", "红日同时使叙述者感到“欣快和寂寞”；分别后她仍“无目的的走”。"], "features": ["寒冷/霜/冰雪/寒风的感官意象", "“漂流”“离岸”“井”等空间隐喻", "“深黑色的眼睛”的重复", "温暖与寒冷、靠近与辽远的并置"], "relations": [["寒冷与漂流意象", "把孤独写成一种持续的身体与空间经验，而不只是一个抽象情绪标签"], ["重复的“深黑色的眼睛”", "使弟弟的关切成为贯穿文本的关系锚点"], ["红日的“欣快和寂寞”", "说明温暖并没有消除孤独，而是让两种状态同时存在"]], "alternative": "另一个读法可以更强调“拒绝回家”所指向的家庭权力冲突：弟弟的温情并不能解决叙述者与父亲/家庭结构的根本矛盾。", "counterevidence": "结尾明确写到弟弟的关切让叙述者“微温了一个时刻”，因此把全文只解释成“彻底与所有人断裂”会忽略这条反向证据。", "replacement": "如果把全文的“初冬、霜层、冰雪、寒风”整体替换成温暖明亮的春日环境，你觉得“漂流/距离/短暂温度”这条解释路径中，哪些关系会变弱、哪些仍然成立？", "paras": ["初冬，我走在清凉的街道上遇见了我的弟弟。", "“莹姐，你走到那里去？”", "“随便走走吧！”", "“我们去吃一杯咖啡，好不好？莹姐。”", "咖啡店的窗子在帘幕下挂着苍白的霜层。我把领口脱着毛的外衣搭在衣架上。我们开始搅着杯子玲啷的响了。", "“天冷了吧！并且也太孤寂了，你还是回家的好。”弟弟的眼睛是深黑色的。", "我摇了头，我说：“你们学校的篮球队近来怎么样？还活跃吗？你还很热心吗？”", "“我掷筐掷得更进步，可惜你总也没到我们球场上来了。你这样不畅快是不行的。”", "我仍搅着杯子，也许漂流久了的心情，就和离了岸的海水一般，若非遇到大风是不会翻起的。我开始弄着手帕。弟弟再向我说什么我已不去听清他，仿佛自己是沉坠在深远的幻想的井里。", "我不记得怎样咖啡被我吃干了杯了。茶匙在搅着空的杯子时，弟弟说：“再来一杯吧！”", "女侍者带着欢笑一般飞起的头发来到我们桌边，她又用很响亮的脚步摇摇的走了去。", "也许因为清早或天寒，再没有人走进这咖啡店。在弟弟默默看着我的时候，在我的思想凝静得玻璃一般平的时候，壁间暖气管小小嘶鸣的声音都听得到了。", "“天冷了，还是回家好，心情这样不畅快长久了是无益的。”", "“怎么！”", "“太坏的心情与你有什么好处呢？”", "“为什么要说我的心情不好呢？”", "我们又都搅着杯子。有外国人走进来，那响着嗓子的、嘴不住在说的女人，就坐在我们的近边。她离得我越近，我越嗅到她满衣的香气，那使我感到她离得我更辽远，也感到全人类离得我更辽远。也许她那安闲而幸福的态度与我一点联系也没有。", "我们搅着杯子，杯子不能像起初搅得发响了。街车好像渐渐多了起来，闪在窗子上的人影迅速而且烦多了。隔着窗子可以听到喑哑的笑声和喑哑的踏在行人道上的鞋子的声音。", "“莹姐，”弟弟的眼睛是深黑色的，“天冷了，再不能漂流下去，回家去吧！”弟弟说：“你的头发这样长了，怎么不到理发店去一次呢？”我不知道为什么被他这话所激动了。", "也许要熄灭的灯火在我心中复燃起来，热力和光明鼓荡着我：“那样的家我是不想回去的。”", "“那么漂流着，就这样漂流着？”弟弟的眼睛是深黑色的。他的杯子留在左手里边，另一只手在桌面上手心向上翻张了开来，要在空间摸索着什么似的。最后，他是捉住自己的领巾。", "“莹姐，我真担心你这个女浪人！”他牙齿好像更白了些，更大些，而且有力了，而且充满热情了。", "出了咖啡店，我们在结着薄碎的冰雪上面踏着脚。", "初冬，朝晨的红日扑着我们的头发，这样的红光使我感到欣快和寂寞。弟弟不住地在手下摇着帽子，肩头耸起了又落下了；心脏也是高了又低了。", "渺小的同情者和被同情者离开了市街。", "停在一个荒败的枣树园的前面时，他突然把很厚的手伸给了我，这是我们要告别了。", "“我到学校去上课！”他脱开我的手向着和我相反的方向背转过去。可是走了几步又转回来：“莹姐，我看你还是回家的好！”", "“那样的家我是不能回去的，我不愿意受和我站在两极端父亲的豢养……”", "“那么你要钱用吗？”", "“不要的。”", "“那么，你就这个样子吗？你瘦了！你快要生病了！你的衣服也太薄啊！”弟弟的眼睛是深黑色的，充满着祈祷和愿望。我们又握过手，分别方向走去。", "太阳在我的脸面上闪闪耀耀。仍和未遇见弟弟以前一样，我穿着街头，我无目的的走。寒风，刺着喉头，时时要发作小小的咳嗽。", "弟弟留给我的是深黑色的眼睛，这在我散漫与孤独的流荡人的心板上，怎能不微温了一个时刻？"]}, "B": {"id": "xiaohong_shengsichang_horse", "label": "阅读材料 B", "source": "萧红，《生死场》第三章“老马走进屠场”（1934），维基文库公开文本。 实验页面按原作顺序节选；仅做删节与页面排版，不把研究者改写内容混入原文。", "source_url": "https://zh.wikisource.org/wiki/%E7%94%9F%E6%AD%BB%E5%A0%B4/%E4%B8%89", "relation_family": "物件/动物 × 行动路径 × 身体意象 × 经济关系", "researcher_note": "中等 literal difficulty；有强烈场景和身体描写，但解释可从私人依恋、贫困压力、人/动物互照、经济剥夺等方向展开。重点观察 participant 是否把老马、王婆、落叶、死孩子、皮张、地主取钱连接起来。", "text": "【以下按原作顺序节选，仅删去部分过渡，不改写所选句子。】\n\n老马走上进城的大道，“私宰场”就在城门的东边。那里的屠刀正张著，在等待这个残老的动物。\n\n老王婆不牵著她的马儿，在后面用一条短枝驱著它前进。\n\n大树林子里有黄叶回旋著，那是些呼叫著的黄叶。望向林子的那端，全林的树棵，仿佛是关落下来的大伞。凄沉的阳光，晒著所有的秃树。田间望遍了远近的人家。深秋的田地好像没有感觉的光了毛的皮革，远近平铺著。夏季埋在植物里的家屋，现在明显的好像突出地面一般，好像新从地面突出。\n\n深秋带来的黄叶，赶走了夏季的蝴蝶。一张叶子落到王婆的头上，叶子是安静的伏贴在那里。王婆驱著她的老马，头上顶著飘落的黄叶；老马，老人，配著一张老的叶子，他们走在进城的大道。\n\n振一振袖子，把耳边的头发向后抚弄一下，王婆的手颤抖著说了：‘到日子了呢！下汤锅去吧！’王婆什么心情也没有，她看著马在吃道旁的叶子，她用短枝驱著又前进了。\n\n二里半感到非常悲痛。他痉挛著了。过了一个时刻转过身来，他赶上去说：‘下汤锅是下不得的，……下汤锅是下不得……’但是怎样办呢？二里半连半句语言也没有了！他扭歪著身子跨到前面，用手摸一摸马儿的鬃发。老马立刻响著鼻子了！它的眼睛哭著一般，湿润而模糊。悲伤立刻掠过王婆的心孔。哑著嗓子，王婆说：‘算了吧！算了吧！不下汤锅，还不是等著饿死吗？’\n\n深秋秃叶的树，为了惨厉的风变，脱去了灵魂一般吹啸著。马行在前面，王婆随在后面，一步一步屠场近著了；一步一步风声送著老马归去。\n\n王婆她自己想著：一个人怎么变得这样利害？年青的时候，不是常常为著送老马或是老牛进过屠场吗？她颤寒起来，幻想著屠刀要像穿过自己的背脊，于是，手中的短枝脱落了！\n\n王婆恼怒著了！她用短枝打著它起来。虽是起来，老马仍然贪恋著小水沟。王婆因为苦痛的人生，使她易于暴怒，树枝在马儿的脊骨上断成半截。\n\n又安然走在大道上了！经过一些荒凉的家屋，经过几座颓败的小庙。一个小庙前躺著个死了的小孩，那是用一捆谷草束扎著的。孩子小小的头顶露在外面，可怜的小脚从草稍直伸出来；他是谁家的孩子睡在这旷野的小庙前？\n\n五年前它也是一匹年青的马，为了耕种，伤害得只有毛皮蒙遮著骨架。现在它是老了！秋末了！收割完了！没有用处了！只为一张马皮，主人忍心把它送进屠场。就是一张马皮的价值，地主又要从王婆的手里夺去。\n\n这是一条短短的街。就在短街的尽头，张开两张黑色的门扇。再走近一点，可以发见门扇斑斑点点的血印。被血印所恐吓的老太婆好像自己踏在刑场了！\n\n四面板墙钉住无数张毛皮。靠近房檐立了两条高杆，高杆中央横著横梁；马蹄或是牛蹄折下来用麻绳把两只蹄端扎连在一起，做一个叉形挂在上面，一团一团的肠子也搅在上面。\n\n满院在蒸发腥气，在这腥味的人间，王婆快要变做一块铅了！沉重而没有感觉了！\n\n老马──棕色的马，它孤独的站在板墙下，它借助那张钉好的毛皮在搔痒。此刻它仍是马，过一会它将也是一张皮了！\n\n王婆得到三张票子，这可以充纳一亩地租。看著钱比较自慰些，她低著头向大门出去。\n\n‘不行，不行，……马走啦！’\n\n王婆回过头来，马又走在后面；马什么也不知道，仍想回家。屠场中出来一些男人，那些恶面孔们，想要把马抬回去，终于马躺在道旁了！像树根盘结在地中。无法，王婆又走回院中，马也跟回院中。她给马搔著头顶，它渐渐卧在地面了！渐渐想睡著了！忽然王婆站起来向大门奔走。在道口听见一阵关门声。\n\n她那有心肠买酒？她哭著回家，两只袖子完全湿透。那好像是送葬归来一般。\n\n家中地主的使人早等在门前，地主们就连一块铜板也从不舍弃在贫农们的身上，那个使人取了钱走去。\n\n王婆半日的痛苦没有代价了！王婆一生的痛苦也都是没有代价。", "literal_questions": ["王婆为什么要把老马送进屠场？", "卖马所得的钱最后主要去了哪里？", "老马在屠场门口/院内表现出什么行为？请简要说明。"], "probe_claim": "一个可能的读法是：老马被送进屠场不仅写动物死亡，也通过“老人—老马—落叶”、身体/皮张意象和地主取走卖马钱，把生命的衰败、贫困与被榨取的处境压缩到同一条道路上。", "evidence": ["“老马，老人，配着一张老的叶子”一起走在进城大道。", "路旁死孩子、屠场里的皮张/腿骨与“此刻它仍是马，过一会它也将是一张皮”。", "王婆幻想屠刀穿过自己的背脊，并在痛苦中又不得不打马继续走。", "三张票子最终被地主的使人取走；结尾说王婆“一生的痛苦也都是没有代价”。"], "features": ["老马/老人/老叶的并列", "身体、皮、骨、屠刀的重复意象", "“一步一步”通向屠场的路径结构", "生命被折算为皮张/地租的经济关系"], "relations": [["老马—老人—老叶并列", "把动物衰老与人的衰败经验并置，形成互相映照"], ["身体逐渐被写成“皮/骨/价钱”", "把生命转化为可出售资源，强化被物化的感觉"], ["卖马钱又被地主取走", "使私人悲痛与更大的经济压迫关系连接起来"]], "alternative": "也可以把重点放在王婆与老马的私人依恋和内疚：她既舍不得老马，又在贫困逼迫下亲自把它送向屠场，因此核心张力可能首先是爱与生存之间的冲突。", "counterevidence": "王婆自己也会因为焦急而打老马，而且她确实需要卖马的钱；这使人物关系比“善良受害者 vs 单一恶人”更复杂。", "replacement": "如果把“老马”替换成一件已经不能使用的旧农具，而其他经济情节不变，你觉得当前解释中哪些关于贫困/剥夺的关系仍成立，哪些关于生命、身体和共感的关系会明显断裂？", "paras": ["【以下按原作顺序节选，仅删去部分过渡，不改写所选句子。】", "老马走上进城的大道，“私宰场”就在城门的东边。那里的屠刀正张著，在等待这个残老的动物。", "老王婆不牵著她的马儿，在后面用一条短枝驱著它前进。", "大树林子里有黄叶回旋著，那是些呼叫著的黄叶。望向林子的那端，全林的树棵，仿佛是关落下来的大伞。凄沉的阳光，晒著所有的秃树。田间望遍了远近的人家。深秋的田地好像没有感觉的光了毛的皮革，远近平铺著。夏季埋在植物里的家屋，现在明显的好像突出地面一般，好像新从地面突出。", "深秋带来的黄叶，赶走了夏季的蝴蝶。一张叶子落到王婆的头上，叶子是安静的伏贴在那里。王婆驱著她的老马，头上顶著飘落的黄叶；老马，老人，配著一张老的叶子，他们走在进城的大道。", "振一振袖子，把耳边的头发向后抚弄一下，王婆的手颤抖著说了：‘到日子了呢！下汤锅去吧！’王婆什么心情也没有，她看著马在吃道旁的叶子，她用短枝驱著又前进了。", "二里半感到非常悲痛。他痉挛著了。过了一个时刻转过身来，他赶上去说：‘下汤锅是下不得的，……下汤锅是下不得……’但是怎样办呢？二里半连半句语言也没有了！他扭歪著身子跨到前面，用手摸一摸马儿的鬃发。老马立刻响著鼻子了！它的眼睛哭著一般，湿润而模糊。悲伤立刻掠过王婆的心孔。哑著嗓子，王婆说：‘算了吧！算了吧！不下汤锅，还不是等著饿死吗？’", "深秋秃叶的树，为了惨厉的风变，脱去了灵魂一般吹啸著。马行在前面，王婆随在后面，一步一步屠场近著了；一步一步风声送著老马归去。", "王婆她自己想著：一个人怎么变得这样利害？年青的时候，不是常常为著送老马或是老牛进过屠场吗？她颤寒起来，幻想著屠刀要像穿过自己的背脊，于是，手中的短枝脱落了！", "王婆恼怒著了！她用短枝打著它起来。虽是起来，老马仍然贪恋著小水沟。王婆因为苦痛的人生，使她易于暴怒，树枝在马儿的脊骨上断成半截。", "又安然走在大道上了！经过一些荒凉的家屋，经过几座颓败的小庙。一个小庙前躺著个死了的小孩，那是用一捆谷草束扎著的。孩子小小的头顶露在外面，可怜的小脚从草稍直伸出来；他是谁家的孩子睡在这旷野的小庙前？", "五年前它也是一匹年青的马，为了耕种，伤害得只有毛皮蒙遮著骨架。现在它是老了！秋末了！收割完了！没有用处了！只为一张马皮，主人忍心把它送进屠场。就是一张马皮的价值，地主又要从王婆的手里夺去。", "这是一条短短的街。就在短街的尽头，张开两张黑色的门扇。再走近一点，可以发见门扇斑斑点点的血印。被血印所恐吓的老太婆好像自己踏在刑场了！", "四面板墙钉住无数张毛皮。靠近房檐立了两条高杆，高杆中央横著横梁；马蹄或是牛蹄折下来用麻绳把两只蹄端扎连在一起，做一个叉形挂在上面，一团一团的肠子也搅在上面。", "满院在蒸发腥气，在这腥味的人间，王婆快要变做一块铅了！沉重而没有感觉了！", "老马──棕色的马，它孤独的站在板墙下，它借助那张钉好的毛皮在搔痒。此刻它仍是马，过一会它将也是一张皮了！", "王婆得到三张票子，这可以充纳一亩地租。看著钱比较自慰些，她低著头向大门出去。", "‘不行，不行，……马走啦！’", "王婆回过头来，马又走在后面；马什么也不知道，仍想回家。屠场中出来一些男人，那些恶面孔们，想要把马抬回去，终于马躺在道旁了！像树根盘结在地中。无法，王婆又走回院中，马也跟回院中。她给马搔著头顶，它渐渐卧在地面了！渐渐想睡著了！忽然王婆站起来向大门奔走。在道口听见一阵关门声。", "她那有心肠买酒？她哭著回家，两只袖子完全湿透。那好像是送葬归来一般。", "家中地主的使人早等在门前，地主们就连一块铜板也从不舍弃在贫农们的身上，那个使人取了钱走去。", "王婆半日的痛苦没有代价了！王婆一生的痛苦也都是没有代价。"]}, "C": {"id": "luxun_zaijiulou_excerpt", "label": "阅读材料 C", "source": "鲁迅，《在酒楼上》（1924），按原作顺序节选；维基文库公开文本。 实验页面按原作顺序节选；仅做删节与页面排版，不把研究者改写内容混入原文。", "source_url": "https://zh.wikisource.org/zh-hans/%E5%9C%A8%E9%85%92%E6%A8%93%E4%B8%8A", "relation_family": "自我描述/比喻 × 后续行动 × 环境意象 × 解释张力", "researcher_note": "中等偏高 literal difficulty；节选保留废园/雪/花、飞回原点的比喻、迁葬与剪绒花行动。重点观察 participant 是否只接受人物“敷衍/无聊”的自我判断，或能用行动与环境意象形成更复杂解释。", "text": "【以下按原作顺序节选，仅删去部分过渡，不改写所选句子。】\n\n我从北地向东南旅行，绕道访了我的家乡，就到S城。这城离我的故乡不过三十里，坐了小船，小半天可到，我曾在这里的学校里当过一年的教员。深冬雪后，风景凄清，懒散和怀旧的心绪联结起来，我竟暂寓在S城的洛思旅馆里了。\n\n我一面说给跟我上来的堂倌听，一面向后窗走，就在靠窗的一张桌旁坐下了。楼上“空空如也”，任我拣得最好的坐位：可以眺望楼下的废园。几株老梅竟斗雪开著满树的繁花，仿佛毫不以深冬为意；倒塌的亭子边还有一株山茶树，从晴绿的密叶里显出十几朵红花来，赫赫的在雪中明得如火，愤怒而且傲慢。\n\n觉得北方固不是我的旧乡，但南来又只能算一个客子，无论那边的干雪怎样纷飞，这里的柔雪又怎样的依恋，于我都没有什么关系了。\n\n我竟不料在这里意外的遇见朋友了，——假如他现在还许我称他为朋友。那上来的分明是我的旧同窗，也是做教员时代的旧同事，面貌虽然颇有些改变，但一见也就认识，独有行动却变得格外迂缓，很不像当年敏捷精悍的吕纬甫了。\n\n细看他相貌，也还是乱蓬蓬的须发；苍白的长方脸，然而衰瘦了。精神跟沉静，或者却是颓唐，又浓又黑的眉毛底下的眼睛也失了精采，但当他缓缓的四顾的时候，却对废园忽地闪出我在学校时代常常看见的射人的光来。\n\n“这以前么？”他从衣袋里掏出一支烟卷来，点了火衔在嘴里，看著喷出的烟雾，沉思似的说：“无非做了些无聊的事情，等于什么也没有做。”\n\n“我一回来，就想到我可笑。”他一手擎著烟卷，一只手扶著酒杯，似笑非笑的向我说。“我在少年时，看见蜂子或蝇子停在一个地方，给什么来一吓，即刻飞去了，但是飞了一个小圈子，便又回来停在原地点，便以为这实在很可笑，也可怜。可不料现在我自己也飞回来了，不过绕了一点小圈子。”\n\n“也还是为了无聊的事。”他一口喝干了一杯酒，吸几口烟，眼睛略为张大了。“无聊的。——但是我们就谈谈罢。”\n\n“你也许本来知道，”他接著说，“我曾经有一个小兄弟，是三岁上死掉的，就葬在这乡下。我连他的模样都记不清楚了，但听母亲说，是一个很可爱念的孩子，和我也很相投，至今她提起来还似乎要下泪。”\n\n“一直挨到现在，趁著年假的闲空，我才得回南给他来迁葬。”他又喝干一杯酒，看说窗外，说，“这在那边那里能如此呢？积雪里会有花，雪地下会不冻。”\n\n“其实，这本已可以不必再迁，只要平了土，卖掉棺材；就此完事了的。……但我不这佯，我仍然铺好被褥，用棉花裹了些他先前身体所在的地方的泥土，包起来，装在新棺材里，运到我父亲埋著的坟地上，在他坟旁埋掉了。……但这样总算完结了一件事，足够去骗骗我的母亲，使她安心些。——阿阿，你这样的看我，你怪我何以和先前太不相同了么？……但我现在就是这样子，敷敷衍衍，模模胡胡。”\n\n“我先前并不知道她曾经为了一朵剪绒花挨打，但因为母亲一说起，便也记得了荞麦粉的事，意外的勤快起来了。我先在太原城里搜求了一遍，都没有；一直到济南……”\n\n窗外沙沙的一阵声响，许多积雪从被他压弯了的一技山茶树上滑下去了，树枝笔挺的伸直，更显出乌油油的肥叶和血红的花来。\n\n“一直到了济南，”他向窗外看了一回，转身喝干一杯酒，又吸几口烟，接著说。“我才买到剪绒花。……就买了一朵大红的，一朵粉红的，都带到这里来。”\n\n“就是今天午后，我一吃完饭，便去看长富，我为此特地耽搁了一天。”\n\n“不料她叹息说：‘可惜顺姑没有福气戴这剪绒花了。’”\n\n“那倒也罢，我的事情又完了。但是带在身边的两朵剪绒花怎么办呢？好，我就托她送了阿昭。……——但是我也就送她了，母亲只要说阿顺见了喜欢的了不得就是。这些无聊的事算什么？只要模模胡胡。模模胡胡的过了新年，仍旧教我的‘子日诗云’去。”\n\n“以后？——我不知道。你看我们那时豫想的事可有一件如意？我现在什么也不知道，连明天怎样也不知道……”\n\n我们一同走出店门，他所住的旅馆和我的方向正相反，就在门口分别了。我独自向著自己的旅馆走，寒风和雪片扑在脸上，倒觉得很爽快。见天色已是黄昏，和屋宇和街道都织在密雪的纯白而不定的罗网里。", "literal_questions": ["吕纬甫把自己这些年的生活概括成什么样？", "他回来后实际做了哪两件比较具体、费力的事情？", "故事结束时，叙述者和吕纬甫往同一个方向走吗？"], "probe_claim": "一个可能的读法是：吕纬甫不断用“无聊、敷敷衍衍、飞回原点”描述自己，但迁葬和寻找剪绒花的具体行动又显示他并非彻底麻木；文本因此把“自我判断”和“实际行动”放在张力中，让所谓颓唐显得既真实又不完整。", "evidence": ["“无非做了些无聊的事情”以及蜂子/蝇子“飞了一个小圈子，又回到原地点”的比喻。", "没有找到兄弟遗骨后，他仍把原处泥土装入新棺并重新安葬。", "他跨城寻找两朵剪绒花，并为送花特地多停留一天。", "山茶树在雪中“明得如火”，被雪压弯后又笔挺伸直；但人物最后仍走向相反方向。"], "features": ["“飞回原点”的自我比喻", "“无聊/敷衍/模糊”的反复自我描述", "自我描述与具体照料行动之间的张力", "雪、红花、压弯/伸直等环境意象"], "relations": [["“飞回原点”与“无聊”反复", "把人物对自身处境的理解写成循环、停滞和自我否定"], ["迁葬/买花的具体行动", "为“彻底麻木”提供反向证据，使人物的自我判断变得不充分"], ["雪中红花与被压弯后伸直", "可与人物残存的情感/生命力形成呼应，但这种联系并非唯一正确解释"]], "alternative": "也可以认为这些行动并没有真正反驳吕纬甫的颓唐：迁葬是让母亲安心，买花是完成托付，他在公共/理想生活上仍然放弃了早年的追求，因此“私人情感尚存”和“精神退却”可以同时成立。", "counterevidence": "他后来仍然教自己并不认同的旧式课程，并明确说不知道以后怎么办；因此把他的几件照料行动解释成“已经重新振作”会过度推断。", "replacement": "如果把“飞了一个小圈子又回到原地点”的比喻改成“沿着一条路一直往前走”，你觉得人物的自我理解以及后面迁葬/买花行为与它的关系会发生什么变化？", "paras": ["【以下按原作顺序节选，仅删去部分过渡，不改写所选句子。】", "我从北地向东南旅行，绕道访了我的家乡，就到S城。这城离我的故乡不过三十里，坐了小船，小半天可到，我曾在这里的学校里当过一年的教员。深冬雪后，风景凄清，懒散和怀旧的心绪联结起来，我竟暂寓在S城的洛思旅馆里了。", "我一面说给跟我上来的堂倌听，一面向后窗走，就在靠窗的一张桌旁坐下了。楼上“空空如也”，任我拣得最好的坐位：可以眺望楼下的废园。几株老梅竟斗雪开著满树的繁花，仿佛毫不以深冬为意；倒塌的亭子边还有一株山茶树，从晴绿的密叶里显出十几朵红花来，赫赫的在雪中明得如火，愤怒而且傲慢。", "觉得北方固不是我的旧乡，但南来又只能算一个客子，无论那边的干雪怎样纷飞，这里的柔雪又怎样的依恋，于我都没有什么关系了。", "我竟不料在这里意外的遇见朋友了，——假如他现在还许我称他为朋友。那上来的分明是我的旧同窗，也是做教员时代的旧同事，面貌虽然颇有些改变，但一见也就认识，独有行动却变得格外迂缓，很不像当年敏捷精悍的吕纬甫了。", "细看他相貌，也还是乱蓬蓬的须发；苍白的长方脸，然而衰瘦了。精神跟沉静，或者却是颓唐，又浓又黑的眉毛底下的眼睛也失了精采，但当他缓缓的四顾的时候，却对废园忽地闪出我在学校时代常常看见的射人的光来。", "“这以前么？”他从衣袋里掏出一支烟卷来，点了火衔在嘴里，看著喷出的烟雾，沉思似的说：“无非做了些无聊的事情，等于什么也没有做。”", "“我一回来，就想到我可笑。”他一手擎著烟卷，一只手扶著酒杯，似笑非笑的向我说。“我在少年时，看见蜂子或蝇子停在一个地方，给什么来一吓，即刻飞去了，但是飞了一个小圈子，便又回来停在原地点，便以为这实在很可笑，也可怜。可不料现在我自己也飞回来了，不过绕了一点小圈子。”", "“也还是为了无聊的事。”他一口喝干了一杯酒，吸几口烟，眼睛略为张大了。“无聊的。——但是我们就谈谈罢。”", "“你也许本来知道，”他接著说，“我曾经有一个小兄弟，是三岁上死掉的，就葬在这乡下。我连他的模样都记不清楚了，但听母亲说，是一个很可爱念的孩子，和我也很相投，至今她提起来还似乎要下泪。”", "“一直挨到现在，趁著年假的闲空，我才得回南给他来迁葬。”他又喝干一杯酒，看说窗外，说，“这在那边那里能如此呢？积雪里会有花，雪地下会不冻。”", "“其实，这本已可以不必再迁，只要平了土，卖掉棺材；就此完事了的。……但我不这佯，我仍然铺好被褥，用棉花裹了些他先前身体所在的地方的泥土，包起来，装在新棺材里，运到我父亲埋著的坟地上，在他坟旁埋掉了。……但这样总算完结了一件事，足够去骗骗我的母亲，使她安心些。——阿阿，你这样的看我，你怪我何以和先前太不相同了么？……但我现在就是这样子，敷敷衍衍，模模胡胡。”", "“我先前并不知道她曾经为了一朵剪绒花挨打，但因为母亲一说起，便也记得了荞麦粉的事，意外的勤快起来了。我先在太原城里搜求了一遍，都没有；一直到济南……”", "窗外沙沙的一阵声响，许多积雪从被他压弯了的一技山茶树上滑下去了，树枝笔挺的伸直，更显出乌油油的肥叶和血红的花来。", "“一直到了济南，”他向窗外看了一回，转身喝干一杯酒，又吸几口烟，接著说。“我才买到剪绒花。……就买了一朵大红的，一朵粉红的，都带到这里来。”", "“就是今天午后，我一吃完饭，便去看长富，我为此特地耽搁了一天。”", "“不料她叹息说：‘可惜顺姑没有福气戴这剪绒花了。’”", "“那倒也罢，我的事情又完了。但是带在身边的两朵剪绒花怎么办呢？好，我就托她送了阿昭。……——但是我也就送她了，母亲只要说阿顺见了喜欢的了不得就是。这些无聊的事算什么？只要模模胡胡。模模胡胡的过了新年，仍旧教我的‘子日诗云’去。”", "“以后？——我不知道。你看我们那时豫想的事可有一件如意？我现在什么也不知道，连明天怎样也不知道……”", "我们一同走出店门，他所住的旅馆和我的方向正相反，就在门口分别了。我独自向著自己的旅馆走，寒风和雪片扑在脸上，倒觉得很爽快。见天色已是黄昏，和屋宇和街道都织在密雪的纯白而不定的罗网里。"]}};
+const STEPS = ["设置","自然阅读","字面理解","独立解释","推理回顾","呈现比较","整体比较","交互探针","结束","完成"];
+let state = {
+  version:"2026-08-11-formative-v6-whole-text-scaffold",
+  startedAt:new Date().toISOString(),
+  participant:{},
+  caseKey:null,
+  caseId:null,
+  studyStage:null,
+  naturalEvidence:[],
+  independentEvidence:[],
+  literal:[],
+  responses:{},
+  probes:{},
+  interaction:{},
+  events:[]
+};
+let currentProbeIndex=0;
+let probeOrder=[];
+
+function log(type,data={}){state.events.push({t:new Date().toISOString(),type,...data});saveLocal();}
+function saveLocal(){try{localStorage.setItem("MeaningForge_v6_"+(state.participant.id||"draft"),JSON.stringify(state));}catch(e){}}
+function q(id){return document.getElementById(id)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function show(n){
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  q("s"+n).classList.add("active");
+  q("bar").style.width=((n)/(STEPS.length-1)*100)+"%";
+  q("stepname").textContent=STEPS[n];
+  window.scrollTo({top:0,behavior:"smooth"});
+  log("SCREEN",{screen:n,name:STEPS[n]});
+}
+function required(id,label){const v=q(id).value.trim();if(!v){alert("请完成："+label);q(id).focus();return null}return v}
+function hashCase(pid){
+  const forced=new URLSearchParams(location.search).get("case");
+  if(forced && CASES[forced.toUpperCase()]) return forced.toUpperCase();
+  let h=0; for(const ch of pid) h=(h*31+ch.charCodeAt(0))>>>0;
+  return ["A","B","C"][h%3];
+}
+function shuffle(arr,seed){
+  let a=[...arr], h=0; for(const c of seed) h=(h*31+c.charCodeAt(0))>>>0;
+  function rnd(){h=(1664525*h+1013904223)>>>0;return h/4294967296}
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+function caseObj(){return CASES[state.caseKey]}
+function renderText(targetId){
+  const c=caseObj();
+  q(targetId).innerHTML=c.paras.map((p,i)=>`<p data-p="${i+1}">${esc(p)}</p>`).join("");
+}
+function startStudy(){
+  const pid=required("pid","Participant ID"); if(!pid)return;
+  const stage=required("studyStage","session 类型"); if(!stage)return;
+  const age=required("age","年龄"); if(!age)return;
+  const discipline=required("discipline","专业/学科"); if(!discipline)return;
+  const course=required("course","课程经历"); if(!course)return;
+  const essay=required("essayExp","文本分析写作经历"); if(!essay)return;
+  const ai=required("aiUse","AI 使用经历"); if(!ai)return;
+  if(!q("consentDone").checked){alert("请确认研究者已完成正式知情同意流程。");return}
+  state.participant={id:pid,age,discipline,course,essayExp:essay,aiUse:ai};
+  state.studyStage=stage;
+  state.caseKey=hashCase(pid); state.caseId=caseObj().id;
+  state.probeOrder=shuffle(["A","B","C","D"],pid+"-"+state.caseKey);
+  probeOrder=state.probeOrder;
+  q("materialLabel").textContent=caseObj().label;
+  renderText("readingText"); renderText("referenceText");
+  renderLiteral();
+  q("sourceDebrief").innerHTML="<strong>材料来源：</strong> "+esc(caseObj().source);
+  log("START",{caseKey:state.caseKey,caseId:state.caseId,stage});
+  show(1);
+}
+function captureSelection(bucket){
+  const text=window.getSelection().toString().trim();
+  if(!text){alert("请先在原文中用鼠标选中一段文字。");return}
+  if(text.length<2){alert("选中文字过短。");return}
+  const arr=bucket==="natural"?state.naturalEvidence:state.independentEvidence;
+  if(!arr.includes(text)) arr.push(text);
+  log("EVIDENCE_CAPTURE",{bucket,text});
+  renderEvidence(bucket);
+}
+function renderEvidence(bucket){
+  const arr=bucket==="natural"?state.naturalEvidence:state.independentEvidence;
+  const target=bucket==="natural"?"naturalEvidence":"independentEvidence";
+  q(target).innerHTML=arr.length?("<div class='small' style='margin-top:8px'>已保存：</div>"+arr.map((x,i)=>`<div class="evidence-chip"><span>${esc(x)}</span><button onclick="removeEvidence('${bucket}',${i})">×</button></div>`).join("")):"";
+}
+function removeEvidence(bucket,i){
+  const arr=bucket==="natural"?state.naturalEvidence:state.independentEvidence; arr.splice(i,1); renderEvidence(bucket); saveLocal();
+}
+function finishReading(){
+  state.responses.naturalNote=q("naturalNote").value.trim();
+  state.readingFinishedAt=new Date().toISOString();
+  log("READING_FINISHED",{naturalEvidenceCount:state.naturalEvidence.length});
+  show(2);
+}
+function renderLiteral(){
+  q("literalQs").innerHTML=caseObj().literal_questions.map((x,i)=>`<div class="field"><label>${i+1}. ${esc(x)} *</label><textarea id="lit${i}" style="min-height:80px"></textarea></div>`).join("");
+}
+function saveLiteral(){
+  const ans=[]; for(let i=0;i<caseObj().literal_questions.length;i++){const v=required("lit"+i,"基本理解问题 "+(i+1));if(!v)return;ans.push({q:caseObj().literal_questions[i],a:v})}
+  state.literal=ans; log("LITERAL_COMPLETED"); show(3);
+}
+function toggleReferenceText(){q("referenceText").classList.toggle("hidden")}
+function saveIndependent(){
+  const v=required("independentInterpretation","独立解释"); if(!v)return;
+  state.responses.independentInterpretation=v;
+  state.responses.independentEvidence=[...state.independentEvidence];
+  log("INDEPENDENT_INTERPRETATION",{evidenceCount:state.independentEvidence.length});
+  show(4);
+}
+function saveReconstruction(){
+  for(let i=1;i<=6;i++){const v=required("r"+i,"推理回顾 Q"+i);if(!v)return;state.responses["r"+i]=v}
+  state.responses.sources=[...document.querySelectorAll(".src:checked")].map(x=>x.value);
+  state.responses.sourceExplain=q("sourceExplain").value.trim();
+  log("RECONSTRUCTION_DONE");
+  currentProbeIndex=0; renderProbe(); show(5);
+}
+function proseProbe(c){
+ return `<div class="probe"><div class="probe-title">A · 段落解释</div>
+ <p>${esc(c.probe_claim)}</p>
+ <p>${esc(c.evidence.join(" "))}</p>
+ <p><strong>另一种可能：</strong>${esc(c.alternative)}</p>
+ <p><strong>限制：</strong>${esc(c.counterevidence)}</p></div>`;
+}
+function evidenceProbe(c){
+ return `<div class="probe"><div class="probe-title">B · 证据列表</div>
+ <div class="note"><strong>Interpretation：</strong>${esc(c.probe_claim)}</div>
+ <ol class="evidence-list">${c.evidence.map(e=>`<li>${esc(e)}</li>`).join("")}</ol>
+ <div class="small">没有显式说明这些证据之间怎样连接。</div></div>`;
+}
+function pathProbe(c){
+ const first=c.relations[0], second=c.relations[1], third=c.relations[2];
+ return `<div class="probe"><div class="probe-title">C · 分层关系路径</div>
+ <div class="path"><div class="node"><b>Evidence / Feature</b><br>${esc(first[0])}</div><div class="arrow">→</div><div class="node"><b>Interpretive bridge</b><br>${esc(first[1])}</div><div class="arrow">→</div><div class="node"><b>Broader reading</b><br>${esc(c.probe_claim)}</div></div>
+ <div class="path"><div class="node"><b>Evidence / Feature</b><br>${esc(second[0])}</div><div class="arrow">→</div><div class="node"><b>Interpretive bridge</b><br>${esc(second[1])}</div></div>
+ <div class="path"><div class="node"><b>Evidence / Feature</b><br>${esc(third[0])}</div><div class="arrow">→</div><div class="node"><b>Interpretive bridge</b><br>${esc(third[1])}</div></div>
+ <p><span class="badge">Alternative</span> ${esc(c.alternative)}</p>
+ <p><span class="badge">Counter / limit</span> ${esc(c.counterevidence)}</p></div>`;
+}
+function skeletonProbe(c){
+ return `<div class="probe"><div class="probe-title">D · 全文骨架（概览 + 路径）</div>
+ <div class="skeleton">
+ <div class="skelcol"><h4>Textual features</h4>${c.features.map(f=>`<div class="relcard">${esc(f)}</div>`).join("")}</div>
+ <div class="skelcol"><h4>Relations</h4>${c.relations.map(r=>`<div class="relcard"><b>${esc(r[0])}</b><br><span class="small">${esc(r[1])}</span></div>`).join("")}</div>
+ <div class="skelcol"><h4>Interpretive possibilities</h4><div class="relcard">${esc(c.probe_claim)}</div><div class="relcard"><span class="badge">Alternative</span><br>${esc(c.alternative)}</div><div class="relcard"><span class="badge">Limit</span><br>${esc(c.counterevidence)}</div></div>
+ </div></div>`;
+}
+function renderProbe(){
+  const code=probeOrder[currentProbeIndex], c=caseObj();
+  const html=code==="A"?proseProbe(c):code==="B"?evidenceProbe(c):code==="C"?pathProbe(c):skeletonProbe(c);
+  q("probeContainer").innerHTML=`<div class="small">第 ${currentProbeIndex+1} / 4 种；实际类型：${code}</div>${html}
+  <div class="field"><label>1. 这份呈现让什么变得更清楚？ *</label><textarea id="probeClear"></textarea></div>
+  <div class="field"><label>2. 你觉得哪一部分最不确定、最想验证或质疑？ *</label><textarea id="probeWeak"></textarea></div>
+  <div class="grid3">
+    ${scaleHTML("probeTrace","追踪“为什么成立”有多容易？")}
+    ${scaleHTML("probeLoad","信息负担有多大？")}
+    ${scaleHTML("probeAuthority","有多像“标准答案”？")}
+  </div>`;
+  log("PROBE_SHOWN",{code,index:currentProbeIndex});
+}
+function scaleHTML(name,label){
+  return `<div class="field"><label>${label}</label><div class="scale">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="${name}" value="${n}"> ${n}</label>`).join("")}</div><div class="tiny">1=很低，5=很高</div></div>`;
+}
+function radioVal(name){const x=document.querySelector(`input[name="${name}"]:checked`);return x?x.value:null}
+function saveProbe(){
+  const clear=required("probeClear","呈现后变清楚的内容"); if(!clear)return;
+  const weak=required("probeWeak","最不确定/最想验证的部分"); if(!weak)return;
+  const trace=radioVal("probeTrace"),load=radioVal("probeLoad"),authority=radioVal("probeAuthority");
+  if(!trace||!load||!authority){alert("请完成三个 1–5 评分。");return}
+  const code=probeOrder[currentProbeIndex];
+  state.probes[code]={clear,weak,trace:Number(trace),load:Number(load),authority:Number(authority),order:currentProbeIndex+1};
+  log("PROBE_COMPLETED",{code});
+  currentProbeIndex++;
+  if(currentProbeIndex<4) renderProbe(); else show(6);
+}
+function saveComparison(){
+  for(const [id,l] of [["cmpWhy","追踪解释"],["cmpWeak","检查薄弱点"],["cmpGlobal","全文组织"],["networkNeed","全文骨架必要性"],["keepOne","保留一个功能"]]){const v=required(id,l);if(!v)return;state.responses[id]=v}
+  state.responses.networkWhy=q("networkWhy").value.trim();
+  log("COMPARISON_DONE"); renderInteractions(); show(7);
+}
+function renderInteractions(){
+  const c=caseObj();
+  q("interactionArea").innerHTML=`
+  <h3>1. 检查并判断关系</h3>
+  ${c.relations.map((r,i)=>`<div class="relcard">
+    <b>Relation ${i+1}：</b> ${esc(r[0])} → ${esc(r[1])}
+    <div class="field"><label>你的判断</label><select id="relJudge${i}"><option value="">请选择</option><option value="agree">同意</option><option value="unsure">不确定</option><option value="reject">不同意</option><option value="edit">想修改</option></select></div>
+    <textarea id="relEdit${i}" placeholder="为什么？如果要修改，请写你的版本。"></textarea>
+  </div>`).join("")}
+  <h3>2. 另一种可能</h3><div class="note">${esc(c.alternative)}</div>
+  <h3>3. 反向/限制证据</h3><div class="warn">${esc(c.counterevidence)}</div>`;
+  q("replacementPrompt").textContent=c.replacement;
+}
+function saveInteraction(){
+  const rels=[];
+  for(let i=0;i<caseObj().relations.length;i++){const j=required("relJudge"+i,"Relation "+(i+1)+" 判断");if(!j)return;rels.push({relation:caseObj().relations[i],judgment:j,edit:q("relEdit"+i).value.trim()})}
+  state.interaction.relations=rels;
+  state.interaction.addEvidence=q("addEvidenceText").value.trim();
+  state.interaction.altReaction=q("altReaction").value;
+  state.interaction.counterReaction=q("counterReaction").value.trim();
+  state.interaction.replacementUse=q("replacementUse").value;
+  state.interaction.replacementReason=q("replacementReason").value.trim();
+  log("INTERACTION_PROBES_DONE"); show(8);
+}
+function saveEnd(){
+  for(const [id,l] of [["familiarity","材料熟悉度"],["answerKeyRisk","标准答案感"],["bestSupport","最有帮助环节"],["realUse","真实使用场景"]]){const v=required(id,l);if(!v)return;state.responses[id]=v}
+  state.responses.finalComment=q("finalComment").value.trim();
+}
+function finishAll(){
+  saveEnd();
+  state.finishedAt=new Date().toISOString();
+  state.durationMinutes=Math.round((new Date(state.finishedAt)-new Date(state.startedAt))/60000);
+  log("FINISH",{durationMinutes:state.durationMinutes});
+  renderSummary(); show(9); downloadJSON(false);
+}
+function renderSummary(){
+  q("summary").innerHTML=`
+  <div class="k">Participant</div><div>${esc(state.participant.id)}</div>
+  <div class="k">Session</div><div>${esc(state.studyStage)}</div>
+  <div class="k">Material</div><div>${esc(caseObj().label)}</div>
+  <div class="k">Probe order</div><div>${esc(probeOrder.join(" → "))}</div>
+  <div class="k">Duration</div><div>${state.durationMinutes||"-"} min</div>`;
+  const researcher=new URLSearchParams(location.search).get("researcher")==="1";
+  if(researcher){q("researcherPanel").classList.remove("hidden");q("researcherNote").textContent=caseObj().relation_family+"\n\n"+caseObj().researcher_note;}
+}
+function downloadJSON(anon){
+  const data=JSON.parse(JSON.stringify(state));
+  data.material={key:state.caseKey,id:state.caseId,source:caseObj().source,sourceUrl:caseObj().source_url,relationFamily:caseObj().relation_family};
+  if(anon){data.participant.id="ANON_"+hashString(state.participant.id).slice(0,10);delete data.participant.discipline;}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download=`MeaningForge_${anon?"anon_":""}${data.participant.id||"participant"}_${state.caseKey}.json`;a.click();URL.revokeObjectURL(a.href);
+}
+function hashString(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return ("00000000"+(h>>>0).toString(16)).slice(-8)}
+window.addEventListener("beforeunload",saveLocal);
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "work": {
+    "work_id": "lu_xun_medicine",
+    "title": "药",
+    "author": "鲁迅",
+    "language": "zh"
+  },
+  "text_spans": [
+    {
+      "span_id": "s001",
+      "chapter": "opening",
+      "text": "华老栓为小栓求医治病相关情节",
+      "note": "demo span; replace with licensed full-text alignment in implementation"
+    },
+    {
+      "span_id": "s002",
+      "chapter": "middle",
+      "text": "人血馒头相关情节",
+      "note": "demo evidence anchor"
+    },
+    {
+      "span_id": "s003",
+      "chapter": "ending",
+      "text": "坟场、乌鸦相关意象",
+      "note": "demo evidence anchor"
+    }
+  ],
+  "carriers": [
+    {
+      "carrier_id": "c001",
+      "label": "人血馒头",
+      "carrier_type": "symbolic_object",
+      "evidence_ids": [
+        "s001",
+        "s002"
+      ]
+    },
+    {
+      "carrier_id": "c002",
+      "label": "乌鸦意象",
+      "carrier_type": "image",
+      "evidence_ids": [
+        "s003"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relation_id": "r001",
+      "source_id": "c001",
+      "target_id": "healing_belief",
+      "relation_type": "context_shift",
+      "evidence_ids": [
+        "s001",
+        "s002"
+      ],
+      "interpretive_note": "The object connects hopes of healing with violent social conditions.",
+      "provenance": {
+        "source": "researcher",
+        "confidence": 0.7
+      }
+    },
+    {
+      "relation_id": "r002",
+      "source_id": "c002",
+      "target_id": "social_atmosphere",
+      "relation_type": "recurrence",
+      "evidence_ids": [
+        "s003"
+      ],
+      "interpretive_note": "The image contributes to a bleak narrative atmosphere.",
+      "provenance": {
+        "source": "researcher",
+        "confidence": 0.6
+      }
+    }
+  ],
+  "probes": [
+    {
+      "probe_id": "p001",
+      "type": "trace",
+      "target_relation": "r001"
+    },
+    {
+      "probe_id": "p002",
+      "type": "counterfactual",
+      "target_relation": "r001"
+    }
+  ]
+}
