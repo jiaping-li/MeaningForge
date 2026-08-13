@@ -119,7 +119,7 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
       const mip = record.mip_record as Item | undefined;
       ["lexical_unit", "contextual_meaning", "basic_meaning", "comparison"].forEach((key) => { if (!mip || !stringValue(mip[key])) issues.push({ path: `figurative_features[${index}].mip_record.${key}`, message: "Required for an applicable MIP/MIPVU-informed record." }); });
       if (mip && !["metaphor_candidate", "literal", "undecidable"].includes(stringValue(mip.decision))) issues.push({ path: `figurative_features[${index}].mip_record.decision`, message: "MIP decision must be metaphor_candidate, literal, or undecidable." });
-      if (mip && !["machine_draft", "researcher_checked"].includes(stringValue(mip.review_status))) issues.push({ path: `figurative_features[${index}].mip_record.review_status`, message: "MIP record must state its review status." });
+      if (mip && !["machine_draft", "machine_reviewed", "researcher_checked"].includes(stringValue(mip.review_status))) issues.push({ path: `figurative_features[${index}].mip_record.review_status`, message: "MIP record must state its review status." });
       const linkedEvidence = collections.evidence.find((evidence) => stringValue(evidence.id) === stringValue(record.evidence_id));
       const excerpt = linkedEvidence ? ids(linkedEvidence.span_ids).map((id) => collections.text_spans.find((span) => stringValue(span.id) === id)).map((span) => stringValue(span?.text)).join("\n") : "";
       if (mip && stringValue(mip.lexical_unit) && !excerpt.includes(stringValue(mip.lexical_unit))) issues.push({ path: `figurative_features[${index}].mip_record.lexical_unit`, message: "MIP lexical unit must occur in its linked exact-source evidence." });
@@ -163,6 +163,20 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     const signals = items(workPackage.figurative_signals); const signalIds = new Set(signals.map((record) => stringValue(record.id)));
     const candidateCarriers = items(workPackage.candidate_carriers); const candidateCarrierIds = new Set(candidateCarriers.map((record) => stringValue(record.id)));
     const candidateRelations = items(workPackage.candidate_relations);
+    const mipCoverage = workPackage.mip_coverage as Item | undefined;
+    const mipCoverageCandidates = items(mipCoverage?.candidates); const mipCoverageIds = new Set(mipCoverageCandidates.map((record) => stringValue(record.id)));
+    mipCoverageCandidates.forEach((record, index) => {
+      const quote = stringValue(record.exact_quote); const lexical = stringValue(record.lexical_unit);
+      if (!quote || !lexical || !quote.includes(lexical)) issues.push({ path: `mip_coverage.candidates[${index}]`, message: "Coverage candidate needs an exact quote containing its lexical unit." });
+      if (sourceText && quote && !sourceText.includes(quote)) issues.push({ path: `mip_coverage.candidates[${index}].exact_quote`, message: "Coverage candidate does not occur verbatim in source text." });
+    });
+    items(workPackage.mip_review_records).forEach((record, index) => {
+      const coverageId = stringValue(record.coverage_candidate_id); const coverage = mipCoverageCandidates.find((item) => stringValue(item.id) === coverageId);
+      if (!mipCoverageIds.has(coverageId) || !coverage) issues.push({ path: `mip_review_records[${index}].coverage_candidate_id`, message: "MIP review must link to a coverage candidate." });
+      if (coverage && (stringValue(record.exact_quote) !== stringValue(coverage.exact_quote) || stringValue(record.lexical_unit) !== stringValue(coverage.lexical_unit))) issues.push({ path: `mip_review_records[${index}]`, message: "MIP review must preserve the coverage candidate's exact unit and quote." });
+      ["contextual_meaning", "basic_meaning", "comparison"].forEach((key) => { if (!stringValue(record[key])) issues.push({ path: `mip_review_records[${index}].${key}`, message: "Structured MIP review requires this field." }); });
+      if (!["metaphor_candidate", "literal", "undecidable"].includes(stringValue(record.decision))) issues.push({ path: `mip_review_records[${index}].decision`, message: "MIP review decision is invalid." });
+    });
     const narrativeContextIds = new Set([
       ...entityIds,
       ...items(workPackage.narrative_events).map((record) => stringValue(record.id)),

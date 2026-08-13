@@ -10,7 +10,7 @@ prepared source text
 → reader saves a separate personal reading layer
 ```
 
-The browser does not regenerate the bundled reference scaffold. It can optionally ask a configured local LLM to review a reader-authored relation against the reader-selected evidence. The API may also prepare a **draft** from imported text; that draft must still be validated and explicitly frozen before it becomes a reference WorkPackage. The bundled `medicine-substrate-v2-development.json` is a small development WorkPackage for integration testing, not a study-ready annotation release.
+The browser does not regenerate the bundled reference scaffold. It can optionally ask a configured local LLM to review a reader-authored relation against the reader-selected evidence. The API may also prepare a **draft** from imported text; that draft must still be validated and explicitly frozen before it becomes a reference WorkPackage. The bundled `medicine-v3-reference.json` is a frozen, auditable reference package for 《药》.
 
 ## Start
 
@@ -30,16 +30,17 @@ Open `http://localhost:5175/`.
 npm run validate:medicine
 ```
 
-## Optional MIP/MIPVU-assisted draft pass
+## Optional full-text MIP/MIPVU-assisted draft pass
 
-The deterministic pass never claims to have completed MIP. When a local model
-is configured, enable **“运行本地模型的 MIP 辅助核查”** before selecting a
-draft text (or the matching option during TXT import). The model must produce,
-for each lexical candidate, an exact-source lexical unit, contextual meaning,
-basic meaning, comparison, and one of `metaphor_candidate`, `literal`, or
-`undecidable`. Invalid or ungrounded records are rejected. Accepted records
-remain `machine_draft` and are displayed for researcher review; they are not
-study-ready metaphor annotations.
+The deterministic pass scans the full imported text for source-anchored
+comparison and anomaly cues. When a local model is configured, enable
+**“运行本地模型的 MIP 辅助核查”** before selecting a draft text (or the matching
+option during TXT import). The model reviews those fixed candidates in batches.
+For every candidate it must return the same lexical unit and exact quote,
+contextual meaning, basic meaning, comparison, and one of
+`metaphor_candidate`, `literal`, or `undecidable`. Invalid records are rejected;
+literal and undecidable records remain in the audit layer. Accepted records are
+`machine_reviewed`, not literary truth: researchers and readers can challenge them.
 
 Configure the local endpoint in `api/.env.local` (do not commit this file):
 
@@ -47,6 +48,8 @@ Configure the local endpoint in `api/.env.local` (do not commit this file):
 OPENAI_API_URL=your-local-compatible-endpoint
 OPENAI_MODEL=your-local-model-name
 OPENAI_API_KEY=optional
+MF_MIP_MAX_CANDIDATES=96
+MF_MIP_BATCH_SIZE=12
 ```
 
 ## Optional traditional NLP executor
@@ -75,7 +78,7 @@ advance rather than constructing them during participant sessions.
 
 ## Data boundaries
 
-- Reference data lives in `public/data/medicine-substrate-v2-development.json` and is never mutated by reader actions.
+- Reference data lives in `public/data/medicine-v3-reference.json` and is never mutated by reader actions.
 - Reader actions are stored separately in browser local storage and can be exported as JSON from the header. The reader graph workspace renders reference nodes/edges alongside a separate personal layer: readers may add, rename, and delete only personal nodes and relations.
 - The optional live reviewer returns support, gaps, complications, and questions. It never decides whether a reader interpretation is correct and never writes into the reference package.
 - The preparation-time protocol, WorkPackage schema, and validation requirements are defined in the project-level idea, specification, data-model, and annotation-guide documents.

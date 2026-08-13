@@ -6,7 +6,9 @@ import path from "node:path";
 type MipDraft = { lexical_unit?: unknown; contextual_meaning?: unknown; basic_meaning?: unknown; comparison?: unknown; decision?: unknown; review_status?: unknown };
 type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown; mip_record?: MipDraft };
 type RelationCandidate = { source_label?: unknown; target_label?: unknown; type?: unknown; exact_quote?: unknown; rationale?: unknown };
+type MipReview = MipDraft & { coverage_candidate_id?: unknown; exact_quote?: unknown };
 type SignalRecord = { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: string; mip_status: string; mip_record?: ReturnType<typeof mipRecord>; rationale: string; provenance_id: string; status: string };
+export type MipCoverageCandidate = { id: string; lexical_unit: string; exact_quote: string; chapter_id: string; cue_types: string[] };
 
 const structuralTypes = new Set(["recurs_with", "contrasts_with", "parallels", "co_occurs_with", "precedes", "follows", "changes_context", "changes_function", "shares_actor", "shares_scene", "causal_link", "consequence_link"]);
 const stopWords = new Set(["我们", "他们", "这个", "那个", "自己", "什么", "没有", "已经", "因为", "所以", "一个", "一种", "这样", "如何", "还是", "但是", "然后", "如果", "不能", "可以", "不是", "时候", "地方", "出来", "进去", "起来", "的人", "的是", "了一", "不是", "说道", "说着", "看着", "走了", "没有人", "有了敌人"]);
@@ -14,7 +16,7 @@ const stopWords = new Set(["我们", "他们", "这个", "那个", "自己", "�
 function slug(value: string) { return value.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 36) || "work"; }
 function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
 function unique<T>(items: T[]) { return [...new Set(items)]; }
-function mipRecord(value: unknown, quote: string) {
+function mipRecord(value: unknown, quote: string, machineStatus: "machine_draft" | "machine_reviewed" = "machine_draft") {
   if (!value || typeof value !== "object") return undefined;
   const raw = value as MipDraft;
   const lexical_unit = text(raw.lexical_unit); const contextual_meaning = text(raw.contextual_meaning);
@@ -24,7 +26,7 @@ function mipRecord(value: unknown, quote: string) {
   // A material protocol may contain a documented researcher review. Model and
   // rule proposals never inherit that status: they remain explicit drafts.
   const requestedStatus = text(raw.review_status);
-  const review_status = requestedStatus === "researcher_checked" ? "researcher_checked" as const : "machine_draft" as const;
+  const review_status = requestedStatus === "researcher_checked" ? "researcher_checked" as const : machineStatus;
   return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status };
 }
 function protocolCandidates(title: string) { return title.trim() === "药" ? medicineProtocolCandidates : []; }
@@ -82,6 +84,46 @@ function repeatedExpressions(paragraphs: Array<{ text: string; chapter: string }
     .slice(0, 480);
   // Keep maximal phrases: "人血馒头" suppresses partial fragments such as "人血".
   return repeated.filter(([candidate], index) => !repeated.slice(0, index).some(([stronger, positions]) => stronger.includes(candidate) && positions.size >= (occurrences.get(candidate)?.size ?? 0))).slice(0, 24);
+}
+
+/**
+ * Exhaustive over *configured linguistic cues*, not a claim that every word
+ * in a novel is metaphorical.  Each candidate preserves its whole sentence
+ * so a later LLM MIP review cannot drift away from the source edition.
+ */
+export function extractMipCoverageCandidates(source: string, limit = 96): MipCoverageCandidate[] {
+  const paragraphs = segment(source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim());
+  const seen = new Set<string>(); const candidates: MipCoverageCandidate[] = [];
+  const weakUnits = new Set(["但很", "一个", "许多", "一种", "这个", "那个", "似的", "一般", "样子", "时候"]);
+  const candidateUnit = (value: string) => value.replace(/(?:一般|似的|一样)$/u, "").replace(/^(?:一|两|三|几|许多)?(?:把|个|片|层|只|条|种)/u, "").replace(/[正很太都也便却但地的得]$/u, "").trim().slice(-5);
+  const add = (lexical_unit: string, exact_quote: string, chapter_id: string, cue: string) => {
+    const unit = candidateUnit(lexical_unit);
+    if (unit.length < 1 || unit.length > 8 || weakUnits.has(unit) || !exact_quote.includes(unit)) return;
+    const key = `${unit}\u0000${exact_quote}`; if (seen.has(key)) return; seen.add(key);
+    candidates.push({ id: `mip-coverage-${candidates.length + 1}`, lexical_unit: unit, exact_quote, chapter_id, cue_types: [cue] });
+  };
+  paragraphs.forEach((paragraph) => {
+    const sentences = paragraph.text.match(/[^。！？!?\n]+[。！？!?]?/g) ?? [paragraph.text];
+    sentences.forEach((sentence) => {
+      const quote = sentence.trim(); if (!quote) return;
+      // Chinese comparisons: capture the noun/adjective immediately before or
+      // after a comparison marker. This includes 像、如、仿佛、宛然、一般、有如.
+      for (const match of quote.matchAll(/([\u4e00-\u9fff]{1,8})(?:正)?(?:像|如同|仿佛|宛如|宛然|好比|有如)([\u4e00-\u9fff]{1,12})/g)) {
+        const left = match[1]; const right = match[2];
+        add(left.slice(-5), quote, paragraph.chapter, "comparison_marker");
+        add(right.replace(/(?:一般|似的|一样).*$/u, "").split(/[的了]/u).at(-1) ?? right, quote, paragraph.chapter, "comparison_marker");
+      }
+      for (const match of quote.matchAll(/([\u4e00-\u9fff]{1,8})(?:一般|似的|一样)/g)) add(match[1].slice(-4), quote, paragraph.chapter, "comparison_suffix");
+      // MIP-relevant anomaly / transfer cues. They deliberately generate
+      // candidates for LLM review, not automatic metaphor labels.
+      for (const match of quote.matchAll(/(?:无形的[\u4e00-\u9fff]{1,4}|死一般|铁铸|铜丝|两把刀|像刀一样)(?:[\u4e00-\u9fff]{0,4})/g)) add(match[0], quote, paragraph.chapter, "semantic_anomaly");
+      // English comparisons make the route portable to the bundled texts.
+      for (const match of quote.matchAll(/\b([A-Za-z][A-Za-z'-]{1,24})\s+(?:like|as)\s+(?:an?\s+|the\s+)?([A-Za-z][A-Za-z'-]{1,24})\b/gi)) { add(match[1], quote, paragraph.chapter, "comparison_marker"); add(match[2], quote, paragraph.chapter, "comparison_marker"); }
+    });
+  });
+  // The order is source order; the cap is an explicit computational budget,
+  // never a relevance ranking. Long works can raise MF_MIP_MAX_CANDIDATES.
+  return candidates.slice(0, Math.max(1, limit));
 }
 
 function constructionSample(paragraphs: Array<{ text: string; chapter: string }>, maximum = 420, maximumChunkLength = 1_200) {
@@ -211,7 +253,7 @@ function structuralSignalSeeds(spans: Array<{ id: string; chapter_id: string; te
   return seeds.slice(0, 20);
 }
 
-export function buildWorkPackage(title: string, source: string, llm: { carriers?: Candidate[]; structural_relations?: RelationCandidate[]; review_notes?: unknown[] } | undefined) {
+export function buildWorkPackage(title: string, source: string, llm: { carriers?: Candidate[]; structural_relations?: RelationCandidate[]; mip_reviews?: MipReview[]; review_notes?: unknown[] } | undefined) {
   // All source-dependent stages must use one canonical newline convention.
   // Browser-imported public-domain texts may arrive as CRLF, while paragraph
   // segmentation emits LF; comparing the two otherwise invalidates anchors.
@@ -243,6 +285,14 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   const context = contextualBackbone(text_spans);
   const structuralSeeds = structuralSignalSeeds(text_spans);
   const evidenceForQuote = (quote: string) => evidence.filter((item) => item.span_ids.some((id) => text_spans.find((span) => span.id === id)?.text.includes(quote)));
+  const mipCoverage = extractMipCoverageCandidates(clean, Math.min(Math.max(Number(process.env.MF_MIP_MAX_CANDIDATES || 96), 1), 240));
+  const coverageById = new Map(mipCoverage.map((item) => [item.id, item]));
+  const mip_review_records = (llm?.mip_reviews ?? []).flatMap((raw) => {
+    const candidate = coverageById.get(text(raw.coverage_candidate_id));
+    if (!candidate || text(raw.exact_quote) !== candidate.exact_quote) return [];
+    const record = mipRecord(raw, candidate.exact_quote, "machine_reviewed");
+    return record ? [{ id: `mip-review-${candidate.id}`, work_id: workId, coverage_candidate_id: candidate.id, ...record, lexical_unit: candidate.lexical_unit, exact_quote: candidate.exact_quote, chapter_id: candidate.chapter_id, cue_types: candidate.cue_types, provenance_id: "prov-llm", status: "machine_reviewed" }] : [];
+  });
   const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM" | "HUMAN"; mip?: ReturnType<typeof mipRecord> }> = [];
   repeatedExpressions(paragraphs).forEach(([label]) => candidates.push({ label, type: "recurrent_expression", quote: label, reasons: ["observability", "recurrence", "cross_span_distribution"], executor: "DETERMINISTIC" }));
   protocolCandidates(safeTitle).forEach((raw) => {
@@ -250,6 +300,12 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const mip = type === "lexical_metaphor_candidate" ? mipRecord(raw.mip_record, quote) : undefined;
     if (!clean.includes(quote) || (type === "lexical_metaphor_candidate" && !mip) || candidates.some((item) => item.label === label)) return;
     candidates.push({ label, type, quote, reasons: [...raw.reasons], executor: "HUMAN", mip });
+  });
+  // Only a review that explicitly concludes metaphor_candidate becomes a
+  // figurative signal. literal and undecidable records remain in the audit
+  // layer, so a negative MIP decision is never silently discarded.
+  mip_review_records.filter((record) => record.decision === "metaphor_candidate").forEach((record) => {
+    if (!candidates.some((item) => item.label === record.lexical_unit && item.quote === record.exact_quote)) candidates.push({ label: record.lexical_unit, type: "lexical_metaphor_candidate", quote: record.exact_quote, reasons: ["observability", "figurative_signal", "mip_fulltext_coverage"], executor: "LLM", mip: { lexical_unit: record.lexical_unit, contextual_meaning: record.contextual_meaning, basic_meaning: record.basic_meaning, comparison: record.comparison, decision: record.decision, review_status: record.review_status } });
   });
   (llm?.carriers ?? []).forEach((raw) => {
     const label = text(raw.label); const quote = text(raw.exact_quote); const type = text(raw.type);
@@ -282,8 +338,9 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   // the UNR as candidates rather than becoming initial reader-facing carriers.
   const protocolSelected = candidateItems.filter((item) => item.executor === "HUMAN");
   const narrativePersonLabels = new Set(backbone.entities.map((entity) => entity.label));
+  const llmMipSelected = candidateItems.filter((item) => item.executor === "LLM" && item.type === "lexical_metaphor_candidate" && item.mip?.decision === "metaphor_candidate");
   const selected = safeTitle === "药"
-    ? protocolSelected
+    ? [...protocolSelected, ...llmMipSelected.filter((item) => !protocolSelected.some((protocol) => protocol.quote === item.quote || protocol.label === item.label))].slice(0, 8)
     : candidateItems.filter((item) => item.executor !== "HUMAN" && item.reasons.length >= 2 && !narrativePersonLabels.has(item.label) && item.label.length >= 3).sort((a, b) => b.score - a.score || b.evidence_ids.length - a.evidence_ids.length || b.label.length - a.label.length).slice(0, 8);
   const provenanceFor = (executor: "DETERMINISTIC" | "LLM" | "HUMAN") => executor === "LLM" ? "prov-llm" : executor === "HUMAN" ? "prov-medicine-protocol" : "prov-mip";
   const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: provenanceFor(item.executor), status: "candidate" }));
@@ -373,10 +430,10 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   const unr_manifest = { id: `unr-${workId}`, work_id: workId, schema_version: "3", source_document_id: `source-${workId}`, counts: { text_spans: text_spans.length, evidence: evidence.length, entity_mentions: backbone.mentions.length, event_mentions: backbone.events.length, narrative_entities: narrative_entities.length, narrative_events: backbone.narrative_events.length, scenes: context.scenes.length, discourse_segments: context.discourse_segments.length, figurative_signals: figurative_signals.length, candidate_carriers: candidate_carriers.length, candidate_relations: candidate_relations.length }, construction_run_id: constructionRunId, validation_run_ids: validations.map((record) => record.id), created_at: new Date().toISOString() };
   const workPackage = {
     schema_version: "meaningforge-1.0", package_id: `${workId}-draft-${Date.now()}`, package_status: "draft", work: { id: workId, title: safeTitle, author: "导入文本", language: "zh", edition_id: "local-import", source_uri: "", status: "draft", chapter_markers: chapterIds.map((id) => ({ id, label: `第 ${id} 节`, marker: id })) },
-    source_document: { id: `source-${workId}`, text: clean, provenance_id: "prov-direct" }, paragraphs: text_spans.map((span) => ({ id: span.paragraph_id, work_id: workId, order: span.order, chapter_id: span.chapter_id, text: span.text, start_char: span.start_char, end_char: span.end_char, provenance_id: span.provenance_id })), sentences, text_spans, evidence, entity_mentions: backbone.mentions, event_mentions: backbone.events, narrative_events: backbone.narrative_events, scenes: context.scenes, discourse_segments: context.discourse_segments, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations,
+    source_document: { id: `source-${workId}`, text: clean, provenance_id: "prov-direct" }, paragraphs: text_spans.map((span) => ({ id: span.paragraph_id, work_id: workId, order: span.order, chapter_id: span.chapter_id, text: span.text, start_char: span.start_char, end_char: span.end_char, provenance_id: span.provenance_id })), sentences, text_spans, evidence, entity_mentions: backbone.mentions, event_mentions: backbone.events, narrative_events: backbone.narrative_events, scenes: context.scenes, discourse_segments: context.discourse_segments, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations, mip_coverage: { candidate_count: mipCoverage.length, reviewed_count: mip_review_records.length, executor: llm?.mip_reviews ? "LLM" : "not_run", candidates: mipCoverage }, mip_review_records,
     figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
     construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "complete", coreference_event_linking: backbone.narrative_relations.length ? "complete" : "draft", figurative_signals: figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? "complete" : "draft", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete", reader_interpretive_layer: "skipped" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked." },
-    preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), backbone.stanza.note, ...(figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? [] : ["MIP/MIPVU lexical route has no configured semantic executor for this run; it remains explicitly draft rather than claimed complete."]), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
+    preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), backbone.stanza.note, `MIP coverage: ${mipCoverage.length} source-anchored candidates; ${mip_review_records.length} structured LLM review records.`, ...(mip_review_records.length ? [] : ["MIP/MIPVU lexical coverage candidates were generated, but no semantic executor review ran; no automatic MIP decision is claimed."]), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
   };
   const issues = validateWorkPackage(workPackage, clean);
   if (issues.length) throw new Error(`Prepared draft failed validation: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ")}`);

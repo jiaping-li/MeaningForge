@@ -13,7 +13,7 @@ export interface MipRecord {
   basic_meaning: string;
   comparison: string;
   decision: "metaphor_candidate" | "literal" | "undecidable";
-  review_status: "machine_draft" | "researcher_checked";
+  review_status: "machine_draft" | "machine_reviewed" | "researcher_checked";
 }
 export interface FigurativeFeature { id: string; evidence_id: string; surface_form: string; type: string; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; provenance_id?: string; }
 export interface Carrier { id: string; label: string; type: string; feature_ids: string[]; evidence_ids: string[]; selection_reasons: string[]; provenance_id?: string; }
@@ -24,6 +24,8 @@ export interface Probe { id: string; thread_id: string; type: string; target_rel
 // Canonical v3 construction records. The reader UI consumes only the projected
 // arrays below; these records retain the pre-projection substrate for audit.
 export interface FigurativeSignal { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: "MIP_METAPHOR" | "RECURRENCE" | "REPETITION" | "CONTRAST" | "JUXTAPOSITION" | "PARALLEL" | "ANOMALY" | "CONTEXT_SHIFT" | "CROSS_SPAN_ASSOCIATION"; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; linked_narrative_ids?: string[]; score?: number; rationale?: string; provenance_id: string; status: string; }
+export interface MipCoverageCandidate { id: string; lexical_unit: string; exact_quote: string; chapter_id: string; cue_types: string[]; }
+export interface MipReviewRecord extends MipRecord { id: string; coverage_candidate_id: string; lexical_unit: string; exact_quote: string; chapter_id: string; cue_types: string[]; work_id: string; provenance_id: string; status: string; }
 export interface CandidateCarrierV3 { id: string; work_id: string; label: string; type: string; signal_ids: string[]; evidence_ids: string[]; narrative_ids: string[]; selection_reasons: string[]; provenance_id: string; status: string; }
 export interface CandidateRelationV3 { id: string; work_id: string; source_id: string; target_id: string; proposed_layer: "STRUCTURAL" | "INTERPRETIVE"; proposed_type: string; evidence_ids: string[]; grounding_relation_ids?: string[]; signal_ids: string[]; rationale: string; qualification?: string; provenance_id: string; status: string; }
 export interface UNRManifest { id: string; work_id: string; schema_version: string; source_document_id: string; counts: Record<string, number>; construction_run_id: string; validation_run_ids: string[]; created_at: string; }
@@ -53,6 +55,8 @@ export interface WorkPackage {
   scenes?: Array<{ id: string; chapter_id: string; span_ids: string[]; evidence_ids: string[]; label: string; provenance_id: string; status: string }>;
   discourse_segments?: Array<{ id: string; span_id: string; type: "dialogue" | "narration"; evidence_ids: string[]; provenance_id: string; status: string }>;
   figurative_signals?: FigurativeSignal[];
+  mip_coverage?: { candidate_count: number; reviewed_count: number; executor: "LLM" | "not_run"; candidates: MipCoverageCandidate[] };
+  mip_review_records?: MipReviewRecord[];
   candidate_carriers?: CandidateCarrierV3[];
   candidate_relations?: CandidateRelationV3[];
   unr_manifest?: UNRManifest;

@@ -22,6 +22,8 @@ const auditIssues = [
   ...requiredStages.filter((stage) => stages[stage] !== "complete").map((stage) => `Pipeline stage not complete: ${stage}`),
   ...skeletonIds.filter((id: string) => !selectedIds.has(id)).map((id: string) => `Skeleton object lacks reader-facing ProjectionRecord: ${id}`),
   ...(workPackage.validations?.every((record: { passed?: boolean }) => record.passed) ? [] : ["At least one generated validation record failed."]),
+  ...(workPackage.mip_coverage?.candidate_count > 3 ? [] : ["Full-text MIP coverage inventory was not generated."]),
+  ...(workPackage.mip_coverage?.reviewed_count === workPackage.mip_review_records?.length ? [] : ["MIP coverage accounting does not match review records."]),
 ];
 if (issues.length || auditIssues.length) { console.error(JSON.stringify({ valid: false, issues, auditIssues }, null, 2)); process.exitCode = 1; }
 else console.log(JSON.stringify({ valid: true, packageId: workPackage.package_id, checked: "v3 schema + exact source anchors + narrative links + grounding + projection/skeleton handoff", counts: workPackage.unr_manifest?.counts, validationRecords: workPackage.validations?.length }, null, 2));
