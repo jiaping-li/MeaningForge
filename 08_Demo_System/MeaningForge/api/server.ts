@@ -102,7 +102,7 @@ async function prepareDraft(request: PreparationRequest) {
 const server = http.createServer((request, response) => {
   const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
   if (request.method === "OPTIONS") return send(response, 204, {});
-  if (request.method === "GET" && url.pathname === "/api/health") return send(response, 200, { ok: true, service: "meaningforge-work-package-service", runtimeLlmRequired: false, llmConfigured: Boolean(process.env.OPENAI_API_URL && process.env.OPENAI_MODEL), llmRoles: ["preparation_assistant", "reader_reviewer"] });
+  if (request.method === "GET" && url.pathname === "/api/health") return send(response, 200, { ok: true, service: "meaningforge-work-package-service", runtimeLlmRequired: false, executors: { deterministic: true, local_llm: Boolean(process.env.OPENAI_API_URL && process.env.OPENAI_MODEL), stanza_requested: process.env.MF_ENABLE_STANZA === "true", stanza_python: process.env.MF_STANZA_PYTHON || "python3" }, llmRoles: ["preparation_assistant", "reader_reviewer"] });
   if (request.method === "POST" && url.pathname === "/api/validate-work-package") {
     readJson(request).then((body) => {
       const sourceText = typeof body.source_text === "string" ? body.source_text : undefined;

@@ -49,6 +49,25 @@ OPENAI_MODEL=your-local-model-name
 OPENAI_API_KEY=optional
 ```
 
+## Optional traditional NLP executor
+
+MeaningForge can also use a local [Stanza](https://stanfordnlp.github.io/stanza/)
+pass for tokenization, POS, dependency parsing, NER, and event candidates. It
+is deliberately optional: an unavailable model leaves the deterministic pass
+working and records the narrative stage as `draft` rather than pretending it
+ran. Install Stanza and its `zh-hans` / `en` resources in a local Python
+environment, then add the following to `api/.env.local` before starting the
+API:
+
+```text
+MF_ENABLE_STANZA=true
+MF_STANZA_PYTHON=python3
+```
+
+The bridge never downloads models during reader interaction. Stanza output is
+kept as traceable narrative candidates and is still subject to MeaningForge's
+source-anchor and reference checks.
+
 ## Data boundaries
 
 - Reference data lives in `public/data/medicine-substrate-v2-development.json` and is never mutated by reader actions.

@@ -13,7 +13,7 @@ const requiredCollections = [
 const structuralTypes = new Set(["recurs_with", "contrasts_with", "parallels", "co_occurs_with", "precedes", "follows", "changes_context", "changes_function", "shares_actor", "shares_scene", "causal_link", "consequence_link"]);
 const interpretiveTypes = new Set(["supports", "complicates", "weakens", "qualifies", "possible_implication", "alternative_to", "reframes"]);
 const methodBases = new Set(["DIRECT_TEXT", "MIP_MIPVU_INFORMED", "NARRATIVE_RULE", "STRUCTURAL_RULE", "SCHOLARSHIP", "REFERENCE_INTERPRETIVE_PROTOCOL", "READER_REASONING"]);
-const executorTypes = new Set(["DETERMINISTIC", "LLM", "HUMAN", "IMPORTED", "READER"]);
+const executorTypes = new Set(["DETERMINISTIC", "TRADITIONAL_NLP", "LLM", "HUMAN", "IMPORTED", "READER"]);
 
 function items(value: unknown): Item[] { return Array.isArray(value) ? value.filter((item): item is Item => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : []; }
 function ids(value: unknown): string[] { return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : []; }
