@@ -5,8 +5,8 @@ export interface TextSpan { id: string; chapter_id: string; paragraph_id: string
 export interface ProjectionRecord { id: string; target_id: string; target_type: string; projection_status: "selected" | "excluded" | "candidate"; reader_facing: boolean; selection_reasons: string[]; selection_rationale: string; provenance_id?: string; }
 export interface Evidence { id: string; span_ids: string[]; type: string; note: string; provenance_id?: string; }
 export interface NarrativeUnit { id: string; order: number; chapter_id?: string; span_ids: string[]; summary?: string; }
-export interface NarrativeEntity { id: string; type: string; label: string; evidence_ids: string[]; provenance_id?: string; }
-export interface NarrativeRelation { id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; }
+export interface NarrativeEntity { id: string; type: string; label: string; canonical_label?: string; mention_ids?: string[]; evidence_ids: string[]; provenance_id?: string; }
+export interface NarrativeRelation { id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; provenance_id?: string; status?: string; }
 export interface MipRecord {
   lexical_unit: string;
   contextual_meaning: string;
@@ -47,9 +47,9 @@ export interface WorkPackage {
   source_document?: { id: string; text: string; checksum?: string; provenance_id: string };
   paragraphs?: Array<{ id: string; work_id: string; order: number; chapter_id: string; text: string; start_char: number; end_char: number; provenance_id: string }>;
   sentences?: Array<{ id: string; paragraph_id: string; order: number; text: string; start_char: number; end_char: number; provenance_id: string }>;
-  entity_mentions?: Array<{ id: string; span_id: string; surface_form: string; type: string; provenance_id: string; status: string }>;
-  event_mentions?: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; provenance_id: string; status: string }>;
-  narrative_events?: Array<{ id: string; label: string; mention_ids: string[]; evidence_ids: string[]; provenance_id: string; status: string }>;
+  entity_mentions?: Array<{ id: string; span_id: string; surface_form: string; type: string; start_char?: number; end_char?: number; canonical_entity_id?: string; coreference_cluster_id?: string; provenance_id: string; status: string }>;
+  event_mentions?: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; canonical_event_id?: string; coreference_cluster_id?: string; provenance_id: string; status: string }>;
+  narrative_events?: Array<{ id: string; label: string; mention_ids: string[]; participant_entity_ids?: string[]; evidence_ids: string[]; provenance_id: string; status: string }>;
   scenes?: Array<{ id: string; chapter_id: string; span_ids: string[]; evidence_ids: string[]; label: string; provenance_id: string; status: string }>;
   discourse_segments?: Array<{ id: string; span_id: string; type: "dialogue" | "narration"; evidence_ids: string[]; provenance_id: string; status: string }>;
   figurative_signals?: FigurativeSignal[];

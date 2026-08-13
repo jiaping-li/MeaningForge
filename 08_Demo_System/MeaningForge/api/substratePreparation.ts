@@ -1,8 +1,9 @@
 import { validateWorkPackage } from "./workPackageValidator.ts";
+import { MEDICINE_PROTOCOL_VERSION, medicineProtocolCandidates } from "./medicineProtocol.ts";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
-type MipDraft = { lexical_unit?: unknown; contextual_meaning?: unknown; basic_meaning?: unknown; comparison?: unknown; decision?: unknown };
+type MipDraft = { lexical_unit?: unknown; contextual_meaning?: unknown; basic_meaning?: unknown; comparison?: unknown; decision?: unknown; review_status?: unknown };
 type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown; mip_record?: MipDraft };
 type RelationCandidate = { source_label?: unknown; target_label?: unknown; type?: unknown; exact_quote?: unknown; rationale?: unknown };
 type SignalRecord = { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: string; mip_status: string; mip_record?: ReturnType<typeof mipRecord>; rationale: string; provenance_id: string; status: string };
@@ -20,8 +21,13 @@ function mipRecord(value: unknown, quote: string) {
   const basic_meaning = text(raw.basic_meaning); const comparison = text(raw.comparison);
   const decision = text(raw.decision);
   if (!lexical_unit || !quote.includes(lexical_unit) || !contextual_meaning || !basic_meaning || !comparison || !["metaphor_candidate", "literal", "undecidable"].includes(decision)) return undefined;
-  return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status: "machine_draft" as const };
+  // A material protocol may contain a documented researcher review. Model and
+  // rule proposals never inherit that status: they remain explicit drafts.
+  const requestedStatus = text(raw.review_status);
+  const review_status = requestedStatus === "researcher_checked" ? "researcher_checked" as const : "machine_draft" as const;
+  return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status };
 }
+function protocolCandidates(title: string) { return title.trim() === "药" ? medicineProtocolCandidates : []; }
 
 function segment(source: string) {
   const lines = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
@@ -132,9 +138,9 @@ function stanzaAnnotations(spans: Array<{ id: string; text: string }>) {
   } catch { return { entities: [], events: [], used: false, note: "Traditional NLP executor returned invalid JSON." }; }
 }
 
-function narrativeBackbone(spans: Array<{ id: string; text: string; provenance_id: string }>) {
-  const mentions: Array<{ id: string; span_id: string; surface_form: string; type: string; provenance_id: string; status: string }> = [];
-  const events: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; provenance_id: string; status: string }> = [];
+function narrativeBackbone(spans: Array<{ id: string; text: string; start_char: number; provenance_id: string }>) {
+  const mentions: Array<{ id: string; span_id: string; surface_form: string; type: string; provenance_id: string; status: string; start_char?: number; end_char?: number; canonical_entity_id?: string; coreference_cluster_id?: string }> = [];
+  const events: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; provenance_id: string; status: string; canonical_event_id?: string; coreference_cluster_id?: string }> = [];
   const entityEvidence = new Map<string, string[]>();
   const stanza = stanzaAnnotations(spans);
   const verbs = /说|道|问|答|看|走|来|去|吃|喝|哭|笑|坐|站|拿|放|打|叫|想|听|见|写|读/g;
@@ -143,17 +149,46 @@ function narrativeBackbone(spans: Array<{ id: string; text: string; provenance_i
     for (const match of span.text.matchAll(/([\u4e00-\u9fff]{2,4})(?:说|道|问|答|先生|太太|姑娘|老爷)/g)) names.add(match[1]);
     for (const match of span.text.matchAll(/\b([A-Z][a-z]{2,})\b/g)) names.add(match[1]);
     const mentionIds: string[] = [];
-    [...names].slice(0, 8).forEach((surface_form) => { const id = `mention-${mentions.length + 1}`; mentions.push({ id, span_id: span.id, surface_form, type: "person_candidate", provenance_id: span.provenance_id, status: "candidate" }); mentionIds.push(id); entityEvidence.set(surface_form, [...(entityEvidence.get(surface_form) ?? []), span.id]); });
+    [...names].slice(0, 8).forEach((surface_form) => { const id = `mention-${mentions.length + 1}`; const local = span.text.indexOf(surface_form); mentions.push({ id, span_id: span.id, surface_form, type: "person_candidate", ...(local >= 0 ? { start_char: span.start_char + local, end_char: span.start_char + local + surface_form.length } : {}), provenance_id: span.provenance_id, status: "candidate" }); mentionIds.push(id); entityEvidence.set(surface_form, [...(entityEvidence.get(surface_form) ?? []), span.id]); });
+    // Pronouns are stored as their own mentions. Resolution below is
+    // deliberately conservative: an unresolved pronoun stays unresolved.
+    for (const match of span.text.matchAll(/(?:他们|她们|它们|他|她|它)/g)) {
+      const id = `mention-${mentions.length + 1}`;
+      mentions.push({ id, span_id: span.id, surface_form: match[0], type: "pronoun_candidate", start_char: span.start_char + (match.index ?? 0), end_char: span.start_char + (match.index ?? 0) + match[0].length, provenance_id: span.provenance_id, status: "candidate" });
+      mentionIds.push(id);
+    }
     const predicates = [...new Set(Array.from(span.text.matchAll(verbs), (match) => match[0]))].slice(0, 5);
     predicates.forEach((predicate) => events.push({ id: `event-mention-${events.length + 1}`, span_id: span.id, predicate, participant_mention_ids: mentionIds, provenance_id: span.provenance_id, status: "candidate" }));
   });
   stanza.entities.forEach((item) => { const id = `mention-${mentions.length + 1}`; const provenance_id = "prov-stanza"; mentions.push({ id, span_id: item.span_id, surface_form: item.surface_form, type: item.type, provenance_id, status: "candidate" }); entityEvidence.set(item.surface_form, [...(entityEvidence.get(item.surface_form) ?? []), item.span_id]); });
   stanza.events.forEach((item) => events.push({ id: `event-mention-${events.length + 1}`, span_id: item.span_id, predicate: item.predicate, participant_mention_ids: mentions.filter((mention) => mention.span_id === item.span_id && item.participants.includes(mention.surface_form)).map((mention) => mention.id), provenance_id: "prov-stanza", status: "candidate" }));
-  const entities = [...entityEvidence.entries()].map(([label, spanIds], index) => ({ id: `narrative-entity-${index + 1}`, type: "person", label, evidence_ids: spanIds.map((span_id) => `ev-${span_id}`), provenance_id: "prov-narrative", status: "candidate" }));
+  const pronouns = new Set(["他", "她", "它", "他们", "她们", "它们"]);
+  const canonicalByLabel = new Map<string, string>();
+  [...entityEvidence.keys()].forEach((label, index) => canonicalByLabel.set(label, `narrative-entity-${index + 1}`));
+  let latestResolvableLabel = "";
+  mentions.forEach((mention) => {
+    if (!pronouns.has(mention.surface_form) && canonicalByLabel.has(mention.surface_form)) latestResolvableLabel = mention.surface_form;
+    const label = pronouns.has(mention.surface_form) ? latestResolvableLabel : mention.surface_form;
+    const canonical = canonicalByLabel.get(label);
+    if (canonical) { mention.canonical_entity_id = canonical; mention.coreference_cluster_id = `cluster-${canonical}`; }
+  });
+  const entities = [...entityEvidence.entries()].map(([label, spanIds], index) => {
+    const id = `narrative-entity-${index + 1}`;
+    return { id, type: "person", label, canonical_label: label, mention_ids: mentions.filter((mention) => mention.canonical_entity_id === id).map((mention) => mention.id), evidence_ids: unique(spanIds.map((span_id) => `ev-${span_id}`)), provenance_id: "prov-narrative", status: "candidate" };
+  });
   const canonicalEvents = new Map<string, typeof events>();
   events.forEach((event) => canonicalEvents.set(event.predicate, [...(canonicalEvents.get(event.predicate) ?? []), event]));
-  const narrative_events = [...canonicalEvents.entries()].map(([label, linked], index) => ({ id: `narrative-event-${index + 1}`, label, mention_ids: linked.map((event) => event.id), evidence_ids: unique(linked.map((event) => `ev-${event.span_id}`)), provenance_id: "prov-narrative", status: "candidate" }));
-  return { mentions, events, entities, narrative_events, stanza };
+  const narrative_events = [...canonicalEvents.entries()].map(([label, linked], index) => {
+    const id = `narrative-event-${index + 1}`;
+    linked.forEach((event) => { event.canonical_event_id = id; event.coreference_cluster_id = `cluster-${id}`; });
+    return { id, label, mention_ids: linked.map((event) => event.id), participant_entity_ids: unique(linked.flatMap((event) => event.participant_mention_ids.map((mentionId) => mentions.find((mention) => mention.id === mentionId)?.canonical_entity_id ?? "").filter(Boolean))), evidence_ids: unique(linked.map((event) => `ev-${event.span_id}`)), provenance_id: "prov-narrative", status: "candidate" };
+  });
+  const coreference_relations = mentions.flatMap((mention, index) => mention.canonical_entity_id ? [{ id: `nrel-coref-${index + 1}`, source_id: mention.id, target_id: mention.canonical_entity_id, type: "corefers_to", evidence_ids: [`ev-${mention.span_id}`], provenance_id: "prov-narrative", status: "candidate" }] : []);
+  const event_relations = events.flatMap((event, index) => event.participant_mention_ids.flatMap((mentionId, participantIndex) => {
+    const entityId = mentions.find((mention) => mention.id === mentionId)?.canonical_entity_id;
+    return entityId ? [{ id: `nrel-participant-${index + 1}-${participantIndex + 1}`, source_id: event.id, target_id: entityId, type: "performed_by", evidence_ids: [`ev-${event.span_id}`], provenance_id: "prov-narrative", status: "candidate" }] : [];
+  }));
+  return { mentions, events, entities, narrative_events, narrative_relations: [...coreference_relations, ...event_relations], stanza };
 }
 
 function contextualBackbone(spans: Array<{ id: string; chapter_id: string; text: string; provenance_id: string }>) {
@@ -190,6 +225,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     { id: "prov-narrative", method_basis: "NARRATIVE_RULE", executor_type: "DETERMINISTIC", method_note: "Conservative mention/event extraction; all results remain traceable candidates." },
     { id: "prov-stanza", method_basis: "NARRATIVE_RULE", executor_type: "TRADITIONAL_NLP", method_note: "Optional local Stanza token/POS/dependency/NER pass. Its outputs remain candidates and are independently source-anchored." },
     { id: "prov-mip", method_basis: "MIP_MIPVU_INFORMED", executor_type: "DETERMINISTIC", method_note: "Candidate records follow a fixed contextual/basic-meaning comparison schema where applicable." },
+    { id: "prov-medicine-protocol", method_basis: "MIP_MIPVU_INFORMED", executor_type: "HUMAN", method_note: `Bounded ${MEDICINE_PROTOCOL_VERSION} lexical/observable calibration records; exact source anchors and projection still run automatically.` },
     { id: "prov-structure", method_basis: "STRUCTURAL_RULE", executor_type: "DETERMINISTIC", method_note: "Only exact-source, fixed-taxonomy structural relations are retained." },
     { id: "prov-llm", method_basis: "MIP_MIPVU_INFORMED", executor_type: "LLM", model_name: process.env.OPENAI_MODEL ?? "local-llm", method_note: "LLM candidate proposal checked against fixed types and exact source text." },
   ];
@@ -206,8 +242,14 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   const context = contextualBackbone(text_spans);
   const structuralSeeds = structuralSignalSeeds(text_spans);
   const evidenceForQuote = (quote: string) => evidence.filter((item) => item.span_ids.some((id) => text_spans.find((span) => span.id === id)?.text.includes(quote)));
-  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM"; mip?: ReturnType<typeof mipRecord> }> = [];
+  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM" | "HUMAN"; mip?: ReturnType<typeof mipRecord> }> = [];
   repeatedExpressions(paragraphs).forEach(([label]) => candidates.push({ label, type: "recurrent_expression", quote: label, reasons: ["observability", "recurrence", "cross_span_distribution"], executor: "DETERMINISTIC" }));
+  protocolCandidates(safeTitle).forEach((raw) => {
+    const label = raw.label; const quote = raw.exact_quote; const type = raw.type;
+    const mip = type === "lexical_metaphor_candidate" ? mipRecord(raw.mip_record, quote) : undefined;
+    if (!clean.includes(quote) || (type === "lexical_metaphor_candidate" && !mip) || candidates.some((item) => item.label === label)) return;
+    candidates.push({ label, type, quote, reasons: [...raw.reasons], executor: "HUMAN", mip });
+  });
   (llm?.carriers ?? []).forEach((raw) => {
     const label = text(raw.label); const quote = text(raw.exact_quote); const type = text(raw.type);
     if (!label || !quote || !clean.includes(quote) || !["object", "action", "scene", "recurrent_expression", "sensory_image", "lexical_metaphor_candidate"].includes(type)) return;
@@ -227,16 +269,21 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const narrativeHits = backbone.entities.some((entity) => entity.evidence_ids.some((id) => evidence_ids.includes(id))) || backbone.narrative_events.some((event) => event.evidence_ids.some((id) => evidence_ids.includes(id)));
     const structuralHits = structuralSeeds.some((seed) => seed.span_ids.some((id) => spanIds.includes(id)));
     const reasons = unique([...item.reasons, ...(evidence_ids.length >= 2 ? ["cross_span_distribution"] : []), ...(chapterCount >= 2 ? ["recurrence"] : []), ...(narrativeHits ? ["narrative_salience"] : []), ...(structuralHits ? ["relational_load"] : [])]);
-    const score = reasons.length + Math.min(3, evidence_ids.length) + Math.min(2, chapterCount) + (item.mip ? 2 : 0);
+    // A bounded, source-anchored MIP record contributes a distinct
+    // figurative-signal gate; otherwise high-frequency names would crowd all
+    // lexical figurative candidates out of the initial scaffold.
+    const score = reasons.length + Math.min(3, evidence_ids.length) + Math.min(2, chapterCount) + (item.mip ? 7 : 0) + (item.executor === "HUMAN" ? 3 : 0);
     return { ...item, reasons, evidence_ids, score };
   });
   const selected = [...candidateItems].filter((item) => item.reasons.length >= 2).sort((a, b) => b.score - a.score || b.evidence_ids.length - a.evidence_ids.length || b.label.length - a.label.length).slice(0, 8);
-  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-mip", status: "candidate" }));
-  const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-mip", status: "candidate" }));
+  const provenanceFor = (executor: "DETERMINISTIC" | "LLM" | "HUMAN") => executor === "LLM" ? "prov-llm" : executor === "HUMAN" ? "prov-medicine-protocol" : "prov-mip";
+  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: provenanceFor(item.executor), status: "candidate" }));
+  const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: provenanceFor(item.executor), status: "candidate" }));
   const carrierEntities = carriers.map((carrier, index) => ({ id: `carrier-context-${index + 1}`, work_id: workId, type: carrier.type === "object" ? "object" : carrier.type === "scene" ? "scene" : "discourse", label: carrier.label, evidence_ids: carrier.evidence_ids, provenance_id: carrier.provenance_id, status: "candidate" }));
   const narrative_entities = [...backbone.entities.map((entity) => ({ ...entity, work_id: workId })), ...carrierEntities];
   const carrierByLabel = new Map(carriers.map((item) => [item.label, item]));
   const narrative_relations = [
+    ...backbone.narrative_relations,
     ...carrierEntities.slice(1).map((carrier, index) => ({ id: `nrel-carrier-${index + 1}`, work_id: workId, source_id: carrierEntities[index].id, target_id: carrier.id, type: "associated_with", evidence_ids: unique([...carriers[index].evidence_ids, ...carrier.evidence_ids]).slice(0, 3), provenance_id: "prov-structure", status: "candidate" })),
     ...backbone.narrative_events.slice(1).map((event, index) => ({ id: `nrel-event-${index + 1}`, work_id: workId, source_id: backbone.narrative_events[index].id, target_id: event.id, type: "precedes", evidence_ids: unique([...backbone.narrative_events[index].evidence_ids, ...event.evidence_ids]).slice(0, 3), provenance_id: "prov-narrative", status: "candidate" })),
   ];
@@ -265,7 +312,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     selection_rationale: "Selected only after exact evidence grounding and fixed Meaning-Relevance Projection gates; this is a contestable reading aid, not a truth claim.",
     provenance_id: "prov-structure",
   }));
-  const figurative_signals: SignalRecord[] = candidateItems.map((item, index) => ({ id: `signal-${index + 1}`, work_id: workId, span_ids: evidenceForQuote(item.quote).flatMap((entry) => entry.span_ids), evidence_ids: evidenceForQuote(item.quote).map((entry) => entry.id), surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "MIP_METAPHOR" : "RECURRENCE", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), rationale: item.type === "lexical_metaphor_candidate" ? "MIP/MIPVU-informed lexical candidate; retained for review." : "Exact repeated expression across source spans.", provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-structure", status: "grounding_validated" }));
+  const figurative_signals: SignalRecord[] = candidateItems.map((item, index) => ({ id: `signal-${index + 1}`, work_id: workId, span_ids: evidenceForQuote(item.quote).flatMap((entry) => entry.span_ids), evidence_ids: evidenceForQuote(item.quote).map((entry) => entry.id), surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "MIP_METAPHOR" : "RECURRENCE", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), rationale: item.type === "lexical_metaphor_candidate" ? "MIP/MIPVU-informed lexical candidate; retained for review." : "Exact repeated expression across source spans.", provenance_id: provenanceFor(item.executor), status: "grounding_validated" }));
   figurative_signals.push(...structuralSeeds.map((seed, index) => ({ id: `signal-structural-${index + 1}`, work_id: workId, span_ids: seed.span_ids, evidence_ids: seed.span_ids.map((spanId) => `ev-${spanId}`), surface_form: undefined, type: seed.type, mip_status: "not_applicable" as const, rationale: seed.rationale, provenance_id: "prov-structure", status: "grounding_validated" })));
   const candidate_carriers = candidateItems.map((item, index) => {
     const evidence_ids = evidenceForQuote(item.quote).map((entry) => entry.id);
@@ -276,7 +323,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
       ...context.scenes.filter((scene) => scene.evidence_ids.some((id) => evidence_ids.includes(id))).map((scene) => scene.id),
       ...context.discourse_segments.filter((segment) => segment.evidence_ids.some((id) => evidence_ids.includes(id))).map((segment) => segment.id),
     ]);
-    return { id: `candidate-carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, signal_ids: [`signal-${index + 1}`], evidence_ids, narrative_ids, selection_reasons: unique([...item.reasons, ...(narrative_ids.length ? ["narrative_salience"] : [])]).slice(0, 4), provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-structure", status: "grounding_validated" };
+    return { id: `candidate-carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, signal_ids: [`signal-${index + 1}`], evidence_ids, narrative_ids, selection_reasons: unique([...item.reasons, ...(narrative_ids.length ? ["narrative_salience"] : [])]).slice(0, 5), provenance_id: provenanceFor(item.executor), status: "grounding_validated" };
   });
   const crossSpanAssociations: Array<{ source_id: string; target_id: string; evidence_ids: string[]; signal_id: string }> = [];
   for (let left = 0; left < candidate_carriers.length; left += 1) for (let right = left + 1; right < candidate_carriers.length; right += 1) {
@@ -300,13 +347,21 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   });
   const candidate_relations = [...structural_relations.map((relation) => ({ id: `candidate-${relation.id}`, work_id: workId, source_id: relation.source_id, target_id: relation.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: relation.type, evidence_ids: relation.evidence_ids, signal_ids: carriers.filter((carrier) => carrier.id === relation.source_id).map((carrier) => `signal-${carriers.indexOf(carrier) + 1}`), rationale: relation.rationale, provenance_id: relation.provenance_id, status: "grounding_validated" })), ...candidateRelationsFromSignals, ...crossSpanAssociations.map((association, index) => ({ id: `candidate-relation-cross-span-${index + 1}`, work_id: workId, source_id: association.source_id, target_id: association.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: "shares_scene", evidence_ids: association.evidence_ids, signal_ids: [association.signal_id], rationale: "The two candidates occur in a shared narrative scene/event context; this is a checkable association, not an interpretive conclusion.", provenance_id: "prov-narrative", status: "grounding_validated" }))];
   const constructionRunId = `run-${Date.now()}`;
-  const validations = [...text_spans.map((span, index) => ({ id: `validation-span-${index + 1}`, work_id: workId, target_type: "TextSpan", target_id: span.id, validation_type: "source_anchor" as const, passed: clean.slice(span.start_char, span.end_char) === span.text, messages: ["Exact source offset reconstructed."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })), ...figurative_signals.map((signal, index) => ({ id: `validation-signal-${index + 1}`, work_id: workId, target_type: "FigurativeSignal", target_id: signal.id, validation_type: "grounding" as const, passed: signal.evidence_ids.length > 0, messages: ["Signal retains exact-source evidence."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() }))];
+  const validations = [
+    ...text_spans.map((span, index) => ({ id: `validation-span-${index + 1}`, work_id: workId, target_type: "TextSpan", target_id: span.id, validation_type: "source_anchor" as const, passed: clean.slice(span.start_char, span.end_char) === span.text, messages: ["Exact source offset reconstructed."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...backbone.mentions.map((mention, index) => ({ id: `validation-mention-${index + 1}`, work_id: workId, target_type: "EntityMention", target_id: mention.id, validation_type: "referential_integrity" as const, passed: Boolean(mention.canonical_entity_id) && (!mention.start_char || clean.slice(mention.start_char, mention.end_char) === mention.surface_form), messages: ["Mention has a canonical entity link; offsets are checked when supplied by the executor."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...backbone.events.map((event, index) => ({ id: `validation-event-${index + 1}`, work_id: workId, target_type: "EventMention", target_id: event.id, validation_type: "referential_integrity" as const, passed: Boolean(event.canonical_event_id) && event.participant_mention_ids.every((id) => backbone.mentions.some((mention) => mention.id === id)), messages: ["Event mention links to a canonical event and only known participant mentions."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...figurative_signals.map((signal, index) => ({ id: `validation-signal-${index + 1}`, work_id: workId, target_type: "FigurativeSignal", target_id: signal.id, validation_type: "grounding" as const, passed: signal.evidence_ids.length > 0, messages: ["Signal retains exact-source evidence."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...candidate_carriers.map((candidate, index) => ({ id: `validation-candidate-carrier-${index + 1}`, work_id: workId, target_type: "CandidateCarrier", target_id: candidate.id, validation_type: "grounding" as const, passed: candidate.signal_ids.length > 0 && candidate.evidence_ids.length > 0 && candidate.narrative_ids.length > 0, messages: ["Candidate carrier retains signal, evidence, and narrative-context links."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...candidate_relations.map((candidate, index) => ({ id: `validation-candidate-relation-${index + 1}`, work_id: workId, target_type: "CandidateRelation", target_id: candidate.id, validation_type: "grounding" as const, passed: candidate.evidence_ids.length > 0 && candidate.signal_ids.length > 0, messages: ["Candidate relation retains exact-source evidence and a typed signal route."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+    ...projection_records.map((record, index) => ({ id: `validation-projection-${index + 1}`, work_id: workId, target_type: "ProjectionRecord", target_id: record.id, validation_type: "rule" as const, passed: record.selection_reasons.length > 0 && Boolean(record.selection_rationale), messages: ["Projection state has fixed reasons and an inspectable rationale."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
+  ];
   const unr_manifest = { id: `unr-${workId}`, work_id: workId, schema_version: "3", source_document_id: `source-${workId}`, counts: { text_spans: text_spans.length, evidence: evidence.length, entity_mentions: backbone.mentions.length, event_mentions: backbone.events.length, narrative_entities: narrative_entities.length, narrative_events: backbone.narrative_events.length, scenes: context.scenes.length, discourse_segments: context.discourse_segments.length, figurative_signals: figurative_signals.length, candidate_carriers: candidate_carriers.length, candidate_relations: candidate_relations.length }, construction_run_id: constructionRunId, validation_run_ids: validations.map((record) => record.id), created_at: new Date().toISOString() };
   const workPackage = {
     schema_version: "meaningforge-1.0", package_id: `${workId}-draft-${Date.now()}`, package_status: "draft", work: { id: workId, title: safeTitle, author: "导入文本", language: "zh", edition_id: "local-import", source_uri: "", status: "draft", chapter_markers: chapterIds.map((id) => ({ id, label: `第 ${id} 节`, marker: id })) },
     source_document: { id: `source-${workId}`, text: clean, provenance_id: "prov-direct" }, paragraphs: text_spans.map((span) => ({ id: span.paragraph_id, work_id: workId, order: span.order, chapter_id: span.chapter_id, text: span.text, start_char: span.start_char, end_char: span.end_char, provenance_id: span.provenance_id })), sentences, text_spans, evidence, entity_mentions: backbone.mentions, event_mentions: backbone.events, narrative_events: backbone.narrative_events, scenes: context.scenes, discourse_segments: context.discourse_segments, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations,
     figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
-    construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: backbone.stanza.used ? "complete" : "draft", figurative_signals: figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? "complete" : "draft", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked." },
+    construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "complete", coreference_event_linking: backbone.narrative_relations.length ? "complete" : "draft", figurative_signals: figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? "complete" : "draft", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete", reader_interpretive_layer: "skipped" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked." },
     preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), backbone.stanza.note, ...(figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? [] : ["MIP/MIPVU lexical route has no configured semantic executor for this run; it remains explicitly draft rather than claimed complete."]), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
   };
   const issues = validateWorkPackage(workPackage, clean);

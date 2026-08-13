@@ -68,12 +68,49 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
   });
 
   const entityIds = new Set(collections.narrative_entities.map((record) => stringValue(record.id)));
+  const entityMentions = items(workPackage.entity_mentions);
+  const eventMentions = items(workPackage.event_mentions);
+  const narrativeEvents = items(workPackage.narrative_events);
+  const mentionIds = new Set(entityMentions.map((record) => stringValue(record.id)));
+  const eventMentionIds = new Set(eventMentions.map((record) => stringValue(record.id)));
+  const narrativeEventIds = new Set(narrativeEvents.map((record) => stringValue(record.id)));
   const featureIds = new Set(collections.figurative_features.map((record) => stringValue(record.id)));
   const carrierIds = new Set(collections.carriers.map((record) => stringValue(record.id)));
   const threadIds = new Set(collections.threads.map((record) => stringValue(record.id)));
   const structuralIds = new Set(collections.structural_relations.map((record) => stringValue(record.id)));
   const interpretiveIds = new Set(collections.interpretive_relations.map((record) => stringValue(record.id)));
   const nodeIds = new Set([...entityIds, ...featureIds, ...carrierIds]);
+
+  // v3 narrative integrity: mention forms and canonical narrative objects are
+  // intentionally distinct. Check links without treating a pronoun surface
+  // form as a separate reader-facing character.
+  entityMentions.forEach((record, index) => {
+    const spanId = stringValue(record.span_id);
+    if (!spanIds.has(spanId)) issues.push({ path: `entity_mentions[${index}].span_id`, message: "EntityMention must point to a TextSpan." });
+    const start = record.start_char; const end = record.end_char; const form = stringValue(record.surface_form);
+    if (typeof start === "number" || typeof end === "number") {
+      if (typeof start !== "number" || typeof end !== "number" || start < 0 || end <= start) issues.push({ path: `entity_mentions[${index}].offsets`, message: "EntityMention offsets must be a non-negative ordered pair." });
+      else if (sourceText && sourceText.slice(start, end) !== form) issues.push({ path: `entity_mentions[${index}].offsets`, message: "EntityMention offsets do not reconstruct its surface form." });
+    }
+    const canonical = stringValue(record.canonical_entity_id);
+    if (canonical && !entityIds.has(canonical)) issues.push({ path: `entity_mentions[${index}].canonical_entity_id`, message: "Unknown canonical NarrativeEntity." });
+  });
+  eventMentions.forEach((record, index) => {
+    const spanId = stringValue(record.span_id);
+    if (!spanIds.has(spanId)) issues.push({ path: `event_mentions[${index}].span_id`, message: "EventMention must point to a TextSpan." });
+    checkReferences(issues, `event_mentions[${index}].participant_mention_ids`, ids(record.participant_mention_ids), mentionIds);
+    const canonical = stringValue(record.canonical_event_id);
+    if (canonical && !narrativeEventIds.has(canonical)) issues.push({ path: `event_mentions[${index}].canonical_event_id`, message: "Unknown canonical NarrativeEvent." });
+  });
+  narrativeEvents.forEach((record, index) => {
+    checkReferences(issues, `narrative_events[${index}].mention_ids`, ids(record.mention_ids), eventMentionIds);
+    checkReferences(issues, `narrative_events[${index}].participant_entity_ids`, ids(record.participant_entity_ids), entityIds);
+  });
+  const narrativeRelationEndpoints = new Set([...mentionIds, ...eventMentionIds, ...entityIds, ...narrativeEventIds, ...carrierIds]);
+  collections.narrative_relations.forEach((record, index) => {
+    ["source_id", "target_id"].forEach((key) => { if (!narrativeRelationEndpoints.has(stringValue(record[key]))) issues.push({ path: `narrative_relations[${index}].${key}`, message: "Narrative relation endpoint does not resolve." }); });
+    checkReferences(issues, `narrative_relations[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+  });
 
   collections.narrative_entities.forEach((record, index) => checkReferences(issues, `narrative_entities[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds));
   collections.figurative_features.forEach((record, index) => {

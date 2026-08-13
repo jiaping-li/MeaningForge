@@ -20,7 +20,7 @@ export interface PreparationDraft {
 const sessionKey = (packageId: string) => `meaningforge-reader-session:${packageId}`;
 
 export const preparedWorks = [
-  { packageUrl: "/data/medicine-substrate-v2-development.json", title: "药", author: "鲁迅", kind: "短篇小说", accent: "coral" },
+  { packageUrl: "/data/medicine-v3-reference.json", title: "药", author: "鲁迅", kind: "短篇小说 · v3 参考包", accent: "coral" },
   { packageUrl: "/data/aq-substrate-v2-development.json", title: "阿Q正传", author: "鲁迅", kind: "中篇小说", accent: "blue" },
 ] as const;
 
