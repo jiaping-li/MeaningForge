@@ -119,11 +119,44 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     checkReferences(issues, `probes[${index}].target_relation_ids`, ids(record.target_relation_ids), new Set([...structuralIds, ...interpretiveIds]));
     const carrier = stringValue(record.target_carrier_id); if (carrier && !carrierIds.has(carrier)) issues.push({ path: `probes[${index}].target_carrier_id`, message: "Unknown carrier." });
   });
+  // Canonical v3 construction-layer checks. They run in addition to the
+  // reader-facing compatibility contract above, so a draft cannot merely
+  // carry v3-looking fields without their ID-linked grounding.
+  if (workPackage.figurative_signals !== undefined) {
+    const signals = items(workPackage.figurative_signals); const signalIds = new Set(signals.map((record) => stringValue(record.id)));
+    const candidateCarriers = items(workPackage.candidate_carriers); const candidateCarrierIds = new Set(candidateCarriers.map((record) => stringValue(record.id)));
+    const candidateRelations = items(workPackage.candidate_relations);
+    signals.forEach((record, index) => {
+      const signalEvidence = ids(record.evidence_ids); checkReferences(issues, `figurative_signals[${index}].evidence_ids`, signalEvidence, evidenceIds);
+      if (!signalEvidence.length) issues.push({ path: `figurative_signals[${index}].evidence_ids`, message: "FigurativeSignal requires exact-source evidence." });
+      if (stringValue(record.type) === "MIP_METAPHOR") {
+        const mip = record.mip_record as Item | undefined;
+        ["lexical_unit", "contextual_meaning", "basic_meaning", "comparison"].forEach((key) => { if (!mip || !stringValue(mip[key])) issues.push({ path: `figurative_signals[${index}].mip_record.${key}`, message: "MIP_METAPHOR requires an auditable MIP record." }); });
+      }
+    });
+    candidateCarriers.forEach((record, index) => {
+      checkReferences(issues, `candidate_carriers[${index}].signal_ids`, ids(record.signal_ids), signalIds);
+      checkReferences(issues, `candidate_carriers[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+      if (ids(record.selection_reasons).length < 2) issues.push({ path: `candidate_carriers[${index}].selection_reasons`, message: "CandidateCarrier requires at least two fired gates." });
+    });
+    candidateRelations.forEach((record, index) => {
+      const candidateEndpoints = new Set([...candidateCarrierIds, ...carrierIds, ...entityIds]);
+      checkReferences(issues, `candidate_relations[${index}].source_id`, [stringValue(record.source_id)], candidateEndpoints);
+      checkReferences(issues, `candidate_relations[${index}].target_id`, [stringValue(record.target_id)], candidateEndpoints);
+      checkReferences(issues, `candidate_relations[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+      checkReferences(issues, `candidate_relations[${index}].signal_ids`, ids(record.signal_ids), signalIds);
+      if (!stringValue(record.rationale)) issues.push({ path: `candidate_relations[${index}].rationale`, message: "CandidateRelation requires a grounded rationale." });
+    });
+    const manifest = workPackage.unr_manifest as Item | undefined;
+    if (!manifest || stringValue(manifest.source_document_id) === "") issues.push({ path: "unr_manifest", message: "v3 construction requires an UNR manifest linked to its source document." });
+  }
   // v7.3 packages may retain an explicit projection audit. Legacy development
   // packages remain readable, but once projection records exist they must be traceable.
   if (workPackage.projection_records !== undefined) {
     const projections = items(workPackage.projection_records);
-    const projectable = new Set([...carrierIds, ...threadIds, ...structuralIds, ...interpretiveIds]);
+    const candidateCarrierIds = new Set(items(workPackage.candidate_carriers).map((record) => stringValue(record.id)));
+    const candidateRelationIds = new Set(items(workPackage.candidate_relations).map((record) => stringValue(record.id)));
+    const projectable = new Set([...carrierIds, ...threadIds, ...structuralIds, ...interpretiveIds, ...candidateCarrierIds, ...candidateRelationIds]);
     projections.forEach((record, index) => {
       if (!projectable.has(stringValue(record.target_id))) issues.push({ path: `projection_records[${index}].target_id`, message: "Projection target must be a reader-facing candidate." });
       if (!["selected", "excluded", "candidate"].includes(stringValue(record.projection_status))) issues.push({ path: `projection_records[${index}].projection_status`, message: "Invalid projection status." });

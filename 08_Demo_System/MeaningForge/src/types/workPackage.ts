@@ -21,6 +21,13 @@ export interface StructuralRelation { id: string; thread_id: string; source_id: 
 export interface InterpretiveRelation { id: string; thread_id: string; source_ids: string[]; type: string; evidence_ids: string[]; grounding_relation_ids: string[]; relation_text: string; qualification: string; }
 export interface Thread { id: string; neutral_label: string; carrier_ids: string[]; feature_ids?: string[]; evidence_ids: string[]; structural_relation_ids: string[]; interpretive_relation_ids: string[]; distribution: { chapter_ids: string[]; span_orders: number[] }; }
 export interface Probe { id: string; thread_id: string; type: string; target_relation_ids: string[]; target_carrier_id?: string; prompt: string; config?: { suggested_replacement?: string }; }
+// Canonical v3 construction records. The reader UI consumes only the projected
+// arrays below; these records retain the pre-projection substrate for audit.
+export interface FigurativeSignal { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: "MIP_METAPHOR" | "RECURRENCE" | "REPETITION" | "CONTRAST" | "JUXTAPOSITION" | "PARALLEL" | "ANOMALY" | "CONTEXT_SHIFT" | "CROSS_SPAN_ASSOCIATION"; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; linked_narrative_ids?: string[]; score?: number; rationale?: string; provenance_id: string; status: string; }
+export interface CandidateCarrierV3 { id: string; work_id: string; label: string; type: string; signal_ids: string[]; evidence_ids: string[]; narrative_ids: string[]; selection_reasons: string[]; provenance_id: string; status: string; }
+export interface CandidateRelationV3 { id: string; work_id: string; source_id: string; target_id: string; proposed_layer: "STRUCTURAL" | "INTERPRETIVE"; proposed_type: string; evidence_ids: string[]; grounding_relation_ids?: string[]; signal_ids: string[]; rationale: string; qualification?: string; provenance_id: string; status: string; }
+export interface UNRManifest { id: string; work_id: string; schema_version: string; source_document_id: string; counts: Record<string, number>; construction_run_id: string; validation_run_ids: string[]; created_at: string; }
+export interface ValidationRecord { id: string; work_id: string; target_type: string; target_id: string; validation_type: "schema" | "referential_integrity" | "source_anchor" | "grounding" | "rule" | "epistemic_wording"; passed: boolean; messages: string[]; validator_version: string; created_at: string; }
 export interface WorkPackage {
   schema_version: string;
   package_id: string;
@@ -37,6 +44,18 @@ export interface WorkPackage {
   structural_relations: StructuralRelation[];
   interpretive_relations: InterpretiveRelation[];
   probes: Probe[];
+  source_document?: { id: string; text: string; checksum?: string; provenance_id: string };
+  paragraphs?: Array<{ id: string; work_id: string; order: number; chapter_id: string; text: string; start_char: number; end_char: number; provenance_id: string }>;
+  sentences?: Array<{ id: string; paragraph_id: string; order: number; text: string; start_char: number; end_char: number; provenance_id: string }>;
+  entity_mentions?: Array<{ id: string; span_id: string; surface_form: string; type: string; provenance_id: string; status: string }>;
+  event_mentions?: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; provenance_id: string; status: string }>;
+  figurative_signals?: FigurativeSignal[];
+  candidate_carriers?: CandidateCarrierV3[];
+  candidate_relations?: CandidateRelationV3[];
+  unr_manifest?: UNRManifest;
+  validations?: ValidationRecord[];
+  projection_run?: { id: string; work_id: string; protocol_version: string; source_unr_manifest_id: string; projection_record_ids: string[]; created_at: string };
+  reference_skeleton?: { id: string; work_id: string; carrier_ids: string[]; thread_ids: string[]; structural_relation_ids: string[]; interpretive_relation_ids: string[]; provenance_id: string };
   projection_records?: ProjectionRecord[];
   construction_run?: { protocol_version: string; stage_status: Record<string, "complete" | "skipped" | "draft">; frozen_at?: string; validation_summary?: string };
   provenance?: Array<{ id: string; method_basis: string; executor_type: string; method_note?: string }>;
