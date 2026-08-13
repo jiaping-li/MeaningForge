@@ -120,4 +120,4 @@ const server = http.createServer((request, response) => {
   return send(response, 404, { error: "Not found." });
 });
 
-server.listen(port, () => console.log(`MeaningForge WorkPackage service listening on http://localhost:${port}`));
+server.listen(port, "127.0.0.1", () => console.log(`MeaningForge WorkPackage service listening on http://127.0.0.1:${port}`));
