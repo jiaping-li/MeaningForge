@@ -49,6 +49,9 @@ export interface WorkPackage {
   sentences?: Array<{ id: string; paragraph_id: string; order: number; text: string; start_char: number; end_char: number; provenance_id: string }>;
   entity_mentions?: Array<{ id: string; span_id: string; surface_form: string; type: string; provenance_id: string; status: string }>;
   event_mentions?: Array<{ id: string; span_id: string; predicate: string; participant_mention_ids: string[]; provenance_id: string; status: string }>;
+  narrative_events?: Array<{ id: string; label: string; mention_ids: string[]; evidence_ids: string[]; provenance_id: string; status: string }>;
+  scenes?: Array<{ id: string; chapter_id: string; span_ids: string[]; evidence_ids: string[]; label: string; provenance_id: string; status: string }>;
+  discourse_segments?: Array<{ id: string; span_id: string; type: "dialogue" | "narration"; evidence_ids: string[]; provenance_id: string; status: string }>;
   figurative_signals?: FigurativeSignal[];
   candidate_carriers?: CandidateCarrierV3[];
   candidate_relations?: CandidateRelationV3[];

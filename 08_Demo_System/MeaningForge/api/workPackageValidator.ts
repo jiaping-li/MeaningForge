@@ -126,6 +126,21 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     const signals = items(workPackage.figurative_signals); const signalIds = new Set(signals.map((record) => stringValue(record.id)));
     const candidateCarriers = items(workPackage.candidate_carriers); const candidateCarrierIds = new Set(candidateCarriers.map((record) => stringValue(record.id)));
     const candidateRelations = items(workPackage.candidate_relations);
+    const narrativeContextIds = new Set([
+      ...entityIds,
+      ...items(workPackage.narrative_events).map((record) => stringValue(record.id)),
+      ...items(workPackage.scenes).map((record) => stringValue(record.id)),
+      ...items(workPackage.discourse_segments).map((record) => stringValue(record.id)),
+    ]);
+    const mentionRecords = items(workPackage.entity_mentions); const mentionIds = new Set(mentionRecords.map((record) => stringValue(record.id)));
+    mentionRecords.forEach((record, index) => checkReferences(issues, `entity_mentions[${index}].span_id`, [stringValue(record.span_id)], spanIds));
+    items(workPackage.event_mentions).forEach((record, index) => {
+      checkReferences(issues, `event_mentions[${index}].span_id`, [stringValue(record.span_id)], spanIds);
+      checkReferences(issues, `event_mentions[${index}].participant_mention_ids`, ids(record.participant_mention_ids), mentionIds);
+    });
+    items(workPackage.narrative_events).forEach((record, index) => checkReferences(issues, `narrative_events[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds));
+    items(workPackage.scenes).forEach((record, index) => { checkReferences(issues, `scenes[${index}].span_ids`, ids(record.span_ids), spanIds); checkReferences(issues, `scenes[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds); });
+    items(workPackage.discourse_segments).forEach((record, index) => { checkReferences(issues, `discourse_segments[${index}].span_id`, [stringValue(record.span_id)], spanIds); checkReferences(issues, `discourse_segments[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds); });
     signals.forEach((record, index) => {
       const signalEvidence = ids(record.evidence_ids); checkReferences(issues, `figurative_signals[${index}].evidence_ids`, signalEvidence, evidenceIds);
       if (!signalEvidence.length) issues.push({ path: `figurative_signals[${index}].evidence_ids`, message: "FigurativeSignal requires exact-source evidence." });
@@ -137,6 +152,7 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     candidateCarriers.forEach((record, index) => {
       checkReferences(issues, `candidate_carriers[${index}].signal_ids`, ids(record.signal_ids), signalIds);
       checkReferences(issues, `candidate_carriers[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+      checkReferences(issues, `candidate_carriers[${index}].narrative_ids`, ids(record.narrative_ids), narrativeContextIds);
       if (ids(record.selection_reasons).length < 2) issues.push({ path: `candidate_carriers[${index}].selection_reasons`, message: "CandidateCarrier requires at least two fired gates." });
     });
     candidateRelations.forEach((record, index) => {
