@@ -77,7 +77,6 @@ async function reviewRelation(request: ReviewRequest) {
 async function prepareDraft(request: PreparationRequest) {
   const source = request.text?.replace(/^\uFEFF/, "").trim();
   if (!source || source.length < 120) throw new Error("Provide a literary text of at least 120 characters.");
-  const paragraphs = source.split(/\n\s*\n/).map((text, index) => ({ id: `p${index + 1}`, text: text.trim() })).filter((item) => item.text.length > 0);
   let llmOutput: Record<string, unknown> | undefined;
   let llmNote = "未使用 LLM；已按固定规则生成可编辑草稿。";
   // A reader's initial import must always complete deterministically. LLM
@@ -85,6 +84,7 @@ async function prepareDraft(request: PreparationRequest) {
   // implicit dependency that can leave the reading interface waiting.
   if (request.use_llm === true && process.env.OPENAI_API_URL && process.env.OPENAI_MODEL) {
     try {
+      const paragraphs = source.split(/\n\s*\n/).map((text, index) => ({ id: `p${index + 1}`, text: text.trim() })).filter((item) => item.text.length > 0);
       const sourceForLlm = clip(paragraphs.map((item) => `[${item.id}] ${item.text}`).join("\n\n"), 50000);
       llmOutput = await askLocalLlm(
         "You execute a fixed MeaningForge substrate protocol. You do not give literary conclusions. Return one JSON object with carriers, structural_relations, review_notes. carriers: at most 12 {label,type,exact_quote,reasons}; types only object, action, scene, recurrent_expression, sensory_image, lexical_metaphor_candidate. structural_relations: at most 18 {source_label,target_label,type,exact_quote,rationale}; types only recurs_with, contrasts_with, parallels, co_occurs_with, precedes, follows, changes_context, changes_function, shares_actor, shares_scene, causal_link, consequence_link. Copy exact_quote verbatim. Describe observable textual grounds only. Treat every item as a candidate to be checked by deterministic validation.",
@@ -96,7 +96,7 @@ async function prepareDraft(request: PreparationRequest) {
     }
   }
   const workPackage = buildWorkPackage(request.title?.trim() || "Untitled", source, llmOutput);
-  return { mode: "preparation_draft", source_text: source, work_package: workPackage, deterministic_segmentation: { paragraph_count: paragraphs.length, source_length: source.length }, llm_note: llmNote, publication_status: "draft_only", next_step: "这是一份可编辑、可追溯的草稿。读者修改会保存到个人图层；研究材料需另行冻结。" };
+  return { mode: "preparation_draft", source_text: source, work_package: workPackage, deterministic_segmentation: { paragraph_count: source.split(/\n\s*\n/).filter((item) => item.trim().length > 0).length, source_length: source.length }, llm_note: llmNote, publication_status: "draft_only", next_step: "这是一份可编辑、可追溯的草稿。读者修改会保存到个人图层；研究材料需另行冻结。" };
 }
 
 const server = http.createServer((request, response) => {

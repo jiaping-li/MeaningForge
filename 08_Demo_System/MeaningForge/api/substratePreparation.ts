@@ -45,9 +45,21 @@ function repeatedExpressions(paragraphs: Array<{ text: string; chapter: string }
   return repeated.filter(([candidate], index) => !repeated.slice(0, index).some(([stronger, positions]) => stronger.includes(candidate) && positions.length >= (occurrences.get(candidate)?.length ?? 0))).slice(0, 10);
 }
 
+function constructionSample(paragraphs: Array<{ text: string; chapter: string }>, maximum = 720) {
+  if (paragraphs.length <= maximum) return { paragraphs, sampled: false };
+  // The reader still receives the complete source text. This bounded,
+  // evenly-spaced sample only prevents a first-pass candidate draft for a
+  // multi-megabyte novel from becoming an unbounded n-gram computation.
+  const selected = new Set<number>();
+  for (let index = 0; index < maximum; index += 1) selected.add(Math.floor(index * (paragraphs.length - 1) / (maximum - 1)));
+  return { paragraphs: paragraphs.filter((_, index) => selected.has(index)), sampled: true };
+}
+
 export function buildWorkPackage(title: string, source: string, llm: { carriers?: Candidate[]; structural_relations?: RelationCandidate[]; review_notes?: unknown[] } | undefined) {
   const clean = source.replace(/^\uFEFF/, "").trim();
-  const paragraphs = segment(clean);
+  const fullParagraphs = segment(clean);
+  const sample = constructionSample(fullParagraphs);
+  const paragraphs = sample.paragraphs;
   const safeTitle = title.trim() || "未命名文本";
   const workId = `work-${slug(safeTitle)}`;
   const provenance = [
@@ -106,8 +118,8 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     schema_version: "meaningforge-1.0", package_id: `${workId}-draft-${Date.now()}`, package_status: "draft", work: { id: workId, title: safeTitle, author: "导入文本", language: "zh", edition_id: "local-import", source_uri: "", status: "draft", chapter_markers: chapterIds.map((id) => ({ id, label: `第 ${id} 节`, marker: id })) },
     text_spans, evidence, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations,
     figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], provenance, projection_records,
-    construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "draft", figurative_signals: "complete", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete" }, validation_summary: "Schema, exact-text anchoring, referential integrity, and projection eligibility were checked." },
-    preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : [] },
+    construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "draft", figurative_signals: "complete", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Schema, exact-text anchoring, referential integrity, and projection eligibility were checked." },
+    preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
   };
   const issues = validateWorkPackage(workPackage, clean);
   if (issues.length) throw new Error(`Prepared draft failed validation: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ")}`);
