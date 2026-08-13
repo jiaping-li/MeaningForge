@@ -28,7 +28,11 @@ function segment(source: string) {
 }
 
 function repeatedExpressions(paragraphs: Array<{ text: string; chapter: string }>) {
-  const occurrences = new Map<string, number[]>();
+  // This is a first-pass *candidate* signal, not a full word-segmentation
+  // engine. Bound its vocabulary so one unusually dense chapter cannot turn
+  // the initial draft into an unbounded n-gram index.
+  const maximumUniqueCandidates = 36_000;
+  const occurrences = new Map<string, Set<number>>();
   paragraphs.forEach((paragraph, index) => {
     const seen = new Set<string>();
     const runs = paragraph.text.match(/[\u4e00-\u9fff]+/g) ?? [];
@@ -36,23 +40,43 @@ function repeatedExpressions(paragraphs: Array<{ text: string; chapter: string }
       for (let width = 2; width <= Math.min(5, run.length); width += 1) for (let start = 0; start <= run.length - width; start += 1) {
         const value = run.slice(start, start + width);
         if (stopWords.has(value) || seen.has(value) || /^(的|了|着|是|有|在|不|一)/.test(value) || /(的|了|着|是|有|在|不)$/.test(value)) continue;
-        seen.add(value); occurrences.set(value, [...(occurrences.get(value) ?? []), index]);
+        seen.add(value);
+        const positions = occurrences.get(value);
+        if (positions) positions.add(index);
+        else if (occurrences.size < maximumUniqueCandidates) occurrences.set(value, new Set([index]));
       }
     });
   });
-  const repeated = [...occurrences.entries()].filter(([, indexes]) => indexes.length >= 2).sort((a, b) => b[0].length - a[0].length || b[1].length - a[1].length);
+  const repeated = [...occurrences.entries()]
+    .filter(([, indexes]) => indexes.size >= 2)
+    .sort((a, b) => b[1].size - a[1].size || b[0].length - a[0].length)
+    .slice(0, 480);
   // Keep maximal phrases: "人血馒头" suppresses partial fragments such as "人血".
-  return repeated.filter(([candidate], index) => !repeated.slice(0, index).some(([stronger, positions]) => stronger.includes(candidate) && positions.length >= (occurrences.get(candidate)?.length ?? 0))).slice(0, 10);
+  return repeated.filter(([candidate], index) => !repeated.slice(0, index).some(([stronger, positions]) => stronger.includes(candidate) && positions.size >= (occurrences.get(candidate)?.size ?? 0))).slice(0, 10);
 }
 
-function constructionSample(paragraphs: Array<{ text: string; chapter: string }>, maximum = 720) {
-  if (paragraphs.length <= maximum) return { paragraphs, sampled: false };
+function constructionSample(paragraphs: Array<{ text: string; chapter: string }>, maximum = 420, maximumChunkLength = 1_200) {
+  // Some public-domain files encode an entire chapter as a single paragraph.
+  // Sampling only the number of paragraphs therefore does not bound compute.
+  // Chunk first, then take evenly distributed exact-source excerpts.
+  const chunks = paragraphs.flatMap((paragraph) => {
+    if (paragraph.text.length <= maximumChunkLength) return [paragraph];
+    const result: Array<{ text: string; chapter: string }> = [];
+    for (let start = 0; start < paragraph.text.length; start += maximumChunkLength) {
+      // Validator text is whitespace-normalized at field boundaries; make the
+      // stored chunk follow the same rule so offsets reconstruct exactly.
+      const excerpt = paragraph.text.slice(start, start + maximumChunkLength).trim();
+      if (excerpt) result.push({ ...paragraph, text: excerpt });
+    }
+    return result;
+  });
+  if (chunks.length <= maximum) return { paragraphs: chunks, sampled: chunks.length !== paragraphs.length };
   // The reader still receives the complete source text. This bounded,
   // evenly-spaced sample only prevents a first-pass candidate draft for a
   // multi-megabyte novel from becoming an unbounded n-gram computation.
   const selected = new Set<number>();
-  for (let index = 0; index < maximum; index += 1) selected.add(Math.floor(index * (paragraphs.length - 1) / (maximum - 1)));
-  return { paragraphs: paragraphs.filter((_, index) => selected.has(index)), sampled: true };
+  for (let index = 0; index < maximum; index += 1) selected.add(Math.floor(index * (chunks.length - 1) / (maximum - 1)));
+  return { paragraphs: chunks.filter((_, index) => selected.has(index)), sampled: true };
 }
 
 export function buildWorkPackage(title: string, source: string, llm: { carriers?: Candidate[]; structural_relations?: RelationCandidate[]; review_notes?: unknown[] } | undefined) {

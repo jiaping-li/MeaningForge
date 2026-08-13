@@ -109,11 +109,20 @@ export async function prepareTextDraft(title: string, text: string): Promise<Pre
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 8_000);
     try {
-      const response = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal });
-      const payload: unknown = await response.json();
+      let response: Response;
+      try {
+        response = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body, signal: controller.signal });
+      } catch (error) {
+        // Only connectivity failures may use the direct API fallback. A
+        // server-side validation error is useful feedback and must not be
+        // disguised as a later timeout from the second attempt.
+        lastError = error;
+        continue;
+      }
+      const payload: unknown = await response.json().catch(() => undefined);
       if (!response.ok) throw new Error(typeof payload === "object" && payload && "error" in payload ? String(payload.error) : "无法生成准备草稿。");
       return payload as PreparationDraft;
-    } catch (error) { lastError = error; }
+    } catch (error) { throw error; }
     finally { window.clearTimeout(timeout); }
   }
   if (lastError instanceof DOMException && lastError.name === "AbortError") throw new Error("草稿构建服务未响应。请确认 npm run dev:api 正在运行，并访问 http://127.0.0.1:8787/api/health 检查它。");
