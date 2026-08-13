@@ -85,7 +85,7 @@ async function reviewMipCoverage(title: string, source: string): Promise<Record<
     const output = await askLocalLlm(
       "You are a bounded MIP/MIPVU review executor for literary close reading. You must review every supplied candidate and return one JSON object only: {mip_reviews:[...]}. Return exactly one record for each supplied coverage_candidate_id; do not add candidates and do not change lexical_unit or exact_quote. Each record has coverage_candidate_id, lexical_unit, exact_quote, contextual_meaning, basic_meaning, comparison, decision. decision is exactly metaphor_candidate, literal, or undecidable. MIP procedure: identify the lexical unit's contextual meaning in the supplied exact quote; state a potentially more basic/concrete meaning if defensible; compare them; select metaphor_candidate only when the contextual use contrasts with a more basic meaning and can be understood through comparison. Use literal when no such contrast is supported; use undecidable when the excerpt alone is insufficient. Do not infer theme, author intent, morality, symbolism, or a final interpretation. Be conservative and complete.",
       `Work title: ${title}\nBatch ${Math.floor(index / batchSize) + 1}; review all ${batch.length} candidates:\n${JSON.stringify(batch)}`,
-      2_400,
+      768,
     ) as { mip_reviews?: unknown };
     const returned = Array.isArray(output.mip_reviews) ? output.mip_reviews.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : [];
     const byId = new Map(returned.map((item) => [typeof item.coverage_candidate_id === "string" ? item.coverage_candidate_id : "", item]));
