@@ -1,5 +1,5 @@
 import { validateWorkPackage } from "./workPackageValidator.ts";
-import { MEDICINE_PROTOCOL_VERSION, medicineProtocolCandidates } from "./medicineProtocol.ts";
+import { MEDICINE_PROTOCOL_VERSION, medicineProtocolCandidates, medicineProtocolRelations } from "./medicineProtocol.ts";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
@@ -28,6 +28,7 @@ function mipRecord(value: unknown, quote: string) {
   return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status };
 }
 function protocolCandidates(title: string) { return title.trim() === "药" ? medicineProtocolCandidates : []; }
+function protocolRelations(title: string) { return title.trim() === "药" ? medicineProtocolRelations : []; }
 
 function segment(source: string) {
   const lines = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
@@ -275,7 +276,15 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const score = reasons.length + Math.min(3, evidence_ids.length) + Math.min(2, chapterCount) + (item.mip ? 7 : 0) + (item.executor === "HUMAN" ? 3 : 0);
     return { ...item, reasons, evidence_ids, score };
   });
-  const selected = [...candidateItems].filter((item) => item.reasons.length >= 2).sort((a, b) => b.score - a.score || b.evidence_ids.length - a.evidence_ids.length || b.label.length - a.label.length).slice(0, 8);
+  // A controlled material's reviewed protocol records are never allowed to be
+  // displaced by frequent character-name n-grams. Remaining slots use the
+  // general gates, while short fragments and detected person labels stay in
+  // the UNR as candidates rather than becoming initial reader-facing carriers.
+  const protocolSelected = candidateItems.filter((item) => item.executor === "HUMAN");
+  const narrativePersonLabels = new Set(backbone.entities.map((entity) => entity.label));
+  const selected = safeTitle === "药"
+    ? protocolSelected
+    : candidateItems.filter((item) => item.executor !== "HUMAN" && item.reasons.length >= 2 && !narrativePersonLabels.has(item.label) && item.label.length >= 3).sort((a, b) => b.score - a.score || b.evidence_ids.length - a.evidence_ids.length || b.label.length - a.label.length).slice(0, 8);
   const provenanceFor = (executor: "DETERMINISTIC" | "LLM" | "HUMAN") => executor === "LLM" ? "prov-llm" : executor === "HUMAN" ? "prov-medicine-protocol" : "prov-mip";
   const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: provenanceFor(item.executor), status: "candidate" }));
   const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: provenanceFor(item.executor), status: "candidate" }));
@@ -287,13 +296,18 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     ...carrierEntities.slice(1).map((carrier, index) => ({ id: `nrel-carrier-${index + 1}`, work_id: workId, source_id: carrierEntities[index].id, target_id: carrier.id, type: "associated_with", evidence_ids: unique([...carriers[index].evidence_ids, ...carrier.evidence_ids]).slice(0, 3), provenance_id: "prov-structure", status: "candidate" })),
     ...backbone.narrative_events.slice(1).map((event, index) => ({ id: `nrel-event-${index + 1}`, work_id: workId, source_id: backbone.narrative_events[index].id, target_id: event.id, type: "precedes", evidence_ids: unique([...backbone.narrative_events[index].evidence_ids, ...event.evidence_ids]).slice(0, 3), provenance_id: "prov-narrative", status: "candidate" })),
   ];
-  const proposedRelations = (llm?.structural_relations ?? []).flatMap((raw, index) => {
-    const source = carrierByLabel.get(text(raw.source_label)); const target = carrierByLabel.get(text(raw.target_label)); const type = text(raw.type); const quote = text(raw.exact_quote);
-    if (!source || !target || source.id === target.id || !structuralTypes.has(type) || !quote || !clean.includes(quote)) return [];
-    const evidenceIds = evidenceForQuote(quote).map((item) => item.id); if (!evidenceIds.length) return [];
+  const proposedRelations = [...protocolRelations(safeTitle), ...(llm?.structural_relations ?? [])].flatMap((raw, index) => {
+    const source = carrierByLabel.get(text(raw.source_label)); const target = carrierByLabel.get(text(raw.target_label)); const type = text(raw.type); const quote = text((raw as RelationCandidate).exact_quote);
+    const protocolSource = text((raw as { source_quote?: unknown }).source_quote); const protocolTarget = text((raw as { target_quote?: unknown }).target_quote);
+    const quotes = protocolSource && protocolTarget ? [protocolSource, protocolTarget] : [quote];
+    if (!source || !target || source.id === target.id || !structuralTypes.has(type) || !quotes.every((value) => value && clean.includes(value))) return [];
+    const evidenceIds = unique(quotes.flatMap((value) => evidenceForQuote(value).map((item) => item.id))); if (!evidenceIds.length) return [];
     return [{ id: `srel-llm-${index + 1}`, work_id: workId, source_id: source.id, target_id: target.id, type, evidence_ids: evidenceIds, rationale: text(raw.rationale) || "这是一条待检查的文本关系。", provenance_id: "prov-llm", status: "candidate" }];
   });
-  const fallbackRelations = carriers.filter((carrier) => carrier.evidence_ids.length >= 2).map((carrier, index) => ({ id: `srel-repeat-${index + 1}`, work_id: workId, source_id: carrier.id, target_id: carrierEntities[index].id, type: "recurs_with", evidence_ids: carrier.evidence_ids, rationale: `“${carrier.label}”在不同原文位置重复出现，值得回到原文检查其语境是否改变。`, provenance_id: "prov-structure", status: "candidate" }));
+  const fallbackRelations = carriers.filter((carrier) => carrier.evidence_ids.length >= 2).map((carrier, index) => {
+    const carrierIndex = carriers.findIndex((item) => item.id === carrier.id);
+    return { id: `srel-repeat-${index + 1}`, work_id: workId, source_id: carrier.id, target_id: carrierEntities[carrierIndex].id, type: "recurs_with", evidence_ids: carrier.evidence_ids, rationale: `“${carrier.label}”在不同原文位置重复出现，值得回到原文检查其语境是否改变。`, provenance_id: "prov-structure", status: "candidate" };
+  });
   const structural_relations = [...proposedRelations, ...fallbackRelations].slice(0, 20);
   const threads = carriers.map((carrier, index) => {
     const structural = structural_relations.filter((relation) => relation.source_id === carrier.id || relation.target_id === carrier.id);

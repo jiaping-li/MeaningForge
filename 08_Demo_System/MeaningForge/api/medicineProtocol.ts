@@ -26,3 +26,11 @@ export const medicineProtocolCandidates = [
   { label: "人血馒头", type: "object", exact_quote: "这样的人血馒头，什么痨病都包好！", reasons: ["observability", "narrative_salience", "relational_load", "reader_actionability", "probe_potential"] },
   { label: "红白的花", type: "sensory_image", exact_quote: "分明有一圈红白的花，围着那尖圆的坟顶。", reasons: ["observability", "contrast", "narrative_salience", "reader_actionability"] },
 ] as const;
+
+// These are structural, not thematic, relations. Each relation says only what
+// a reader can return to and inspect in the frozen edition: recurrence of a
+// lexical form, or co-presence in a bounded cemetery scene.
+export const medicineProtocolRelations = [
+  { source_label: "人血馒头", target_label: "坟冢 / 馒头", type: "recurs_with", source_quote: "这样的人血馒头，什么痨病都包好！", target_quote: "两面都已埋到层层叠叠，宛然阔人家里祝寿时候的馒头。", rationale: "“馒头”在不同的精确文本位置再次出现；系统只提示其词语回返，读者需自行比较两处语境。" },
+  { source_label: "乌鸦 / 铁铸", target_label: "红白的花", type: "co_occurs_with", source_quote: "那乌鸦也在笔直的树枝间，缩着头，铁铸一般站着。", target_quote: "分明有一圈红白的花，围着那尖圆的坟顶。", rationale: "两个候选均锚定在坟地场景的精确文本位置；此处仅记录可比较的场景共现。" },
+] as const;
