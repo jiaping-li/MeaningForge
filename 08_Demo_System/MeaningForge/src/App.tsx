@@ -11,7 +11,7 @@ const event = (session: ReaderSession, action: string, targetId?: string, target
 function sourceSections(source: string) {
   const parts: Array<{ id: string; paragraphs: string[] }> = [];
   let active: string | undefined;
-  const paragraphs = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n\s*\n").map((p) => p.trim()).filter(Boolean);
+  const paragraphs = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   paragraphs.forEach((paragraph) => {
     const heading = paragraph.match(/^(?:第)?([一二三四五六七八九十]+|\d+)(?:[章节回])?(?:\s+.*)?$/)?.[1];
     if (heading) { active = String(parts.length + 1); parts.push({ id: active, paragraphs: [] }); }
@@ -32,11 +32,12 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [loadingSource, setLoadingSource] = useState("");
   const [sourceError, setSourceError] = useState("");
+  const [skeletonExpanded, setSkeletonExpanded] = useState(true);
 
   const activate = (next: WorkPackage, text = "") => {
     const restored = loadSession(next.package_id, emptySession(next.package_id));
     setPkg(next); setSource(text); setSession(restored); setClaim(restored.claim); setChapter(chapters(next)[0] ?? "1");
-    setThreadId(""); setEvidenceId(""); setTab("trace");
+    setThreadId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(true);
   };
   useEffect(() => { loadDevelopmentPackage().then(async (next) => activate(next, next.work.source_uri ? await fetch(next.work.source_uri).then((r) => r.text()) : "")).catch(() => undefined); }, []);
   const persist = (fn: (old: ReaderSession) => ReaderSession) => setSession((old) => { if (!old) return old; const next = fn(old); saveSession(next); return next; });
@@ -68,7 +69,7 @@ export default function App() {
       </aside>
       <section className="reading-pane"><header><div><p className="eyebrow">原文优先</p><h1>{pkg.work.title}</h1></div><button className="overview-button" onClick={() => document.getElementById("overview")?.scrollIntoView({ behavior: "smooth" })}>全文骨架 <ChevronRight size={15} /></button></header><ReadingNavigator chapter={chapter} chapterIds={chapters(pkg)} onChange={(id) => { setChapter(id); setEvidenceId(""); }} /><div className="reading-hint">这是作品的完整章节文本；系统仅在你打开证据后标出对应段落，不会预先替你圈出重点。</div><article>{readingParagraphs.length ? readingParagraphs.map((paragraph, index) => <p key={index} className={focusedQuote && paragraph.includes(focusedQuote) ? "focused" : ""}>{paragraph}</p>) : <p>{source || "该材料的全文尚未载入。"}</p>}</article></section>
       <aside className="right-pane">
-        <section id="overview" className="overview"><div className="section-heading"><div><p className="eyebrow">全文参考骨架</p><h2>从全文到可检查的关系</h2></div><small>{pkg.threads.length} 条线索</small></div><p className="quiet">按“全文 → 线索 → 载体/证据 → 关系提案”逐层展开；点击任一线索进入局部工作台。</p><SkeletonTree pkg={pkg} activeThread={threadId} onThread={openThread} onEvidence={openEvidence} /></section>
+        <section id="overview" className={`overview ${skeletonExpanded ? "expanded" : "collapsed"}`}><div className="section-heading"><div><p className="eyebrow">全文参考骨架</p><h2>从全文到可检查的关系</h2></div><button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起骨架" : `展开骨架（${pkg.threads.length}）`}<ChevronRight size={14} /></button></div>{skeletonExpanded && <><p className="quiet">按“全文 → 线索 → 载体/证据 → 关系提案”逐层展开；点击任一线索进入局部工作台。</p><SkeletonTree pkg={pkg} activeThread={threadId} onThread={openThread} onEvidence={openEvidence} /></>}</section>
         {currentThread ? <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => setThreadId("")} /> : <section className="empty-thread"><Lightbulb size={20} /><b>从一条线索开始</b><p>你可以从全文分布进入，也可以先读原文再回来检查。</p></section>}
         <MyReading pkg={pkg} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} />
       </aside>
