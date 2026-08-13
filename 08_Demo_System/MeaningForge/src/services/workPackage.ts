@@ -102,8 +102,15 @@ export async function reviewReaderRelation(relationText: string, evidence: Array
 }
 
 export async function prepareTextDraft(title: string, text: string): Promise<PreparationDraft> {
-  const response = await fetch("/api/prepare-work-package", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title, text }) });
-  const payload: unknown = await response.json();
-  if (!response.ok) throw new Error(typeof payload === "object" && payload && "error" in payload ? String(payload.error) : "无法生成准备草稿。");
-  return payload as PreparationDraft;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetch("/api/prepare-work-package", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ title, text }), signal: controller.signal });
+    const payload: unknown = await response.json();
+    if (!response.ok) throw new Error(typeof payload === "object" && payload && "error" in payload ? String(payload.error) : "无法生成准备草稿。");
+    return payload as PreparationDraft;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw new Error("草稿构建在 15 秒内未响应。请确认另一个终端正在运行 npm run dev:api。");
+    throw error;
+  } finally { window.clearTimeout(timeout); }
 }
