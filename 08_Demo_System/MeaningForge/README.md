@@ -68,6 +68,11 @@ The bridge never downloads models during reader interaction. Stanza output is
 kept as traceable narrative candidates and is still subject to MeaningForge's
 source-anchor and reference checks.
 
+With Stanza enabled, construction can take roughly tens of seconds on a first
+pass. The UI waits for this local stage instead of treating it as a failed API
+request. For controlled materials, generate, validate, and freeze packages in
+advance rather than constructing them during participant sessions.
+
 ## Data boundaries
 
 - Reference data lives in `public/data/medicine-substrate-v2-development.json` and is never mutated by reader actions.

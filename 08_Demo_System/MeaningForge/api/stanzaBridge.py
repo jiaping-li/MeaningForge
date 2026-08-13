@@ -19,7 +19,7 @@ request = json.load(sys.stdin)
 language = request.get("language", "zh-hans")
 spans = request.get("spans", [])
 try:
-    pipeline = stanza.Pipeline(lang=language, processors="tokenize,pos,lemma,depparse,ner", tokenize_no_ssplit=True, verbose=False)
+    pipeline = stanza.Pipeline(lang=language, processors="tokenize,pos,lemma,depparse,ner", tokenize_no_ssplit=True, verbose=False, download_method=None)
 except Exception as error:
     print(json.dumps({"ok": False, "error": f"Stanza model unavailable: {error}"}))
     raise SystemExit(0)

@@ -107,7 +107,10 @@ export async function prepareTextDraft(title: string, text: string, options: { u
   let lastError: unknown;
   for (const endpoint of endpoints) {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 8_000);
+    // A configured traditional-NLP pass can take longer than the lightweight
+    // deterministic draft, especially on a first model invocation. Do not
+    // mislabel a still-running local construction as a disconnected service.
+    const timeout = window.setTimeout(() => controller.abort(), 35_000);
     try {
       let response: Response;
       try {

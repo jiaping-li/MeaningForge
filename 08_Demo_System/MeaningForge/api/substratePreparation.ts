@@ -116,8 +116,10 @@ type StanzaOutput = { ok?: boolean; entities?: Array<{ span_id?: unknown; surfac
 function stanzaAnnotations(spans: Array<{ id: string; text: string }>) {
   if (process.env.MF_ENABLE_STANZA !== "true") return { entities: [] as Array<{ span_id: string; surface_form: string; type: string }>, events: [] as Array<{ span_id: string; predicate: string; participants: string[] }>, used: false, note: "Traditional NLP executor disabled." };
   const language = spans.some((span) => /[\u4e00-\u9fff]/.test(span.text)) ? "zh-hans" : "en";
+  const maximum = Math.max(12, Math.min(Number(process.env.MF_STANZA_MAX_SPANS || 56), 120));
+  const selected = spans.length <= maximum ? spans : Array.from({ length: maximum }, (_, index) => spans[Math.floor(index * (spans.length - 1) / (maximum - 1))]);
   const python = process.env.MF_STANZA_PYTHON || "python3";
-  const result = spawnSync(python, [path.resolve(process.cwd(), "api/stanzaBridge.py")], { input: JSON.stringify({ language, spans: spans.slice(0, 420) }), encoding: "utf8", timeout: 45_000, maxBuffer: 8 * 1024 * 1024 });
+  const result = spawnSync(python, [path.resolve(process.cwd(), "api/stanzaBridge.py")], { input: JSON.stringify({ language, spans: selected }), encoding: "utf8", timeout: 45_000, maxBuffer: 8 * 1024 * 1024 });
   try {
     const output = JSON.parse(result.stdout || "{}") as StanzaOutput;
     if (!output.ok) return { entities: [], events: [], used: false, note: output.error || "Traditional NLP executor returned no annotations." };
@@ -125,7 +127,7 @@ function stanzaAnnotations(spans: Array<{ id: string; text: string }>) {
     return {
       entities: (output.entities ?? []).flatMap((item) => { const span_id = text(item.span_id); const surface_form = text(item.surface_form); return spanIds.has(span_id) && surface_form ? [{ span_id, surface_form, type: text(item.type) || "entity" }] : []; }),
       events: (output.events ?? []).flatMap((item) => { const span_id = text(item.span_id); const predicate = text(item.predicate); return spanIds.has(span_id) && predicate ? [{ span_id, predicate, participants: Array.isArray(item.participants) ? item.participants.filter((value): value is string => typeof value === "string") : [] }] : []; }),
-      used: true, note: "Stanza token/POS/dependency/NER executor completed.",
+      used: true, note: `Stanza token/POS/dependency/NER executor completed on ${selected.length}${spans.length > selected.length ? ` evenly distributed of ${spans.length}` : ""} source spans.`,
     };
   } catch { return { entities: [], events: [], used: false, note: "Traditional NLP executor returned invalid JSON." }; }
 }
