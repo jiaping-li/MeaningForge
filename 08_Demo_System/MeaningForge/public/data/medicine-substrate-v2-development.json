@@ -1,0 +1,102 @@
+{
+  "schema_version": "meaningforge-1.0",
+  "package_id": "medicine-v2-development-20260812",
+  "package_status": "development",
+  "work": {
+    "id": "lu_xun_medicine",
+    "title": "药",
+    "author": "鲁迅",
+    "language": "zh",
+    "edition_id": "medicine-ed-public-domain-01",
+    "source_description": "本地 public-domain 文本，段落边界保留；development package。",
+    "source_uri": "/books/luxun-medicine-zh.txt",
+    "status": "development"
+  },
+  "text_spans": [
+    { "id": "s01", "work_id": "lu_xun_medicine", "chapter_id": "1", "paragraph_id": "p24", "order": 24, "text": "‘喂！一手交钱，一手交货！’一个浑身黑色的人，站在老栓面前，眼光正像两把刀。刺得老栓缩小了一半。那人一只大手，向他摊着；一只手却撮着一个鲜红的馒头，那红的还是一点一点的往下滴。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s02", "work_id": "lu_xun_medicine", "chapter_id": "1", "paragraph_id": "p26", "order": 26, "text": "黑的人便抢过灯笼，一把扯下纸罩，裹了馒头，塞与老栓；一手抓过洋钱，捏一捏，转身去了。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s03", "work_id": "lu_xun_medicine", "chapter_id": "2", "paragraph_id": "p40", "order": 40, "text": "‘吃下去罢，——病便好了。’", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s04", "work_id": "lu_xun_medicine", "chapter_id": "2", "paragraph_id": "p42", "order": 42, "text": "焦皮里面窜出一道白气，白气散了，是两半个白面的馒头。——不多工夫，已经全在肚里了，却全忘了什么味；面前只剩下一张空盘。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s05", "work_id": "lu_xun_medicine", "chapter_id": "3", "paragraph_id": "p62", "order": 62, "text": "‘这是包好！这是与众不同的。你想，趁热的拿来，趁热吃下。’横肉的人只是嚷。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s06", "work_id": "lu_xun_medicine", "chapter_id": "3", "paragraph_id": "p66", "order": 66, "text": "‘包好，包好！这样的趁热吃下。这样的人血馒头，什么痨病都包好！’", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s07", "work_id": "lu_xun_medicine", "chapter_id": "3", "paragraph_id": "p76", "order": 76, "text": "‘包好，包好！’康大叔瞥了小栓一眼，仍然回过脸，对众人说，‘夏三爷真是乖角儿，要是他不先告官，连他满门抄斩。现在怎样？银子！——这小东西也真不成东西！关在牢里，还要劝牢头造反。’", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s08", "work_id": "lu_xun_medicine", "chapter_id": "3", "paragraph_id": "p98", "order": 98, "text": "‘包好！小栓——你不要这么咳。包好！’", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s09", "work_id": "lu_xun_medicine", "chapter_id": "4", "paragraph_id": "p110", "order": 110, "text": "路的左边，都埋着死刑和瘦毙的人，右边是穷人的丛冢。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s10", "work_id": "lu_xun_medicine", "chapter_id": "4", "paragraph_id": "p116", "order": 116, "text": "分明有一圈红白的花，围着那尖圆的坟顶。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s11", "work_id": "lu_xun_medicine", "chapter_id": "4", "paragraph_id": "p118", "order": 118, "text": "这没有根，不像自己开的！这地方有谁来呢？孩子不会来玩；——亲戚本家早不来了。——这是怎么一回事呢？", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s12", "work_id": "lu_xun_medicine", "chapter_id": "4", "paragraph_id": "p120", "order": 120, "text": "只见一只乌鸦，站在一株没有叶的树上", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "s13", "work_id": "lu_xun_medicine", "chapter_id": "4", "paragraph_id": "p130", "order": 130, "text": "只见那乌鸦张开两翅，一挫身，直向着远处的天空，箭也似的飞去了。", "provenance_id": "p_text", "status": "grounding_validated" }
+  ],
+  "evidence": [
+    { "id": "e01", "work_id": "lu_xun_medicine", "span_ids": ["s01"], "type": "object_description", "note": "交易现场的鲜红馒头。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e02", "work_id": "lu_xun_medicine", "span_ids": ["s02"], "type": "action", "note": "馒头被包裹并交给老栓。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e03", "work_id": "lu_xun_medicine", "span_ids": ["s03", "s04"], "type": "action", "note": "小栓吃下被当作药的馒头。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e04", "work_id": "lu_xun_medicine", "span_ids": ["s05", "s06", "s08"], "type": "repetition", "note": "“包好”在茶馆情境中反复出现。", "provenance_id": "p_structural", "status": "grounding_validated" },
+    { "id": "e05", "work_id": "lu_xun_medicine", "span_ids": ["s07"], "type": "dialogue", "note": "茶馆谈话将夏瑜的处境纳入公共议论。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e06", "work_id": "lu_xun_medicine", "span_ids": ["s09"], "type": "scene", "note": "坟地以一条路分隔两侧坟墓。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e07", "work_id": "lu_xun_medicine", "span_ids": ["s10", "s11"], "type": "sensory_image", "note": "红白花环出现，其来源被人物追问。", "provenance_id": "p_text", "status": "grounding_validated" },
+    { "id": "e08", "work_id": "lu_xun_medicine", "span_ids": ["s12", "s13"], "type": "sensory_image", "note": "乌鸦先静止、后飞离。", "provenance_id": "p_text", "status": "grounding_validated" }
+  ],
+  "narrative_units": [
+    { "id": "u01", "work_id": "lu_xun_medicine", "order": 1, "chapter_id": "1", "span_ids": ["s01", "s02"], "summary": "老栓在交易中取得馒头。", "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "u02", "work_id": "lu_xun_medicine", "order": 2, "chapter_id": "2", "span_ids": ["s03", "s04"], "summary": "小栓被要求吃下馒头。", "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "u03", "work_id": "lu_xun_medicine", "order": 3, "chapter_id": "3", "span_ids": ["s05", "s06", "s07", "s08"], "summary": "茶馆谈话反复确认疗效，并议论夏瑜。", "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "u04", "work_id": "lu_xun_medicine", "order": 4, "chapter_id": "4", "span_ids": ["s09", "s10", "s11", "s12", "s13"], "summary": "坟地使两处死亡和结尾意象并置。", "provenance_id": "p_narrative", "status": "reference_ready" }
+  ],
+  "narrative_entities": [
+    { "id": "n_transaction", "work_id": "lu_xun_medicine", "type": "event", "label": "馒头交易", "evidence_ids": ["e01", "e02"], "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "n_eating", "work_id": "lu_xun_medicine", "type": "action", "label": "吃下馒头", "evidence_ids": ["e03"], "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "n_public_talk", "work_id": "lu_xun_medicine", "type": "discourse", "label": "茶馆谈话", "evidence_ids": ["e04", "e05"], "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "n_grave_scene", "work_id": "lu_xun_medicine", "type": "scene", "label": "坟地", "evidence_ids": ["e06", "e07", "e08"], "provenance_id": "p_narrative", "status": "reference_ready" }
+  ],
+  "narrative_relations": [
+    { "id": "nr01", "work_id": "lu_xun_medicine", "source_id": "n_transaction", "target_id": "n_eating", "type": "precedes", "evidence_ids": ["e01", "e02", "e03"], "provenance_id": "p_narrative", "status": "reference_ready" },
+    { "id": "nr02", "work_id": "lu_xun_medicine", "source_id": "n_eating", "target_id": "n_public_talk", "type": "precedes", "evidence_ids": ["e03", "e04"], "provenance_id": "p_narrative", "status": "reference_ready" }
+  ],
+  "figurative_features": [
+    { "id": "f_blood_bun", "work_id": "lu_xun_medicine", "evidence_id": "e01", "surface_form": "鲜红的馒头", "type": "symbolic_object_candidate", "mip_status": "not_applicable", "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "f_treatment_speech", "work_id": "lu_xun_medicine", "evidence_id": "e04", "surface_form": "包好", "type": "discourse_pattern", "mip_status": "not_applicable", "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "f_flower_ring", "work_id": "lu_xun_medicine", "evidence_id": "e07", "surface_form": "一圈红白的花", "type": "recurrent_imagery", "mip_status": "not_applicable", "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "f_crow", "work_id": "lu_xun_medicine", "evidence_id": "e08", "surface_form": "乌鸦", "type": "recurrent_imagery", "mip_status": "not_applicable", "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "f_eye_knives", "work_id": "lu_xun_medicine", "evidence_id": "e01", "surface_form": "眼光正像两把刀", "type": "metaphor_related", "mip_status": "applicable", "mip_record": { "lexical_unit": "刀", "contextual_meaning": "形容注视带来的逼迫感", "basic_meaning": "可切割的锐利器具", "contrast_present": true, "comparison_defensible": true }, "provenance_id": "p_mip", "status": "reference_ready" }
+  ],
+  "carriers": [
+    { "id": "c_blood_bun", "work_id": "lu_xun_medicine", "label": "血 / 馒头", "type": "object", "feature_ids": ["f_blood_bun"], "evidence_ids": ["e01", "e02", "e03", "e04"], "selection_reasons": ["observability", "narrative_salience", "relational_load", "reader_actionability", "probe_potential"], "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "c_treatment_speech", "work_id": "lu_xun_medicine", "label": "“包好”", "type": "recurrent_expression", "feature_ids": ["f_treatment_speech"], "evidence_ids": ["e04"], "selection_reasons": ["observability", "recurrence_distribution", "relational_load", "interpretive_tension", "reader_actionability"], "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "c_flower_ring", "work_id": "lu_xun_medicine", "label": "红白的花", "type": "sensory_image", "feature_ids": ["f_flower_ring"], "evidence_ids": ["e07"], "selection_reasons": ["observability", "narrative_salience", "interpretive_tension", "reader_actionability", "probe_potential"], "provenance_id": "p_carrier", "status": "reference_ready" },
+    { "id": "c_crow", "work_id": "lu_xun_medicine", "label": "乌鸦", "type": "sensory_image", "feature_ids": ["f_crow"], "evidence_ids": ["e08"], "selection_reasons": ["observability", "narrative_salience", "relational_load", "reader_actionability"], "provenance_id": "p_carrier", "status": "reference_ready" }
+  ],
+  "structural_relations": [
+    { "id": "sr01", "work_id": "lu_xun_medicine", "thread_id": "t_blood_treatment", "source_id": "c_blood_bun", "target_id": "n_transaction", "type": "co_occurs_with", "evidence_ids": ["e01", "e02"], "rationale": "馒头在一手交钱、一手交货的场面中出现并被交给老栓。", "provenance_id": "p_structural", "status": "reference_ready" },
+    { "id": "sr02", "work_id": "lu_xun_medicine", "thread_id": "t_blood_treatment", "source_id": "c_blood_bun", "target_id": "n_eating", "type": "precedes", "evidence_ids": ["e02", "e03"], "rationale": "被包裹和交出的馒头随后由小栓吃下。", "provenance_id": "p_structural", "status": "reference_ready" },
+    { "id": "sr03", "work_id": "lu_xun_medicine", "thread_id": "t_blood_treatment", "source_id": "c_treatment_speech", "target_id": "c_blood_bun", "type": "changes_function", "evidence_ids": ["e04"], "rationale": "“包好”的反复话语将馒头置入被保证有效的治疗语境。", "provenance_id": "p_structural", "status": "reference_ready" },
+    { "id": "sr04", "work_id": "lu_xun_medicine", "thread_id": "t_public_talk", "source_id": "c_treatment_speech", "target_id": "n_public_talk", "type": "recurs_with", "evidence_ids": ["e04", "e05"], "rationale": "疗效承诺在茶馆谈话中被重复，并与夏瑜的议论处于同一谈话场景。", "provenance_id": "p_structural", "status": "reference_ready" },
+    { "id": "sr05", "work_id": "lu_xun_medicine", "thread_id": "t_grave_memorial", "source_id": "c_flower_ring", "target_id": "n_grave_scene", "type": "co_occurs_with", "evidence_ids": ["e06", "e07"], "rationale": "红白花环出现在由小路分隔两侧坟墓的结尾场景。", "provenance_id": "p_structural", "status": "reference_ready" },
+    { "id": "sr06", "work_id": "lu_xun_medicine", "thread_id": "t_grave_memorial", "source_id": "c_crow", "target_id": "c_flower_ring", "type": "shares_scene", "evidence_ids": ["e07", "e08"], "rationale": "花环被追问其来处时，乌鸦同时进入人物的观看和等待。", "provenance_id": "p_structural", "status": "reference_ready" }
+  ],
+  "interpretive_relations": [
+    { "id": "ir01", "work_id": "lu_xun_medicine", "thread_id": "t_blood_treatment", "source_ids": ["c_blood_bun", "c_treatment_speech"], "type": "possible_implication", "evidence_ids": ["e01", "e02", "e03", "e04"], "grounding_relation_ids": ["sr01", "sr02", "sr03"], "relation_text": "这些关系可能让“治疗”不只表现为一个私人的愿望，也成为通过交易、身体动作和确定性话语组织起来的过程。", "qualification": "这是可检查的读法之一；读者可以决定这些连接是否足以支持它。", "provenance_id": "p_interpretive", "status": "reference_ready" },
+    { "id": "ir02", "work_id": "lu_xun_medicine", "thread_id": "t_public_talk", "source_ids": ["c_treatment_speech", "n_public_talk"], "type": "possible_implication", "evidence_ids": ["e04", "e05"], "grounding_relation_ids": ["sr04"], "relation_text": "疗效承诺与关于夏瑜的谈话并置，可能值得读者检查：公共谈话如何同时塑造了“可靠”的感觉和对事件的理解。", "qualification": "该关系不预设公众只有一种态度，也不把它等同于最终主题。", "provenance_id": "p_interpretive", "status": "reference_ready" },
+    { "id": "ir03", "work_id": "lu_xun_medicine", "thread_id": "t_grave_memorial", "source_ids": ["c_flower_ring", "c_crow"], "type": "possible_implication", "evidence_ids": ["e06", "e07", "e08"], "grounding_relation_ids": ["sr05", "sr06"], "relation_text": "花环和乌鸦都使结尾停留在被观看、被询问但未被完全说明的状态；读者可以据此检查结尾是否留下不同的理解空间。", "qualification": "这不是把花环或乌鸦固定翻译成单一象征意义。", "provenance_id": "p_interpretive", "status": "reference_ready" },
+    { "id": "ir04", "work_id": "lu_xun_medicine", "thread_id": "t_grave_memorial", "source_ids": ["c_flower_ring"], "type": "qualifies", "evidence_ids": ["e07"], "grounding_relation_ids": ["sr05"], "relation_text": "花环的来源被人物明确追问，因此任何将它快速归结为确定答案的读法都值得保留疑问。", "qualification": "这条关系用于复杂化，而不是否定其他可能读法。", "provenance_id": "p_interpretive", "status": "reference_ready" }
+  ],
+  "threads": [
+    { "id": "t_blood_treatment", "work_id": "lu_xun_medicine", "neutral_label": "血 / 馒头 / 治疗", "carrier_ids": ["c_blood_bun", "c_treatment_speech"], "feature_ids": ["f_blood_bun", "f_treatment_speech"], "evidence_ids": ["e01", "e02", "e03", "e04"], "structural_relation_ids": ["sr01", "sr02", "sr03"], "interpretive_relation_ids": ["ir01"], "distribution": { "chapter_ids": ["1", "2", "3"], "span_orders": [24, 26, 40, 42, 62, 66, 98] }, "provenance_id": "p_thread", "status": "reference_ready" },
+    { "id": "t_public_talk", "work_id": "lu_xun_medicine", "neutral_label": "公共谈话 / 确定性", "carrier_ids": ["c_treatment_speech"], "feature_ids": ["f_treatment_speech"], "evidence_ids": ["e04", "e05"], "structural_relation_ids": ["sr04"], "interpretive_relation_ids": ["ir02"], "distribution": { "chapter_ids": ["3"], "span_orders": [62, 66, 76, 98] }, "provenance_id": "p_thread", "status": "reference_ready" },
+    { "id": "t_grave_memorial", "work_id": "lu_xun_medicine", "neutral_label": "坟地 / 花 / 乌鸦", "carrier_ids": ["c_flower_ring", "c_crow"], "feature_ids": ["f_flower_ring", "f_crow"], "evidence_ids": ["e06", "e07", "e08"], "structural_relation_ids": ["sr05", "sr06"], "interpretive_relation_ids": ["ir03", "ir04"], "distribution": { "chapter_ids": ["4"], "span_orders": [110, 116, 118, 120, 130] }, "provenance_id": "p_thread", "status": "reference_ready" }
+  ],
+  "probes": [
+    { "id": "p01", "work_id": "lu_xun_medicine", "thread_id": "t_blood_treatment", "type": "replacement", "target_relation_ids": ["ir01"], "target_carrier_id": "c_blood_bun", "prompt": "如果这里换成一种不带血的普通药物，交易、吃下和“包好”的关系中，哪些仍成立、哪些变弱或断裂？", "config": { "suggested_replacement": "普通药丸" }, "provenance_id": "p_probe", "status": "reference_ready" },
+    { "id": "p02", "work_id": "lu_xun_medicine", "thread_id": "t_grave_memorial", "type": "edge_removal", "target_relation_ids": ["ir03"], "target_carrier_id": "c_flower_ring", "prompt": "暂时不把花环纳入这条关系，只保留坟地和乌鸦；结尾中哪些观察还可成立，哪些需要重新判断？", "provenance_id": "p_probe", "status": "reference_ready" }
+  ],
+  "provenance": [
+    { "id": "p_text", "method_basis": "DIRECT_TEXT", "executor_type": "IMPORTED", "executor_name": "public-domain edition import", "method_note": "原文 TextSpan 与 Evidence 的逐字定位。", "created_at": "2026-08-12" },
+    { "id": "p_narrative", "method_basis": "NARRATIVE_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按固定 narrative ontology 整理最低限度的事件、动作与场景。", "created_at": "2026-08-12" },
+    { "id": "p_mip", "method_basis": "MIP_MIPVU_INFORMED", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "仅对可辩护的词汇用法保留 basic/contextual comparison。", "created_at": "2026-08-12" },
+    { "id": "p_structural", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按固定 StructuralRelation taxonomy 建立可观察连接。", "created_at": "2026-08-12" },
+    { "id": "p_carrier", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按 observability、salience、relational load、reader actionability 等固定 gate 选择候选 carrier。", "created_at": "2026-08-12" },
+    { "id": "p_interpretive", "method_basis": "REFERENCE_INTERPRETIVE_PROTOCOL", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "基于已存在 evidence 与 StructuralRelation 写入 qualified proposal，不作为文学事实。", "created_at": "2026-08-12" },
+    { "id": "p_thread", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按中性标签规则组织 reader-facing thread。", "created_at": "2026-08-12" },
+    { "id": "p_probe", "method_basis": "REFERENCE_INTERPRETIVE_PROTOCOL", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "Probe 仅针对明确 relation，记录 reader judgment。", "created_at": "2026-08-12" }
+  ]
+}

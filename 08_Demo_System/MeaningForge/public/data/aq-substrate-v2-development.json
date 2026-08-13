@@ -1,0 +1,51 @@
+{
+  "schema_version": "meaningforge-1.0",
+  "package_id": "aq-v2-development-20260813",
+  "package_status": "development",
+  "work": { "id": "lu_xun_aq", "title": "阿Q正传", "author": "鲁迅", "language": "zh", "edition_id": "aq-ed-public-domain-01", "source_description": "本地 public-domain 文本；development package。", "source_uri": "/books/luxun-aq-zh.txt", "status": "development", "chapter_markers": [{ "id": "2", "label": "第二章 优胜记略", "marker": "第二章 优胜记略" }] },
+  "text_spans": [
+    { "id": "aq_s01", "work_id": "lu_xun_aq", "chapter_id": "2", "paragraph_id": "p56", "order": 56, "text": "阿Q在形式上打败了，被人揪住黄辫子，在壁下碰了四五个响头，闲人这才心满意足的得胜的走了，阿Q站了一刻，心里想，『我总算被儿子打了，现在的世界真不像样……』于是也心满意足的得胜的走了。", "provenance_id": "aq_p_text", "status": "grounding_validated" },
+    { "id": "aq_s02", "work_id": "lu_xun_aq", "chapter_id": "2", "paragraph_id": "p58", "order": 58, "text": "阿Q想在心里的，后来每每说出口来，所以凡有和阿Q玩笑的人们，几乎全知道他有这一种精神上的胜利法，此后每逢揪住他黄辫子的时候，人就先一着对他说：", "provenance_id": "aq_p_text", "status": "grounding_validated" },
+    { "id": "aq_s03", "work_id": "lu_xun_aq", "chapter_id": "2", "paragraph_id": "p60", "order": 60, "text": "『阿Q，这不是儿子打老子，是人打畜生。自己说，人打畜生！』", "provenance_id": "aq_p_text", "status": "grounding_validated" },
+    { "id": "aq_s04", "work_id": "lu_xun_aq", "chapter_id": "2", "paragraph_id": "p62", "order": 62, "text": "但虽然是虫豸，闲人也并不放，仍旧在就近什么地方给他碰了五六个响头，这才心满意足的得胜的走了，他以为阿Q这回可遭了瘟。然而不到十秒钟，阿Q也心满意足的得胜的走了，", "provenance_id": "aq_p_text", "status": "grounding_validated" }
+  ],
+  "evidence": [
+    { "id": "aq_e01", "work_id": "lu_xun_aq", "span_ids": ["aq_s01"], "type": "action", "note": "身体失败与“得胜”在同一段中并置。", "provenance_id": "aq_p_text", "status": "grounding_validated" },
+    { "id": "aq_e02", "work_id": "lu_xun_aq", "span_ids": ["aq_s02"], "type": "repetition", "note": "这套说法被反复说出，也被旁人知晓。", "provenance_id": "aq_p_text", "status": "grounding_validated" },
+    { "id": "aq_e03", "work_id": "lu_xun_aq", "span_ids": ["aq_s03", "aq_s04"], "type": "dialogue", "note": "旁人接管并重复这套关系命名。", "provenance_id": "aq_p_text", "status": "grounding_validated" }
+  ],
+  "narrative_units": [{ "id": "aq_u01", "work_id": "lu_xun_aq", "order": 1, "chapter_id": "2", "span_ids": ["aq_s01", "aq_s02", "aq_s03", "aq_s04"], "summary": "身体受辱、话语改写与旁人模仿连续出现。", "provenance_id": "aq_p_narrative", "status": "reference_ready" }],
+  "narrative_entities": [
+    { "id": "aq_n_defeat", "work_id": "lu_xun_aq", "type": "event", "label": "身体受辱", "evidence_ids": ["aq_e01"], "provenance_id": "aq_p_narrative", "status": "reference_ready" },
+    { "id": "aq_n_public", "work_id": "lu_xun_aq", "type": "discourse", "label": "旁人重复", "evidence_ids": ["aq_e02", "aq_e03"], "provenance_id": "aq_p_narrative", "status": "reference_ready" }
+  ],
+  "narrative_relations": [{ "id": "aq_nr01", "work_id": "lu_xun_aq", "source_id": "aq_n_defeat", "target_id": "aq_n_public", "type": "precedes", "evidence_ids": ["aq_e01", "aq_e02"], "provenance_id": "aq_p_narrative", "status": "reference_ready" }],
+  "figurative_features": [
+    { "id": "aq_f01", "work_id": "lu_xun_aq", "evidence_id": "aq_e01", "surface_form": "被儿子打了", "type": "relation_reframing", "mip_status": "not_applicable", "provenance_id": "aq_p_carrier", "status": "reference_ready" },
+    { "id": "aq_f02", "work_id": "lu_xun_aq", "evidence_id": "aq_e02", "surface_form": "精神上的胜利法", "type": "discourse_pattern", "mip_status": "not_applicable", "provenance_id": "aq_p_carrier", "status": "reference_ready" }
+  ],
+  "carriers": [
+    { "id": "aq_c_victory", "work_id": "lu_xun_aq", "label": "精神胜利法", "type": "recurrent_expression", "feature_ids": ["aq_f02"], "evidence_ids": ["aq_e01", "aq_e02", "aq_e03"], "selection_reasons": ["observability", "recurrence_distribution", "relational_load", "reader_actionability", "probe_potential"], "provenance_id": "aq_p_carrier", "status": "reference_ready" },
+    { "id": "aq_c_son", "work_id": "lu_xun_aq", "label": "“儿子”", "type": "relation_term", "feature_ids": ["aq_f01"], "evidence_ids": ["aq_e01", "aq_e03"], "selection_reasons": ["observability", "relational_load", "interpretive_tension", "reader_actionability"], "provenance_id": "aq_p_carrier", "status": "reference_ready" }
+  ],
+  "structural_relations": [
+    { "id": "aq_sr01", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "source_id": "aq_n_defeat", "target_id": "aq_c_son", "type": "changes_context", "evidence_ids": ["aq_e01"], "rationale": "身体受辱后，“儿子”这一称谓出现在阿Q的自我说法中。", "provenance_id": "aq_p_structural", "status": "reference_ready" },
+    { "id": "aq_sr02", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "source_id": "aq_c_son", "target_id": "aq_c_victory", "type": "changes_function", "evidence_ids": ["aq_e01", "aq_e02"], "rationale": "关系称谓的改写成为“精神上的胜利法”被命名和传播的文本条件之一。", "provenance_id": "aq_p_structural", "status": "reference_ready" },
+    { "id": "aq_sr03", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "source_id": "aq_c_victory", "target_id": "aq_n_public", "type": "recurs_with", "evidence_ids": ["aq_e02", "aq_e03"], "rationale": "这套说法被阿Q说出口后，旁人也以同一关系命名来戏弄他。", "provenance_id": "aq_p_structural", "status": "reference_ready" }
+  ],
+  "interpretive_relations": [
+    { "id": "aq_ir01", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "source_ids": ["aq_n_defeat", "aq_c_son", "aq_c_victory"], "type": "possible_implication", "evidence_ids": ["aq_e01", "aq_e02"], "grounding_relation_ids": ["aq_sr01", "aq_sr02"], "relation_text": "这些连接可能值得读者检查：身体上的失败怎样被关系命名重新组织为一种心理上的“得胜”。", "qualification": "这不是把“精神胜利法”固定翻译为单一心理概念。", "provenance_id": "aq_p_interpretive", "status": "reference_ready" },
+    { "id": "aq_ir02", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "source_ids": ["aq_c_victory", "aq_n_public"], "type": "complicates", "evidence_ids": ["aq_e02", "aq_e03"], "grounding_relation_ids": ["aq_sr03"], "relation_text": "旁人也使用这套说法，使它不只像私人自我安慰；读者可以进一步检查它怎样进入公开的嘲弄关系。", "qualification": "这条关系复杂化私人心理解释，而不替读者确定社会讽刺的最终范围。", "provenance_id": "aq_p_interpretive", "status": "reference_ready" }
+  ],
+  "threads": [{ "id": "aq_t01", "work_id": "lu_xun_aq", "neutral_label": "受辱 / 称谓 / 得胜", "carrier_ids": ["aq_c_son", "aq_c_victory"], "feature_ids": ["aq_f01", "aq_f02"], "evidence_ids": ["aq_e01", "aq_e02", "aq_e03"], "structural_relation_ids": ["aq_sr01", "aq_sr02", "aq_sr03"], "interpretive_relation_ids": ["aq_ir01", "aq_ir02"], "distribution": { "chapter_ids": ["2"], "span_orders": [56, 58, 60, 62] }, "provenance_id": "aq_p_thread", "status": "reference_ready" }],
+  "probes": [{ "id": "aq_probe01", "work_id": "lu_xun_aq", "thread_id": "aq_t01", "type": "replacement", "target_relation_ids": ["aq_ir01"], "target_carrier_id": "aq_c_victory", "prompt": "如果阿Q不把失败改写成“得胜”，而是直接承认失败，身体受辱、称谓和旁人重复之间哪些关系仍在，哪些需要重新判断？", "config": { "suggested_replacement": "承认失败" }, "provenance_id": "aq_p_probe", "status": "reference_ready" }],
+  "provenance": [
+    { "id": "aq_p_text", "method_basis": "DIRECT_TEXT", "executor_type": "IMPORTED", "executor_name": "public-domain edition import", "method_note": "原文 TextSpan 与 Evidence 的逐字定位。", "created_at": "2026-08-13" },
+    { "id": "aq_p_narrative", "method_basis": "NARRATIVE_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按固定叙事 ontology 整理事件与话语。", "created_at": "2026-08-13" },
+    { "id": "aq_p_carrier", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按固定 carrier gate 选择候选。", "created_at": "2026-08-13" },
+    { "id": "aq_p_structural", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "按固定 StructuralRelation taxonomy 建立可观察关系。", "created_at": "2026-08-13" },
+    { "id": "aq_p_interpretive", "method_basis": "REFERENCE_INTERPRETIVE_PROTOCOL", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "基于 evidence 与 structural relation 的 qualified proposal。", "created_at": "2026-08-13" },
+    { "id": "aq_p_thread", "method_basis": "STRUCTURAL_RULE", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "中性 reader-facing thread。", "created_at": "2026-08-13" },
+    { "id": "aq_p_probe", "method_basis": "REFERENCE_INTERPRETIVE_PROTOCOL", "executor_type": "HUMAN", "executor_name": "development protocol pass", "method_note": "关系诊断性 probe。", "created_at": "2026-08-13" }
+  ]
+}

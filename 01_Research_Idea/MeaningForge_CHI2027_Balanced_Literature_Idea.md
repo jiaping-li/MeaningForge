@@ -64,7 +64,7 @@ not merely final-answer quality?
 
 **网络是核心 artifact，但“用了网络”不是 novelty。**  
 **MIP/MIPVU、MetaNet/FrameNet、传统 NLP 是核心 substrate，但不是 HCI contribution claim。**  
-**LLM 不是研究对象；运行时拿掉 LLM，主系统仍应成立。substrate preparation 阶段可以使用 LLM 代替人工执行已经固定的标注、核查和结构化步骤。**
+**LLM 不是研究对象；automatic construction 阶段可以使用 traditional NLP / LLM-assisted semantic execution，但生成 reference scaffold 后的 reader-facing reasoning phase 不需要 live LLM 才能成立。**
 
 ### 0.0.1 Substrate protocol 与执行者分离
 
@@ -84,15 +84,20 @@ schema / validation rules
 
 ```text
 deterministic code
+traditional NLP
 LLM
 human researcher
 ```
 
 LLM 的使用不改变 MeaningForge 的研究问题，也不把 substrate construction 变成新的 agent/LLM contribution。
 
+### 0.0.2 Implementation boundary：自动构建是 substrate，不是 HCI contribution
+
+Implementation-wise, MeaningForge may automatically construct an internal unified narrative representation from traceable text structure, narrative entities/events, and multiple figurative signals, and then apply a predefined meaning-relevance projection to generate the reader-facing reference scaffold. The construction pipeline may combine deterministic processing, traditional NLP, fixed theoretical procedures, and LLM-assisted semantic execution. **This computational construction is substrate, not the HCI contribution, and it should not be described as the system automatically understanding literary meaning.**
+
 ## 0.1 核心 artifact：系统初稿与读者修订共同构成的全文骨架
 
-这里的“全文隐喻/修辞意义骨架”不是后台不可见的候选索引，也不是一张把所有人物、事件和物件都堆进去的故事图。它是系统为每部作品加载的一份**可编辑、可追溯、可质疑的 reference draft**。这份 draft 按 MeaningForge 预先固定的 substrate protocol 构建；执行这些标注、核查与结构化步骤的人可以是研究者，也可以由 LLM 代执行，但规则、ontology 与输出 schema 不由 LLM 自由定义：
+这里的“全文隐喻/修辞意义骨架”不是后台不可见的候选索引，也不是一张把所有人物、事件和物件都堆进去的故事图。它是系统从作品全文自动构建、或在 controlled study 中加载已冻结版本的一份**可编辑、可追溯、可质疑的 reference draft**。这份 draft 按 MeaningForge 预先固定的 substrate protocol 构建；执行这些标注、核查与结构化步骤的人可以是研究者，也可以由 LLM 代执行，但规则、ontology 与输出 schema 不由 LLM 自由定义：
 
 ```text
 全文
@@ -895,7 +900,7 @@ Formative 应该产出：
 
 ---
 
-# 10. System Architecture：LLM 拿掉仍然成立
+# 10. System Architecture：model-enabled, not model-defined
 
 MeaningForge 的 backend 分四层。
 
@@ -999,11 +1004,11 @@ UI 中最重要的是区分 **reference proposal** 与 **reader-authored underst
 
 ## 核心原则
 
-> **MeaningForge 是 model-enabled but not model-defined：运行时拿掉 LLM，core reading interaction 与 study hypothesis 仍然成立。**
+> **MeaningForge 是 model-enabled but not model-defined：automatic construction 可以使用 LLM-assisted execution，但 reference scaffold 生成后，core reading interaction 与 study hypothesis 不依赖 live LLM。**
 
 LLM 在本项目中可以承担两类辅助工作。
 
-### A. Substrate preparation executor
+### A. Automatic substrate-construction executor
 
 LLM 可以代替研究者执行已经固定好的繁琐步骤，例如：
 
@@ -1036,13 +1041,13 @@ LLM 不应：
 
 ### Controlled-study implementation
 
-**主 controlled study 可以完全没有 runtime LLM。**
+**主 controlled study 的 reader-facing reasoning phase 可以完全没有 live runtime LLM。**
 
-研究材料可以在 study 之前使用 LLM 按固定 substrate protocol 执行整理和标注，然后冻结成同一版本的 WorkPackage。研究问题仍然是 reader 与 structured scaffold 的 interaction，而不是 LLM 的文学解释能力。
+研究材料可以先通过 automatic construction pipeline 生成，再冻结成同一版本的 WorkPackage / ReferenceSkeleton；pipeline 内部可以使用 LLM 按固定 substrate protocol 执行语义整理和结构化。研究问题仍然是 reader 与 structured scaffold 的 interaction，而不是 LLM 的文学解释能力。
 
 因此：
 
-> LLM 可以参与“准备数据”，但不能成为 MeaningForge 的研究对象或 reader-facing authority。
+> LLM 可以参与 automatic construction 的 bounded semantic execution，但不能成为 MeaningForge 的研究对象或 reader-facing authority。
 
 # 12. Reader-Facing System Design
 
@@ -1707,7 +1712,7 @@ Evaluation claim
 - challenge/edit 怎么做；
 - source/context 怎样展开。
 
-## Step 7 — 构建 frozen reference corpus / WorkPackage
+## Step 7 — 实现 automatic construction，并为 controlled study 冻结生成的 WorkPackage
 
 4–6 个 study texts 足够，不追求“自动覆盖所有名著”。
 

@@ -1,8 +1,6 @@
-# The demo has its own repository and release history.
-08_Demo_System/MeaningForge/
+# Local or generated artifacts
+08_Demo_System/MeaningForge/node_modules/
+08_Demo_System/MeaningForge/dist/
+08_Demo_System/.MeaningForge_demo_git_metadata_*/
+**/*:Zone.Identifier
 
-# Local editor and runtime state.
-.DS_Store
-*.log
-__pycache__/
-.pytest_cache/

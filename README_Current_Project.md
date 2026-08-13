@@ -1,8 +1,8 @@
 # MeaningForge Current Project Map
 
-**Last updated:** 2026-08-12  
+**Last updated:** 2026-08-13  
 **Target venue:** CHI 2027  
-**Current goal:** develop a locally runnable, JSON-driven MeaningForge research prototype.
+**Current goal:** develop a locally runnable MeaningForge research prototype that can go from **full-text import → automatic substrate construction → UNR → Meaning-Relevance Projection → whole-text reference skeleton → reader reasoning**.
 
 ---
 
@@ -24,30 +24,27 @@ MeaningForge/
 │   └── MeaningForge_Formative_v6_Moderator_Guide.md
 │
 ├── 04_System_Design/
-│   └── MeaningForge_System_Design_Development_Spec_v7_2.md
+│   └── MeaningForge_System_Design_Development_Spec_v7_3.md
 │
 ├── 05_Data_Substrate/
-│   ├── MeaningForge_Data_Model_v2.md
-│   ├── MeaningForge_Medicine_Substrate_Annotation_Guide_v2.md
+│   ├── MeaningForge_Data_Model_v3.md
+│   ├── MeaningForge_Medicine_Substrate_Annotation_Guide_v3.md
 │   └── Medicine_Substrate_v1.json
 │
 ├── 06_Paper/
-│   └── MeaningForge_Paper_Writing_Notes_v2.md
+│   └── MeaningForge_Paper_Writing_Notes_v2_1.md
 │
 ├── 07_User_Study/
-│   └── [Controlled User Study 待 formative 后重写]
+│   └── [Controlled User Study pending formative + prototype stabilization]
 │
 └── 99_Archive/
-    ├── MeaningForge_System_Design_Development_Spec_v7_1.md
-    ├── MeaningForge_System_Design_Development_Spec_v7.md
-    ├── MeaningForge_System_Design_Development_Spec_v6.md
-    ├── MeaningForge_System_Design_Development_Spec_v3_0811.md
+    ├── MeaningForge_System_Design_Development_Spec_v7_2.md
+    ├── MeaningForge_Data_Model_v2.md
+    ├── MeaningForge_Medicine_Substrate_Annotation_Guide_v2.md
     └── older project documents
 ```
 
-没有额外的 Codex agent framework 文档。
-
-Codex 直接阅读主线文档即可开发。
+No separate Codex agent-framework document is required.
 
 ---
 
@@ -55,44 +52,44 @@ Codex 直接阅读主线文档即可开发。
 
 | Layer | File | Status |
 |---|---|---|
-| Research Idea | `MeaningForge_CHI2027_Balanced_Literature_Idea.md` | **CANONICAL** |
-| Literature Review | `MeaningForge_Step2_5Axis_Evidence_Matrix.xlsx` | **SUPPORTING** |
-| Formative UI | `MeaningForge_Formative_Study_Ready_v6.html` | **CANONICAL** |
-| Formative Guide | `MeaningForge_Formative_v6_Moderator_Guide.md` | **CANONICAL** |
-| System Design | `MeaningForge_System_Design_Development_Spec_v7_2.md` | **CURRENT IMPLEMENTATION AUTHORITY** |
-| Data Model | `MeaningForge_Data_Model_v2.md` | **CANONICAL v2** |
-| Annotation Guide | `MeaningForge_Medicine_Substrate_Annotation_Guide_v2.md` | **CANONICAL v2** |
-| Prototype Data | `Medicine_Substrate_v1.json` | **DEVELOPMENT SKELETON / NOT STUDY-READY** |
-| Paper Notes | `MeaningForge_Paper_Writing_Notes_v2.md` | **ACTIVE** |
+| Research Idea | `MeaningForge_CHI2027_Balanced_Literature_Idea.md` | **CANONICAL / wording-calibrated only** |
+| Literature Review | `MeaningForge_Step2_5Axis_Evidence_Matrix.xlsx` | **SUPPORTING / unchanged** |
+| Formative UI | `MeaningForge_Formative_Study_Ready_v6.html` | **CANONICAL / unchanged** |
+| Formative Guide | `MeaningForge_Formative_v6_Moderator_Guide.md` | **CANONICAL / unchanged** |
+| System Design | `MeaningForge_System_Design_Development_Spec_v7_3.md` | **CURRENT IMPLEMENTATION AUTHORITY** |
+| Data Model | `MeaningForge_Data_Model_v3.md` | **CANONICAL v3** |
+| Construction Guide | `MeaningForge_Medicine_Substrate_Annotation_Guide_v3.md` | **CANONICAL v3** |
+| Prototype Data | `Medicine_Substrate_v1.json` | **LEGACY DEVELOPMENT SKELETON / migration input** |
+| Paper Notes | `MeaningForge_Paper_Writing_Notes_v2_1.md` | **ACTIVE v2.1** |
 | User Study | TBD | **PENDING** |
 
 ---
 
 # 3. Current Core Idea
 
-MeaningForge 的核心不是：
+MeaningForge is not:
 
 ```text
-AI 给读者文学答案
+AI gives the reader a literary answer
 ```
 
-而是：
+The HCI core remains:
 
 ```text
-Whole-text reference scaffold
-        ↓
+Whole-text reference skeleton
+↓
 reader traces / compares / challenges / edits / extends
-        ↓
+↓
 Personal Reading Layer
-        ↓
-Reader's Own Interpretation
+↓
+Reader-authored Interpretation
 ```
 
-Reference scaffold 是：
+The reference skeleton is:
 
-> **evidence-grounded, structured, contestable starting scaffold**
+> **an evidence-grounded, structured, contestable starting scaffold**
 
-不是 gold-standard interpretation。
+not a gold-standard interpretation.
 
 ---
 
@@ -100,83 +97,139 @@ Reference scaffold 是：
 
 ```text
 Literary Text
-      ↓
-fixed MeaningForge substrate protocol
-      ↓
-MIP/MIPVU-informed + narrative/structural rules
-      ↓
-deterministic / LLM-assisted execution
-      ↓
-Evidence / Carrier / Relations / Threads
-      ↓
-reference JSON
-      ↓
-════════ MeaningForge Prototype ════════
-      ↓
-Reading Pane
-↔ Whole-text Skeleton
-↔ Thread Workspace
-      ↓
-Trace / Compare / Challenge /
-Counterevidence / optional Probe
-      ↓
-My Reading
-      ↓
-Reader-authored Interpretation
+↓
+1. Text Structuring & Traceable Evidence Anchoring
+↓
+2. Narrative Backbone Extraction
+   Character / Object / Event / Action / Scene / Discourse / Place
+↓
+3. Coreference / Event Linking
+↓
+4. Multi-source Figurative Signal Detection
+   MIP/MIPVU
+   recurrence / repetition
+   contrast / juxtaposition / parallel
+   anomaly / context shift
+   cross-span association
+↓
+5. Candidate Carrier / Relation Generation
+↓
+6. UNR — Unified Narrative Representation
+↓
+7. Grounding / Rule Validation
+↓
+8. Meaning-Relevance Projection
+↓
+9. Whole-text Figurative Reference Skeleton
+↓
+════════ Reader Interface ════════
+↓
+10. Reader Interpretive Layer
+↓
+11. Reader-authored Interpretation
 ```
 
-LLM 只是代替人工执行繁琐的 substrate 标注/整理工作。
+User-facing flow:
 
-它不是 MeaningForge 的研究对象。
+```text
+Import text
+→ Generate skeleton
+→ Read / Trace / Compare / Challenge / Compose
+```
+
+`automatic` does not mean `purely rule-based`.
+
+The construction layer may combine:
+
+```text
+deterministic algorithms
++ traditional NLP
++ fixed theoretical procedures
++ LLM-assisted semantic execution
+```
 
 ---
 
-# 5. Current Prototype Implementation
+# 5. UNR and Projection Boundary
 
-当前 prototype **不要求生产级工程架构**。
+UNR is an internal logical integration layer, not a novel HCI contribution and not a generic node/edge graph.
 
-默认足够：
-
-```text
-HTML / CSS / JavaScript
-or
-React / TypeScript
-```
-
-数据：
+It integrates typed objects such as:
 
 ```text
-JSON
+SourceDocument / Paragraph / Sentence / TextSpan / Evidence
+EntityMention / EventMention / Entity / Event / Scene / Discourse
+FigurativeSignal
+CandidateCarrier
+CandidateRelation
+Provenance
 ```
 
-Reader state：
+The reader-facing skeleton is a **projection** from validated UNR objects.
+
+Every reader-facing object should have inspectable projection metadata:
 
 ```text
-browser state / localStorage
+projectionStatus
+readerFacing
+selectionReasons
+selectionRationale
 ```
-
-研究数据：
-
-```text
-Export JSON
-```
-
-不要求：
-
-- Docker；
-- PostgreSQL；
-- microservices；
-- production deployment；
-- authentication；
-- complex backend/API。
-
-如果未来 controlled study 真的需要服务器集中收数据，再单独增加。
 
 ---
 
-# 6. Required MeaningForge Interaction Loop
+# 6. Current Prototype Implementation
 
-Codex 开发时必须优先完成：
+The prototype should stay research-demo-level and locally runnable.
+
+Recommended:
+
+```text
+React + TypeScript + Vite
+or existing HTML/CSS/JavaScript codebase if cheaper to extend
+```
+
+The main new engineering requirement is an automatic construction orchestrator before the reading interface.
+
+A simple local architecture is sufficient:
+
+```text
+UI
+├── Import / Generate view
+├── Reading Pane
+├── Whole-text Skeleton
+├── Thread Workspace
+└── My Reading
+
+Construction modules
+├── text structuring
+├── narrative extraction
+├── figurative-signal detection
+├── candidate generation
+├── UNR assembly
+├── validation
+├── projection
+└── skeleton builder
+
+Persistence
+├── JSON WorkPackageV3
+└── localStorage / browser state for reader data
+```
+
+No production requirement for:
+
+- Docker;
+- PostgreSQL;
+- microservices;
+- authentication;
+- cloud deployment;
+- complex REST infrastructure.
+
+---
+
+# 7. Required MeaningForge Interaction Loop
+
+The reader interaction loop is unchanged:
 
 ```text
 Read
@@ -192,7 +245,7 @@ Read
 → return to text
 ```
 
-Reader 必须能够：
+Reader actions must include:
 
 ```text
 keep
@@ -208,135 +261,138 @@ write claim
 
 ---
 
-# 7. Three Data Layers
+# 8. Three Semantic Layers
 
 ```text
 Narrative Backbone
-    = context
+    = contextual substrate inside UNR
 
-Reference Figurative Scaffold
-    = system/reference proposal
+Reference Figurative Skeleton
+    = projected system/reference proposal
 
 Personal Reading Layer
     = reader's own evidence / relations / claims
 ```
 
-Reference data 不被 reader 操作静默覆盖。
-
-Personal layer 必须单独保存。
+Reference data is never silently overwritten by reader actions.
 
 ---
 
-# 8. Structural vs Interpretive Relations
+# 9. Structural vs Interpretive Relations
 
 ```text
 StructuralRelation
     = recurrence / contrast / consequence /
       context change / parallel etc.
         ↓ grounds
-
 InterpretiveRelation
     = qualified possible reading
 ```
 
-InterpretiveRelation 不是 literary fact。
-
-Reader 可以：
-
-```text
-keep / unsure / reject / edit / alternative
-```
+InterpretiveRelation is not literary fact.
 
 ---
 
-# 9. Substrate Preparation
+# 10. Construction Protocol Boundary
 
-固定的是：
+MeaningForge fixes:
 
 ```text
-ontology
-MIP/MIPVU-informed fields
-Carrier gates
+source anchoring rules
+ontology and typed schema
+mention/entity distinction
+MIP/MIPVU-informed lexical record
+figurative-signal taxonomy
+carrier gates
 relation taxonomy
-Thread rules
-provenance rules
+validation rules
+projection rules
+reader interaction semantics
 ```
 
-不是固定：
+The executor can be:
 
 ```text
-必须人工逐条标注
-```
-
-执行者可以是：
-
-```text
-deterministic code
+DETERMINISTIC
+TRADITIONAL_NLP
 LLM
-human
+HUMAN
+IMPORTED
 ```
 
-LLM 只是执行固定规则，不重新定义 MeaningForge。
+The LLM can execute fixed semantic procedures but does not define MeaningForge's ontology or research question.
 
 ---
 
-# 10. What Codex Should Read
+# 11. What Codex Should Read
 
-给 Codex 整个项目目录，然后让它依次阅读：
+Give Codex the project directory and instruct it to read in this order:
 
 ```text
 1. README_Current_Project.md
 2. 01_Research_Idea/MeaningForge_CHI2027_Balanced_Literature_Idea.md
-3. 04_System_Design/MeaningForge_System_Design_Development_Spec_v7_2.md
-4. 05_Data_Substrate/MeaningForge_Data_Model_v2.md
-5. 05_Data_Substrate/MeaningForge_Medicine_Substrate_Annotation_Guide_v2.md
+3. 04_System_Design/MeaningForge_System_Design_Development_Spec_v7_3.md
+4. 05_Data_Substrate/MeaningForge_Data_Model_v3.md
+5. 05_Data_Substrate/MeaningForge_Medicine_Substrate_Annotation_Guide_v3.md
+6. 06_Paper/MeaningForge_Paper_Writing_Notes_v2_1.md
 ```
 
-然后告诉它：
+Then tell it:
 
-> 根据这些文档，直接开发一个本地可运行、JSON 数据驱动的 MeaningForge research prototype。保持实现简单，不增加当前研究不需要的生产级基础设施。
+> Build a locally runnable MeaningForge research prototype that accepts a literary text, automatically constructs a validated UNR, projects a reader-facing whole-text figurative reference skeleton, and connects that generated skeleton to the existing reader reasoning interface. Keep the implementation simple and do not add production infrastructure that the study does not require.
 
----
-
-# 11. Formative and User Study
-
-Formative v6 保持当前版本。
-
-Formative 主要决定：
-
-- overview 的形式；
-- relation density；
-- challenge/edit 形式；
-- provenance 展示；
-- replacement 是否保留。
-
-Controlled User Study 等 formative + prototype 稳定后再重新写。
+The implementation is not complete if it only loads a manually prepared JSON scaffold.
 
 ---
 
-# 12. Archive Rule
+# 12. Formative and Literature Review
 
-当前：
+Keep unchanged:
 
 ```text
-v7.2
-= 唯一开发 authority
+MeaningForge_Formative_Study_Ready_v6.html
+MeaningForge_Formative_v6_Moderator_Guide.md
+MeaningForge_Step2_5Axis_Evidence_Matrix.xlsx
 ```
 
-以下全部只作为历史来源：
-
-```text
-v7.1
-v7
-v6
-v3_0811
-older specs
-```
-
-不要让 Codex 同时按照旧 spec 开发。
+Reason: these materials concern reader reasoning, representation, and interaction requirements; they do not depend on whether the backend substrate was manually annotated or automatically constructed.
 
 ---
 
-# 13. One-Line Rule
+# 13. Controlled Study Note
 
-> **MeaningForge 的复杂性应该体现在 evidence-grounded representation 和 reader interaction，而不是 Docker、数据库或生产级软件基础设施。**
+The product architecture supports:
+
+```text
+Import text → Generate skeleton
+```
+
+For a controlled study, the research team may generate once and freeze the resulting reference skeleton for a condition so that every participant sees the same substrate. This is a study-control decision, not the system's architectural limitation.
+
+---
+
+# 14. Archive Rule
+
+Current implementation authority:
+
+```text
+v7.3 System Spec
+v3 Data Model
+v3 Construction Guide
+```
+
+Archive:
+
+```text
+v7.2 and older System Specs
+v2 and older Data Models
+v2 Annotation Guide
+```
+
+Do not let Codex implement against old versions in parallel.
+
+---
+
+# 15. One-Line Rule
+
+> **MeaningForge's technical complexity belongs in traceable representation, validated projection, and reader reasoning—not in production infrastructure or claims of automatic literary understanding.**
