@@ -28,6 +28,7 @@ export const preparedWorks = [
 // frozen study WorkPackage. Selecting one creates a clearly labelled draft
 // through the same construction route used for text import.
 export const sourceWorks = [
+  { bookUrl: "/books/luxun-medicine-zh.txt", title: "药", author: "鲁迅", kind: "短篇小说 · 从原文重建" },
   { bookUrl: "/books/luxun-hometown-zh.txt", title: "故乡", author: "鲁迅", kind: "短篇小说" },
   { bookUrl: "/books/luxun-blessing-zh.txt", title: "祝福", author: "鲁迅", kind: "短篇小说" },
   { bookUrl: "/books/journey-to-the-west-zh.txt", title: "西游记", author: "吴承恩", kind: "长篇小说·节选" },
