@@ -65,8 +65,6 @@ async function askLocalLlm(system: string, user: string, tokenLimit = maxTokens)
   return cleanJson(content);
 }
 
-function clip(value: string, limit: number) { return value.length > limit ? `${value.slice(0, limit)}\n[truncated]` : value; }
-
 async function reviewRelation(request: ReviewRequest) {
   const evidence = Array.isArray(request.evidence) ? request.evidence.filter((item) => typeof item?.text === "string" && item.text.length > 0).slice(0, 8) : [];
   if (!request.relation_text?.trim() || evidence.length === 0) throw new Error("A reader relation and at least one exact evidence excerpt are required.");
@@ -134,17 +132,10 @@ async function prepareDraft(request: PreparationRequest) {
   // implicit dependency that can leave the reading interface waiting.
   if (request.use_llm === true && process.env.OPENAI_API_URL && process.env.OPENAI_MODEL) {
     const reviewNotes: string[] = [];
-    try {
-      const paragraphs = source.split(/\n\s*\n/).map((text, index) => ({ id: `p${index + 1}`, text: text.trim() })).filter((item) => item.text.length > 0);
-      const sourceForLlm = clip(paragraphs.map((item) => `[${item.id}] ${item.text}`).join("\n\n"), 50000);
-      llmOutput = await askLocalLlm(
-        "You execute a fixed MeaningForge substrate protocol. You do not give literary conclusions. Return one JSON object with carriers, structural_relations, review_notes. carriers: at most 12 {label,type,exact_quote,reasons,mip_record?}; types only object, action, scene, recurrent_expression, sensory_image, lexical_metaphor_candidate. For every lexical_metaphor_candidate, mip_record is REQUIRED: {lexical_unit,contextual_meaning,basic_meaning,comparison,decision}. lexical_unit must occur verbatim in exact_quote; decision is only metaphor_candidate, literal, or undecidable. Apply MIP/MIPVU conservatively: identify a lexical unit, state its contextual meaning, state a more basic/concrete meaning, then state whether their contrast supports a metaphor candidate. Never infer theme or authorial intent, and use undecidable when the supplied text cannot support the comparison. structural_relations: at most 18 {source_label,target_label,type,exact_quote,rationale}; types only recurs_with, contrasts_with, parallels, co_occurs_with, precedes, follows, changes_context, changes_function, shares_actor, shares_scene, causal_link, consequence_link. Copy exact_quote verbatim. Describe observable textual grounds only. Treat every item as a candidate to be checked by deterministic validation.",
-        `Title: ${request.title?.trim() || "Untitled"}\n\nSegmented source text:\n${sourceForLlm}`,
-      ) as Record<string, unknown>;
-      llmNote = "LLM 已在固定 schema 内补充载体/关系候选。";
-    } catch (error) {
-      llmNote = `LLM 未返回可用结果；已保留规则生成的草稿。${error instanceof Error ? ` (${error.message})` : ""}`;
-    }
+    // MIP coverage is the configured LLM responsibility. Narrative/context
+    // extraction and structural candidates remain deterministic so a reader's
+    // import does not wait for a second, unconstrained full-book proposal.
+    llmNote = "系统正按固定 schema 逐批执行全文 MIP 候选复核。";
     try {
       const mip_reviews = await reviewMipCoverage(request.title?.trim() || "Untitled", source);
       llmOutput = { ...(llmOutput ?? {}), mip_reviews, review_notes: [...(Array.isArray(llmOutput?.review_notes) ? llmOutput.review_notes.filter((item): item is string => typeof item === "string") : []), `LLM reviewed ${mip_reviews.length} source-anchored MIP coverage candidates in batches.`] };
