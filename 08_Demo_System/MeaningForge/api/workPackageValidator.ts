@@ -124,6 +124,10 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
       const excerpt = linkedEvidence ? ids(linkedEvidence.span_ids).map((id) => collections.text_spans.find((span) => stringValue(span.id) === id)).map((span) => stringValue(span?.text)).join("\n") : "";
       if (mip && stringValue(mip.lexical_unit) && !excerpt.includes(stringValue(mip.lexical_unit))) issues.push({ path: `figurative_features[${index}].mip_record.lexical_unit`, message: "MIP lexical unit must occur in its linked exact-source evidence." });
     }
+    if (record.calibration !== undefined) {
+      const calibration = record.calibration as Item;
+      if (!calibration || !["machine_draft", "machine_reviewed", "researcher_checked"].includes(stringValue(calibration.review_status)) || !stringValue(calibration.rationale)) issues.push({ path: `figurative_features[${index}].calibration`, message: "Calibration must state a valid review status and bounded rationale." });
+    }
   });
   collections.carriers.forEach((record, index) => {
     checkReferences(issues, `carriers[${index}].feature_ids`, ids(record.feature_ids), featureIds);
@@ -136,6 +140,7 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     if (!ids(record.evidence_ids).length) issues.push({ path: `structural_relations[${index}].evidence_ids`, message: "Structural relation requires evidence." });
     checkReferences(issues, `structural_relations[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
     if (!stringValue(record.rationale)) issues.push({ path: `structural_relations[${index}].rationale`, message: "Structural relation requires a rationale." });
+    if (record.review_status !== undefined && !["machine_draft", "machine_reviewed", "researcher_checked"].includes(stringValue(record.review_status))) issues.push({ path: `structural_relations[${index}].review_status`, message: "Structural relation review status is invalid." });
     const thread = stringValue(record.thread_id); if (thread && !threadIds.has(thread)) issues.push({ path: `structural_relations[${index}].thread_id`, message: "Unknown thread." });
   });
   collections.interpretive_relations.forEach((record, index) => {

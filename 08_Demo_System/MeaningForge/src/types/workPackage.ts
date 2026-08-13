@@ -15,9 +15,10 @@ export interface MipRecord {
   decision: "metaphor_candidate" | "literal" | "undecidable";
   review_status: "machine_draft" | "machine_reviewed" | "researcher_checked";
 }
-export interface FigurativeFeature { id: string; evidence_id: string; surface_form: string; type: string; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; provenance_id?: string; }
-export interface Carrier { id: string; label: string; type: string; feature_ids: string[]; evidence_ids: string[]; selection_reasons: string[]; provenance_id?: string; }
-export interface StructuralRelation { id: string; thread_id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; rationale: string; }
+export interface Calibration { review_status: "machine_draft" | "machine_reviewed" | "researcher_checked"; rationale: string; }
+export interface FigurativeFeature { id: string; evidence_id: string; surface_form: string; type: string; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; calibration?: Calibration; provenance_id?: string; status?: string; }
+export interface Carrier { id: string; label: string; type: string; feature_ids: string[]; evidence_ids: string[]; selection_reasons: string[]; provenance_id?: string; status?: string; }
+export interface StructuralRelation { id: string; thread_id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; rationale: string; review_status?: Calibration["review_status"]; provenance_id?: string; status?: string; }
 export interface InterpretiveRelation { id: string; thread_id: string; source_ids: string[]; type: string; evidence_ids: string[]; grounding_relation_ids: string[]; relation_text: string; qualification: string; }
 export interface Thread { id: string; neutral_label: string; carrier_ids: string[]; feature_ids?: string[]; evidence_ids: string[]; structural_relation_ids: string[]; interpretive_relation_ids: string[]; distribution: { chapter_ids: string[]; span_orders: number[] }; }
 export interface Probe { id: string; thread_id: string; type: string; target_relation_ids: string[]; target_carrier_id?: string; prompt: string; config?: { suggested_replacement?: string }; }

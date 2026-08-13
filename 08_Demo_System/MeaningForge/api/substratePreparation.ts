@@ -4,8 +4,9 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 
 type MipDraft = { lexical_unit?: unknown; contextual_meaning?: unknown; basic_meaning?: unknown; comparison?: unknown; decision?: unknown; review_status?: unknown };
-type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown; mip_record?: MipDraft };
-type RelationCandidate = { source_label?: unknown; target_label?: unknown; type?: unknown; exact_quote?: unknown; rationale?: unknown };
+type Calibration = { review_status?: unknown; rationale?: unknown };
+type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown; mip_record?: MipDraft; calibration?: Calibration };
+type RelationCandidate = { source_label?: unknown; target_label?: unknown; type?: unknown; exact_quote?: unknown; rationale?: unknown; review_status?: unknown };
 type MipReview = MipDraft & { coverage_candidate_id?: unknown; exact_quote?: unknown };
 type SignalRecord = { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: string; mip_status: string; mip_record?: ReturnType<typeof mipRecord>; rationale: string; provenance_id: string; status: string };
 export type MipCoverageCandidate = { id: string; lexical_unit: string; exact_quote: string; chapter_id: string; cue_types: string[] };
@@ -294,13 +295,13 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     return record ? [{ id: `mip-review-${candidate.id}`, work_id: workId, coverage_candidate_id: candidate.id, ...record, lexical_unit: candidate.lexical_unit, exact_quote: candidate.exact_quote, chapter_id: candidate.chapter_id, cue_types: candidate.cue_types, provenance_id: "prov-llm", status: "machine_reviewed" }] : [];
   });
   const mipExecutor = !llm?.mip_reviews ? "not_run" as const : mip_review_records.length === mipCoverage.length && mip_review_records.every((record) => record.review_status === "machine_reviewed") ? "LLM" as const : "LLM_partial" as const;
-  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM" | "HUMAN"; mip?: ReturnType<typeof mipRecord> }> = [];
+  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM" | "HUMAN"; mip?: ReturnType<typeof mipRecord>; calibration?: Calibration }> = [];
   repeatedExpressions(paragraphs).forEach(([label]) => candidates.push({ label, type: "recurrent_expression", quote: label, reasons: ["observability", "recurrence", "cross_span_distribution"], executor: "DETERMINISTIC" }));
   protocolCandidates(safeTitle).forEach((raw) => {
     const label = raw.label; const quote = raw.exact_quote; const type = raw.type;
     const mip = type === "lexical_metaphor_candidate" ? mipRecord(raw.mip_record, quote) : undefined;
     if (!clean.includes(quote) || (type === "lexical_metaphor_candidate" && !mip) || candidates.some((item) => item.label === label)) return;
-    candidates.push({ label, type, quote, reasons: [...raw.reasons], executor: "HUMAN", mip });
+    candidates.push({ label, type, quote, reasons: [...raw.reasons], executor: "HUMAN", mip, calibration: "calibration" in raw ? raw.calibration : undefined });
   });
   // Only a review that explicitly concludes metaphor_candidate becomes a
   // figurative signal. literal and undecidable records remain in the audit
@@ -344,8 +345,8 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     ? [...protocolSelected, ...llmMipSelected.filter((item) => !protocolSelected.some((protocol) => protocol.quote === item.quote || protocol.label === item.label))].slice(0, 8)
     : candidateItems.filter((item) => item.executor !== "HUMAN" && item.reasons.length >= 2 && !narrativePersonLabels.has(item.label) && item.label.length >= 3).sort((a, b) => b.score - a.score || b.evidence_ids.length - a.evidence_ids.length || b.label.length - a.label.length).slice(0, 8);
   const provenanceFor = (executor: "DETERMINISTIC" | "LLM" | "HUMAN") => executor === "LLM" ? "prov-llm" : executor === "HUMAN" ? "prov-medicine-protocol" : "prov-mip";
-  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: provenanceFor(item.executor), status: "candidate" }));
-  const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: provenanceFor(item.executor), status: "candidate" }));
+  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), ...(item.calibration ? { calibration: item.calibration } : {}), provenance_id: provenanceFor(item.executor), status: item.executor === "HUMAN" ? "researcher_checked" : "candidate" }));
+  const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: provenanceFor(item.executor), status: item.executor === "HUMAN" ? "researcher_checked" : "candidate" }));
   const carrierEntities = carriers.map((carrier, index) => ({ id: `carrier-context-${index + 1}`, work_id: workId, type: carrier.type === "object" ? "object" : carrier.type === "scene" ? "scene" : "discourse", label: carrier.label, evidence_ids: carrier.evidence_ids, provenance_id: carrier.provenance_id, status: "candidate" }));
   const narrative_entities = [...backbone.entities.map((entity) => ({ ...entity, work_id: workId })), ...carrierEntities];
   const carrierByLabel = new Map(carriers.map((item) => [item.label, item]));
@@ -360,7 +361,8 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const quotes = protocolSource && protocolTarget ? [protocolSource, protocolTarget] : [quote];
     if (!source || !target || source.id === target.id || !structuralTypes.has(type) || !quotes.every((value) => value && clean.includes(value))) return [];
     const evidenceIds = unique(quotes.flatMap((value) => evidenceForQuote(value).map((item) => item.id))); if (!evidenceIds.length) return [];
-    return [{ id: `srel-llm-${index + 1}`, work_id: workId, source_id: source.id, target_id: target.id, type, evidence_ids: evidenceIds, rationale: text(raw.rationale) || "这是一条待检查的文本关系。", provenance_id: "prov-llm", status: "candidate" }];
+    const researcherChecked = text(raw.review_status) === "researcher_checked";
+    return [{ id: `srel-llm-${index + 1}`, work_id: workId, source_id: source.id, target_id: target.id, type, evidence_ids: evidenceIds, rationale: text(raw.rationale) || "这是一条待检查的文本关系。", provenance_id: researcherChecked ? "prov-medicine-protocol" : "prov-llm", status: researcherChecked ? "researcher_checked" : "candidate", review_status: researcherChecked ? "researcher_checked" : "machine_reviewed" }];
   });
   const fallbackRelations = carriers.filter((carrier) => carrier.evidence_ids.length >= 2).map((carrier, index) => {
     const carrierIndex = carriers.findIndex((item) => item.id === carrier.id);

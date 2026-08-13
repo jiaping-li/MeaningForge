@@ -79,6 +79,8 @@ advance rather than constructing them during participant sessions.
 ## Data boundaries
 
 - Reference data lives in `public/data/medicine-v3-reference.json` and is never mutated by reader actions.
+- 《药》的初始骨架使用 `medicine-calibration-v2` 的研究者校准层：8 个主节点均有精确原文锚点；其中“眼光／刀”“坟冢／馒头”“乌鸦／铁铸”“无形的手／鸭”“枯草／铜丝”有完整、人工复核的 MIP/MIPVU 比较记录。其余 3 个是人工复核的可观察叙事物件或话语意象，并不被表述为已确定的隐喻。
+- 6 条核心结构关系同样标为 `researcher_checked`，且只陈述可回到原文检查的回返、共现、场景连接或先后关系；系统不把它们升级为主题或象征结论。自动生成的其余结构边仍是可质疑候选。
 - Reader actions are stored separately in browser local storage and can be exported as JSON from the header. The reader graph workspace renders reference nodes/edges alongside a separate personal layer: readers may add, rename, and delete only personal nodes and relations.
 - The optional live reviewer returns support, gaps, complications, and questions. It never decides whether a reader interpretation is correct and never writes into the reference package.
 - The preparation-time protocol, WorkPackage schema, and validation requirements are defined in the project-level idea, specification, data-model, and annotation-guide documents.
