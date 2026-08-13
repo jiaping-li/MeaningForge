@@ -2,6 +2,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash, randomUUID } from "node:crypto";
 import { validateWorkPackage } from "./workPackageValidator.ts";
 import { buildWorkPackage, extractMipCoverageCandidates, type MipCoverageCandidate } from "./substratePreparation.ts";
 
@@ -12,6 +13,8 @@ const maxTokens = Math.min(Number(process.env.LLM_MAX_TOKENS || 12000), 16000);
 interface ReviewRequest { relation_text?: string; evidence?: Array<{ id?: string; text?: string; note?: string }>; }
 interface PreparationRequest { title?: string; text?: string; use_llm?: boolean; }
 interface LlmResponse { choices?: Array<{ message?: { content?: string } }>; output?: Array<{ content?: Array<{ text?: string }> | string }>; }
+type MipReviewJob = { id: string; title: string; source: string; status: "queued" | "running" | "complete" | "failed"; created_at: string; completed_at?: string; candidate_count: number; mip_reviews?: Record<string, unknown>[]; error?: string };
+const mipReviewJobs = new Map<string, MipReviewJob>();
 
 function loadLocalEnv() {
   const filename = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".env.local");
@@ -44,7 +47,7 @@ function cleanJson(content: string): unknown {
   return JSON.parse(candidate.slice(start, end + 1));
 }
 
-async function askLocalLlm(system: string, user: string): Promise<unknown> {
+async function askLocalLlm(system: string, user: string, tokenLimit = maxTokens): Promise<unknown> {
   const apiUrl = process.env.OPENAI_API_URL;
   const model = process.env.OPENAI_MODEL;
   if (!apiUrl || !model) throw new Error("Local LLM is not configured. Add OPENAI_API_URL and OPENAI_MODEL in api/.env.local.");
@@ -52,7 +55,7 @@ async function askLocalLlm(system: string, user: string): Promise<unknown> {
     method: "POST",
     headers: { "content-type": "application/json", ...(process.env.OPENAI_API_KEY ? { authorization: `Bearer ${process.env.OPENAI_API_KEY}` } : {}) },
     // LM Studio's /api/v1/chat speaks its current input-based API. Keep the request local and structured.
-    body: JSON.stringify({ model, system_prompt: system, input: user, temperature: 0.2, max_output_tokens: maxTokens, store: false }),
+    body: JSON.stringify({ model, system_prompt: system, input: user, temperature: 0.2, max_output_tokens: Math.min(tokenLimit, maxTokens), reasoning: "off", store: false }),
   });
   if (!response.ok) throw new Error(`Local LLM returned ${response.status}: ${(await response.text()).slice(0, 400)}`);
   const payload = await response.json() as LlmResponse;
@@ -84,6 +87,7 @@ async function reviewMipCoverage(title: string, source: string): Promise<Record<
     const output = await askLocalLlm(
       "You are a bounded MIP/MIPVU review executor for literary close reading. You must review every supplied candidate and return one JSON object only: {mip_reviews:[...]}. Return exactly one record for each supplied coverage_candidate_id; do not add candidates and do not change lexical_unit or exact_quote. Each record has coverage_candidate_id, lexical_unit, exact_quote, contextual_meaning, basic_meaning, comparison, decision. decision is exactly metaphor_candidate, literal, or undecidable. MIP procedure: identify the lexical unit's contextual meaning in the supplied exact quote; state a potentially more basic/concrete meaning if defensible; compare them; select metaphor_candidate only when the contextual use contrasts with a more basic meaning and can be understood through comparison. Use literal when no such contrast is supported; use undecidable when the excerpt alone is insufficient. Do not infer theme, author intent, morality, symbolism, or a final interpretation. Be conservative and complete.",
       `Work title: ${title}\nBatch ${Math.floor(index / batchSize) + 1}; review all ${batch.length} candidates:\n${JSON.stringify(batch)}`,
+      2_400,
     ) as { mip_reviews?: unknown };
     const returned = Array.isArray(output.mip_reviews) ? output.mip_reviews.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : [];
     const byId = new Map(returned.map((item) => [typeof item.coverage_candidate_id === "string" ? item.coverage_candidate_id : "", item]));
@@ -96,6 +100,28 @@ async function reviewMipCoverage(title: string, source: string): Promise<Record<
     });
   }
   return results;
+}
+
+function canonicalSource(source: string) { return source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim(); }
+function startMipReviewJob(title: string, source: string) {
+  const clean = canonicalSource(source); if (!clean || clean.length < 120) throw new Error("Provide a literary text of at least 120 characters.");
+  if (!process.env.OPENAI_API_URL || !process.env.OPENAI_MODEL) throw new Error("Local LLM is not configured.");
+  const id = `mip-job-${randomUUID()}`; const job: MipReviewJob = { id, title: title.trim() || "Untitled", source: clean, status: "queued", created_at: new Date().toISOString(), candidate_count: extractMipCoverageCandidates(clean, Math.min(Math.max(Number(process.env.MF_MIP_MAX_CANDIDATES || 96), 1), 240)).length };
+  mipReviewJobs.set(id, job);
+  void (async () => { try { job.status = "running"; job.mip_reviews = await reviewMipCoverage(job.title, job.source); job.status = "complete"; job.completed_at = new Date().toISOString(); } catch (error) { job.status = "failed"; job.error = error instanceof Error ? error.message : "Unable to review MIP coverage."; job.completed_at = new Date().toISOString(); } })();
+  return job;
+}
+function freezeMedicineJob(job: MipReviewJob) {
+  if (job.title !== "药") throw new Error("Only the controlled Medicine material may be frozen through this endpoint.");
+  if (job.status !== "complete" || !job.mip_reviews) throw new Error("MIP review job is not complete.");
+  const workPackage = buildWorkPackage("药", job.source, { mip_reviews: job.mip_reviews, review_notes: [`LLM full-text MIP review job ${job.id} completed with ${job.mip_reviews.length} records.`] });
+  workPackage.package_id = "medicine-v3-reference"; workPackage.package_status = "reference_ready";
+  workPackage.work = { ...workPackage.work, author: "鲁迅", source_uri: "/books/luxun-medicine-zh.txt", status: "reference_ready" };
+  Object.assign(workPackage.source_document!, { checksum: `sha256:${createHash("sha256").update(job.source).digest("hex")}` });
+  Object.assign(workPackage.construction_run!, { frozen_at: new Date().toISOString(), validation_summary: `${workPackage.construction_run?.validation_summary} Frozen after structured LLM MIP coverage review.` });
+  const issues = validateWorkPackage(workPackage as unknown as Record<string, unknown>, job.source); if (issues.length) throw new Error(`Refusing to freeze invalid package: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ")}`);
+  const output = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public/data/medicine-v3-reference.json"); fs.writeFileSync(output, `${JSON.stringify(workPackage, null, 2)}\n`, "utf8");
+  return { output, package_id: workPackage.package_id, mip_coverage: workPackage.mip_coverage, mip_decisions: workPackage.mip_review_records?.reduce((counts, record) => ({ ...counts, [record.decision]: (counts[record.decision] ?? 0) + 1 }), {} as Record<string, number>), carriers: workPackage.carriers.map((carrier) => carrier.label), validation_records: workPackage.validations?.length };
 }
 
 async function prepareDraft(request: PreparationRequest) {
@@ -152,13 +178,19 @@ const server = http.createServer((request, response) => {
   }
   if (request.method === "POST" && url.pathname === "/api/review-mip-coverage") {
     readJson(request).then(async (body) => {
-      const source = typeof body.text === "string" ? body.text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim() : "";
-      if (!source || source.length < 120) throw new Error("Provide a literary text of at least 120 characters.");
-      if (!process.env.OPENAI_API_URL || !process.env.OPENAI_MODEL) throw new Error("Local LLM is not configured.");
-      const mip_reviews = await reviewMipCoverage(typeof body.title === "string" ? body.title : "Untitled", source);
-      send(response, 200, { mode: "mip_coverage_review", candidate_count: extractMipCoverageCandidates(source, Math.min(Math.max(Number(process.env.MF_MIP_MAX_CANDIDATES || 96), 1), 240)).length, reviewed_count: mip_reviews.length, mip_reviews });
+      const job = startMipReviewJob(typeof body.title === "string" ? body.title : "Untitled", typeof body.text === "string" ? body.text : "");
+      send(response, 202, { mode: "mip_coverage_review_job", job_id: job.id, status: job.status, candidate_count: job.candidate_count });
     }).catch((error: unknown) => send(response, 422, { error: error instanceof Error ? error.message : "Unable to review MIP coverage." }));
     return;
+  }
+  if (request.method === "GET" && url.pathname.startsWith("/api/mip-review-jobs/")) {
+    const job = mipReviewJobs.get(url.pathname.slice("/api/mip-review-jobs/".length));
+    if (!job) return send(response, 404, { error: "MIP review job not found." });
+    return send(response, 200, { job_id: job.id, title: job.title, status: job.status, candidate_count: job.candidate_count, reviewed_count: job.mip_reviews?.length ?? 0, ...(job.status === "complete" ? { mip_reviews: job.mip_reviews } : {}), ...(job.error ? { error: job.error } : {}) });
+  }
+  if (request.method === "POST" && url.pathname.startsWith("/api/freeze-medicine-mip-job/")) {
+    const job = mipReviewJobs.get(url.pathname.slice("/api/freeze-medicine-mip-job/".length));
+    try { if (!job) throw new Error("MIP review job not found."); return send(response, 200, freezeMedicineJob(job)); } catch (error) { return send(response, 422, { error: error instanceof Error ? error.message : "Unable to freeze Medicine reference." }); }
   }
   if (request.method === "POST" && url.pathname === "/api/prepare-work-package") {
     readJson(request).then((body) => prepareDraft(body as PreparationRequest)).then((result) => send(response, 200, result)).catch((error: unknown) => send(response, 422, { error: error instanceof Error ? error.message : "Unable to prepare draft." }));
