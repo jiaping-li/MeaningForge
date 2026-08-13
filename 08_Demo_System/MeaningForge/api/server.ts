@@ -75,7 +75,7 @@ async function reviewRelation(request: ReviewRequest) {
   return { mode: "reader_reviewer", relation_text: request.relation_text, evidence_ids: evidence.map((item) => item.id).filter((id): id is string => typeof id === "string"), review: output, disclaimer: "This is a request-time review suggestion. It does not alter the frozen reference WorkPackage or decide the reader's interpretation." };
 }
 
-async function reviewMipCoverage(title: string, source: string): Promise<Record<string, unknown>[]> {
+async function reviewMipCoverage(title: string, source: string, onBatch?: (reviews: Record<string, unknown>[]) => void): Promise<Record<string, unknown>[]> {
   const maximum = Math.min(Math.max(Number(process.env.MF_MIP_MAX_CANDIDATES || 96), 1), 240);
   const batchSize = Math.min(Math.max(Number(process.env.MF_MIP_BATCH_SIZE || 12), 4), 24);
   const coverage = extractMipCoverageCandidates(source, maximum);
@@ -96,6 +96,7 @@ async function reviewMipCoverage(title: string, source: string): Promise<Record<
       if (raw && raw.lexical_unit === candidate.lexical_unit && raw.exact_quote === candidate.exact_quote) results.push(raw);
       else results.push({ coverage_candidate_id: candidate.id, lexical_unit: candidate.lexical_unit, exact_quote: candidate.exact_quote, contextual_meaning: "模型未返回可核验的语境义。", basic_meaning: "暂不可由该次模型输出确认。", comparison: "模型输出缺失或未保持原文锚点，保留为不可判定。", decision: "undecidable" });
     });
+    onBatch?.(results);
   }
   return results;
 }
@@ -106,7 +107,7 @@ function startMipReviewJob(title: string, source: string) {
   if (!process.env.OPENAI_API_URL || !process.env.OPENAI_MODEL) throw new Error("Local LLM is not configured.");
   const id = `mip-job-${randomUUID()}`; const job: MipReviewJob = { id, title: title.trim() || "Untitled", source: clean, status: "queued", created_at: new Date().toISOString(), candidate_count: extractMipCoverageCandidates(clean, Math.min(Math.max(Number(process.env.MF_MIP_MAX_CANDIDATES || 96), 1), 240)).length };
   mipReviewJobs.set(id, job);
-  void (async () => { try { job.status = "running"; job.mip_reviews = await reviewMipCoverage(job.title, job.source); job.status = "complete"; job.completed_at = new Date().toISOString(); } catch (error) { job.status = "failed"; job.error = error instanceof Error ? error.message : "Unable to review MIP coverage."; job.completed_at = new Date().toISOString(); } })();
+  void (async () => { try { job.status = "running"; job.mip_reviews = []; job.mip_reviews = await reviewMipCoverage(job.title, job.source, (reviews) => { job.mip_reviews = [...reviews]; }); job.status = "complete"; job.completed_at = new Date().toISOString(); } catch (error) { job.status = "failed"; job.error = error instanceof Error ? error.message : "Unable to review MIP coverage."; job.completed_at = new Date().toISOString(); } })();
   return job;
 }
 function freezeMedicineJob(job: MipReviewJob) {
