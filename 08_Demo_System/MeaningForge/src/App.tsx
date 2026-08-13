@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, Download, FileUp, Flag, FlaskConical, GitCompareArrows, HeartHandshake, Lightbulb, LoaderCircle, Plus, ShieldQuestion, X } from "lucide-react";
 import { downloadSession, loadDevelopmentPackage, loadSession, preparedWorks, prepareTextDraft, saveSession, sourceWorks, type PreparationDraft } from "@/services/workPackage";
 import { emptySession, type Carrier, type ReaderSession, type Thread, type WorkPackage } from "@/types/workPackage";
@@ -33,6 +33,9 @@ export default function App() {
   const [loadingSource, setLoadingSource] = useState("");
   const [sourceError, setSourceError] = useState("");
   const [skeletonExpanded, setSkeletonExpanded] = useState(true);
+  const [overviewFlash, setOverviewFlash] = useState(false);
+  const rightPaneRef = useRef<HTMLElement>(null);
+  const overviewRef = useRef<HTMLElement>(null);
 
   const activate = (next: WorkPackage, text = "") => {
     const restored = loadSession(next.package_id, emptySession(next.package_id));
@@ -49,6 +52,11 @@ export default function App() {
     try { const response = await fetch(work.bookUrl); if (!response.ok) throw new Error("无法读取原文文件。"); const text = await response.text(); activate((await prepareTextDraft(work.title, text)).work_package, text); }
     catch (error) { setSourceError(error instanceof Error ? error.message : "无法为该文本建立草稿。请先启动 API 服务。"); }
     finally { setLoadingSource(""); }
+  };
+  const revealOverview = () => {
+    setSkeletonExpanded(true); setOverviewFlash(true);
+    window.setTimeout(() => { rightPaneRef.current?.scrollTo({ top: Math.max(0, (overviewRef.current?.offsetTop ?? 0) - 12), behavior: "smooth" }); }, 0);
+    window.setTimeout(() => setOverviewFlash(false), 900);
   };
   if (!pkg || !session) return <main className="loading">正在准备 MeaningForge…</main>;
   const sectionSpans = pkg.text_spans.filter((s) => s.chapter_id === chapter).sort((a, b) => a.order - b.order);
@@ -67,9 +75,9 @@ export default function App() {
         <section><p className="eyebrow">当前原文</p><h2>《{pkg.work.title}》</h2><small>{pkg.work.author || "导入文本"}</small><div className="chapter-list">{chapters(pkg).map((id, n) => <button className={chapter === id ? "selected" : ""} onClick={() => { setChapter(id); setEvidenceId(""); }} key={id}>第 {n + 1} 节 <span>{pkg.threads.filter((t) => t.distribution.chapter_ids.includes(id)).length} 条线索</span></button>)}</div></section>
         <section className="method-card"><p className="eyebrow">构建状态</p><b>全文 → UNR → 投影</b><small>{pkg.construction_run?.validation_summary ?? "固定协议、原文锚定与关系核查后形成的参考骨架。"}</small><button onClick={() => alert(JSON.stringify({ package: pkg.package_id, construction: pkg.construction_run ?? "legacy development package", provenance: pkg.provenance }, null, 2))}>查看可追溯元数据</button></section>
       </aside>
-      <section className="reading-pane"><header><div><p className="eyebrow">原文优先</p><h1>{pkg.work.title}</h1></div><button className="overview-button" onClick={() => document.getElementById("overview")?.scrollIntoView({ behavior: "smooth" })}>全文骨架 <ChevronRight size={15} /></button></header><ReadingNavigator chapter={chapter} chapterIds={chapters(pkg)} onChange={(id) => { setChapter(id); setEvidenceId(""); }} /><div className="reading-hint">这是作品的完整章节文本；系统仅在你打开证据后标出对应段落，不会预先替你圈出重点。</div><article>{readingParagraphs.length ? readingParagraphs.map((paragraph, index) => <p key={index} className={focusedQuote && paragraph.includes(focusedQuote) ? "focused" : ""}>{paragraph}</p>) : <p>{source || "该材料的全文尚未载入。"}</p>}</article></section>
-      <aside className="right-pane">
-        <section id="overview" className={`overview ${skeletonExpanded ? "expanded" : "collapsed"}`}><div className="section-heading"><div><p className="eyebrow">全文参考骨架</p><h2>从全文到可检查的关系</h2></div><button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起骨架" : `展开骨架（${pkg.threads.length}）`}<ChevronRight size={14} /></button></div>{skeletonExpanded && <><p className="quiet">按“全文 → 线索 → 载体/证据 → 关系提案”逐层展开；点击任一线索进入局部工作台。</p><SkeletonTree pkg={pkg} activeThread={threadId} onThread={openThread} onEvidence={openEvidence} /></>}</section>
+      <section className="reading-pane"><header><div><p className="eyebrow">原文优先</p><h1>{pkg.work.title}</h1></div><button className="overview-button" onClick={revealOverview}>展开全文骨架 <ChevronRight size={15} /></button></header><ReadingNavigator chapter={chapter} chapterIds={chapters(pkg)} onChange={(id) => { setChapter(id); setEvidenceId(""); }} /><div className="reading-hint">这是作品的完整章节文本；系统仅在你打开证据后标出对应段落，不会预先替你圈出重点。</div><article>{readingParagraphs.length ? readingParagraphs.map((paragraph, index) => <p key={index} className={focusedQuote && paragraph.includes(focusedQuote) ? "focused" : ""}>{paragraph}</p>) : <p>{source || "该材料的全文尚未载入。"}</p>}</article></section>
+      <aside className="right-pane" ref={rightPaneRef}>
+        <section id="overview" ref={overviewRef} className={`overview ${skeletonExpanded ? "expanded" : "collapsed"} ${overviewFlash ? "spotlight" : ""}`}><div className="section-heading"><div><p className="eyebrow">全文参考骨架</p><h2>从全文到可检查的关系</h2></div><button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起骨架" : `展开骨架（${pkg.threads.length}）`}<ChevronRight size={14} /></button></div>{skeletonExpanded && <><p className="quiet">按“全文 → 线索 → 载体/证据 → 关系提案”逐层展开；点击任一线索进入局部工作台。</p><SkeletonTree pkg={pkg} activeThread={threadId} onThread={openThread} onEvidence={openEvidence} /></>}</section>
         {currentThread ? <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => setThreadId("")} /> : <section className="empty-thread"><Lightbulb size={20} /><b>从一条线索开始</b><p>你可以从全文分布进入，也可以先读原文再回来检查。</p></section>}
         <MyReading pkg={pkg} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} />
       </aside>
