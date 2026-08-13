@@ -101,8 +101,8 @@ export async function reviewReaderRelation(relationText: string, evidence: Array
   return payload as RelationReview;
 }
 
-export async function prepareTextDraft(title: string, text: string): Promise<PreparationDraft> {
-  const body = JSON.stringify({ title, text });
+export async function prepareTextDraft(title: string, text: string, options: { useLlm?: boolean } = {}): Promise<PreparationDraft> {
+  const body = JSON.stringify({ title, text, use_llm: options.useLlm === true });
   const endpoints = ["/api/prepare-work-package", "http://127.0.0.1:8787/api/prepare-work-package"];
   let lastError: unknown;
   for (const endpoint of endpoints) {

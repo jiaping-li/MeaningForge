@@ -7,7 +7,15 @@ export interface Evidence { id: string; span_ids: string[]; type: string; note: 
 export interface NarrativeUnit { id: string; order: number; chapter_id?: string; span_ids: string[]; summary?: string; }
 export interface NarrativeEntity { id: string; type: string; label: string; evidence_ids: string[]; provenance_id?: string; }
 export interface NarrativeRelation { id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; }
-export interface FigurativeFeature { id: string; evidence_id: string; surface_form: string; type: string; mip_status?: "applicable" | "not_applicable" | "uncertain"; provenance_id?: string; }
+export interface MipRecord {
+  lexical_unit: string;
+  contextual_meaning: string;
+  basic_meaning: string;
+  comparison: string;
+  decision: "metaphor_candidate" | "literal" | "undecidable";
+  review_status: "machine_draft" | "researcher_checked";
+}
+export interface FigurativeFeature { id: string; evidence_id: string; surface_form: string; type: string; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; provenance_id?: string; }
 export interface Carrier { id: string; label: string; type: string; feature_ids: string[]; evidence_ids: string[]; selection_reasons: string[]; provenance_id?: string; }
 export interface StructuralRelation { id: string; thread_id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; rationale: string; }
 export interface InterpretiveRelation { id: string; thread_id: string; source_ids: string[]; type: string; evidence_ids: string[]; grounding_relation_ids: string[]; relation_text: string; qualification: string; }

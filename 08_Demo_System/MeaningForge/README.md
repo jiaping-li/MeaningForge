@@ -30,6 +30,25 @@ Open `http://localhost:5175/`.
 npm run validate:medicine
 ```
 
+## Optional MIP/MIPVU-assisted draft pass
+
+The deterministic pass never claims to have completed MIP. When a local model
+is configured, enable **“运行本地模型的 MIP 辅助核查”** before selecting a
+draft text (or the matching option during TXT import). The model must produce,
+for each lexical candidate, an exact-source lexical unit, contextual meaning,
+basic meaning, comparison, and one of `metaphor_candidate`, `literal`, or
+`undecidable`. Invalid or ungrounded records are rejected. Accepted records
+remain `machine_draft` and are displayed for researcher review; they are not
+study-ready metaphor annotations.
+
+Configure the local endpoint in `api/.env.local` (do not commit this file):
+
+```text
+OPENAI_API_URL=your-local-compatible-endpoint
+OPENAI_MODEL=your-local-model-name
+OPENAI_API_KEY=optional
+```
+
 ## Data boundaries
 
 - Reference data lives in `public/data/medicine-substrate-v2-development.json` and is never mutated by reader actions.

@@ -80,7 +80,12 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     checkReferences(issues, `figurative_features[${index}].evidence_id`, [stringValue(record.evidence_id)], evidenceIds);
     if (record.mip_status === "applicable") {
       const mip = record.mip_record as Item | undefined;
-      ["lexical_unit", "contextual_meaning", "basic_meaning"].forEach((key) => { if (!mip || !stringValue(mip[key])) issues.push({ path: `figurative_features[${index}].mip_record.${key}`, message: "Required for an applicable MIP/MIPVU-informed record." }); });
+      ["lexical_unit", "contextual_meaning", "basic_meaning", "comparison"].forEach((key) => { if (!mip || !stringValue(mip[key])) issues.push({ path: `figurative_features[${index}].mip_record.${key}`, message: "Required for an applicable MIP/MIPVU-informed record." }); });
+      if (mip && !["metaphor_candidate", "literal", "undecidable"].includes(stringValue(mip.decision))) issues.push({ path: `figurative_features[${index}].mip_record.decision`, message: "MIP decision must be metaphor_candidate, literal, or undecidable." });
+      if (mip && !["machine_draft", "researcher_checked"].includes(stringValue(mip.review_status))) issues.push({ path: `figurative_features[${index}].mip_record.review_status`, message: "MIP record must state its review status." });
+      const linkedEvidence = collections.evidence.find((evidence) => stringValue(evidence.id) === stringValue(record.evidence_id));
+      const excerpt = linkedEvidence ? ids(linkedEvidence.span_ids).map((id) => collections.text_spans.find((span) => stringValue(span.id) === id)).map((span) => stringValue(span?.text)).join("\n") : "";
+      if (mip && stringValue(mip.lexical_unit) && !excerpt.includes(stringValue(mip.lexical_unit))) issues.push({ path: `figurative_features[${index}].mip_record.lexical_unit`, message: "MIP lexical unit must occur in its linked exact-source evidence." });
     }
   });
   collections.carriers.forEach((record, index) => {

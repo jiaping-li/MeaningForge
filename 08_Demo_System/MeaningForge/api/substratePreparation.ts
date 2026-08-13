@@ -1,6 +1,7 @@
 import { validateWorkPackage } from "./workPackageValidator.ts";
 
-type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown };
+type MipDraft = { lexical_unit?: unknown; contextual_meaning?: unknown; basic_meaning?: unknown; comparison?: unknown; decision?: unknown };
+type Candidate = { label?: unknown; type?: unknown; exact_quote?: unknown; reasons?: unknown; mip_record?: MipDraft };
 type RelationCandidate = { source_label?: unknown; target_label?: unknown; type?: unknown; exact_quote?: unknown; rationale?: unknown };
 
 const structuralTypes = new Set(["recurs_with", "contrasts_with", "parallels", "co_occurs_with", "precedes", "follows", "changes_context", "changes_function", "shares_actor", "shares_scene", "causal_link", "consequence_link"]);
@@ -9,6 +10,15 @@ const stopWords = new Set(["我们", "他们", "这个", "那个", "自己", "�
 function slug(value: string) { return value.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 36) || "work"; }
 function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
 function unique<T>(items: T[]) { return [...new Set(items)]; }
+function mipRecord(value: unknown, quote: string) {
+  if (!value || typeof value !== "object") return undefined;
+  const raw = value as MipDraft;
+  const lexical_unit = text(raw.lexical_unit); const contextual_meaning = text(raw.contextual_meaning);
+  const basic_meaning = text(raw.basic_meaning); const comparison = text(raw.comparison);
+  const decision = text(raw.decision);
+  if (!lexical_unit || !quote.includes(lexical_unit) || !contextual_meaning || !basic_meaning || !comparison || !["metaphor_candidate", "literal", "undecidable"].includes(decision)) return undefined;
+  return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status: "machine_draft" as const };
+}
 
 function segment(source: string) {
   const lines = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
@@ -104,15 +114,19 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   });
   const evidence = text_spans.map((span) => ({ id: `ev-${span.id}`, work_id: workId, span_ids: [span.id], type: "contextual_event", note: `第 ${span.chapter_id} 节原文`, provenance_id: "prov-direct", status: "candidate" }));
   const evidenceForQuote = (quote: string) => evidence.filter((item) => item.span_ids.some((id) => text_spans.find((span) => span.id === id)?.text.includes(quote)));
-  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM" }> = [];
+  const candidates: Array<{ label: string; type: string; quote: string; reasons: string[]; executor: "DETERMINISTIC" | "LLM"; mip?: ReturnType<typeof mipRecord> }> = [];
   repeatedExpressions(paragraphs).forEach(([label]) => candidates.push({ label, type: "recurrent_expression", quote: label, reasons: ["observability", "recurrence_distribution"], executor: "DETERMINISTIC" }));
   (llm?.carriers ?? []).forEach((raw) => {
     const label = text(raw.label); const quote = text(raw.exact_quote); const type = text(raw.type);
     if (!label || !quote || !clean.includes(quote) || !["object", "action", "scene", "recurrent_expression", "sensory_image", "lexical_metaphor_candidate"].includes(type)) return;
-    if (!candidates.some((item) => item.label === label)) candidates.push({ label, type, quote, reasons: ["observability", "relational_load"], executor: "LLM" });
+    const mip = type === "lexical_metaphor_candidate" ? mipRecord(raw.mip_record, quote) : undefined;
+    // A lexical-MIP candidate is not admitted without the auditable four-part
+    // comparison record. This prevents a model label from masquerading as MIP.
+    if (type === "lexical_metaphor_candidate" && !mip) return;
+    if (!candidates.some((item) => item.label === label)) candidates.push({ label, type, quote, reasons: ["observability", "relational_load"], executor: "LLM", mip });
   });
   const selected = candidates.filter((item) => evidenceForQuote(item.quote).length > 0).slice(0, 12);
-  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "uncertain" : "not_applicable", provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-mip", status: "candidate" }));
+  const figurative_features = selected.map((item, index) => ({ id: `feature-${index + 1}`, work_id: workId, evidence_id: evidenceForQuote(item.quote)[0].id, surface_form: item.label, type: item.type === "lexical_metaphor_candidate" ? "metaphor_related" : item.type === "recurrent_expression" ? "recurrent_imagery" : "symbolic_object_candidate", mip_status: item.type === "lexical_metaphor_candidate" ? "applicable" : "not_applicable", ...(item.mip ? { mip_record: item.mip } : {}), provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-mip", status: "candidate" }));
   const carriers = selected.map((item, index) => ({ id: `carrier-${index + 1}`, work_id: workId, label: item.label, type: item.type === "lexical_metaphor_candidate" ? "conceptual_feature" : item.type, feature_ids: [figurative_features[index].id], evidence_ids: evidenceForQuote(item.quote).map((item) => item.id), selection_reasons: item.reasons, provenance_id: item.executor === "LLM" ? "prov-llm" : "prov-mip", status: "candidate" }));
   const narrative_entities = carriers.map((carrier, index) => ({ id: `entity-${index + 1}`, work_id: workId, type: carrier.type === "object" ? "object" : carrier.type === "scene" ? "scene" : "discourse", label: carrier.label, evidence_ids: carrier.evidence_ids, provenance_id: carrier.provenance_id }));
   const carrierByLabel = new Map(carriers.map((item) => [item.label, item]));
