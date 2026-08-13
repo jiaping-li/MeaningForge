@@ -75,7 +75,7 @@ async function reviewRelation(request: ReviewRequest) {
 }
 
 async function prepareDraft(request: PreparationRequest) {
-  const source = request.text?.replace(/^\uFEFF/, "").trim();
+  const source = request.text?.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim();
   if (!source || source.length < 120) throw new Error("Provide a literary text of at least 120 characters.");
   let llmOutput: Record<string, unknown> | undefined;
   let llmNote = "未使用 LLM；已按固定规则生成可编辑草稿。";

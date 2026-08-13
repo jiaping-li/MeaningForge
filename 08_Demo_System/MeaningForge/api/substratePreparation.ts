@@ -56,7 +56,10 @@ function constructionSample(paragraphs: Array<{ text: string; chapter: string }>
 }
 
 export function buildWorkPackage(title: string, source: string, llm: { carriers?: Candidate[]; structural_relations?: RelationCandidate[]; review_notes?: unknown[] } | undefined) {
-  const clean = source.replace(/^\uFEFF/, "").trim();
+  // All source-dependent stages must use one canonical newline convention.
+  // Browser-imported public-domain texts may arrive as CRLF, while paragraph
+  // segmentation emits LF; comparing the two otherwise invalidates anchors.
+  const clean = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim();
   const fullParagraphs = segment(clean);
   const sample = constructionSample(fullParagraphs);
   const paragraphs = sample.paragraphs;
@@ -71,6 +74,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   let searchFrom = 0;
   const text_spans = paragraphs.map((paragraph, index) => {
     const start_char = clean.indexOf(paragraph.text, searchFrom);
+    if (start_char < 0) throw new Error(`Unable to anchor constructed paragraph ${index + 1} in the canonical source text.`);
     searchFrom = Math.max(searchFrom, start_char + paragraph.text.length);
     return { id: `span-${index + 1}`, work_id: workId, chapter_id: paragraph.chapter, paragraph_id: `p-${index + 1}`, order: index + 1, text: paragraph.text, start_char, end_char: start_char + paragraph.text.length, provenance_id: "prov-direct" };
   });
