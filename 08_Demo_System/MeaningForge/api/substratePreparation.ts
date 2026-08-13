@@ -26,7 +26,7 @@ function mipRecord(value: unknown, quote: string, machineStatus: "machine_draft"
   // A material protocol may contain a documented researcher review. Model and
   // rule proposals never inherit that status: they remain explicit drafts.
   const requestedStatus = text(raw.review_status);
-  const review_status = requestedStatus === "researcher_checked" ? "researcher_checked" as const : machineStatus;
+  const review_status = requestedStatus === "researcher_checked" ? "researcher_checked" as const : requestedStatus === "machine_draft" ? "machine_draft" as const : machineStatus;
   return { lexical_unit, contextual_meaning, basic_meaning, comparison, decision: decision as "metaphor_candidate" | "literal" | "undecidable", review_status };
 }
 function protocolCandidates(title: string) { return title.trim() === "药" ? medicineProtocolCandidates : []; }

@@ -82,11 +82,14 @@ async function reviewMipCoverage(title: string, source: string, onBatch?: (revie
   const results: Record<string, unknown>[] = [];
   for (let index = 0; index < coverage.length; index += batchSize) {
     const batch = coverage.slice(index, index + batchSize);
-    const output = await askLocalLlm(
-      "You are a bounded MIP/MIPVU review executor. Return one JSON object only: {mip_reviews:[...]}. Return exactly one record per supplied coverage_candidate_id; do not add candidates or alter lexical_unit/exact_quote. Record fields: coverage_candidate_id, lexical_unit, exact_quote, contextual_meaning, basic_meaning, comparison, decision. decision is metaphor_candidate, literal, or undecidable. Use a compact phrase (at most 18 Chinese characters or 12 English words) for each of contextual_meaning, basic_meaning, comparison. Select metaphor_candidate only when contextual use contrasts with a more basic meaning; literal if no contrast; undecidable if excerpt insufficient. Do not infer theme, author intent, symbolism, or final interpretation.",
-      `Work title: ${title}\nBatch ${Math.floor(index / batchSize) + 1}; review all ${batch.length} candidates:\n${JSON.stringify(batch)}`,
-      384,
-    ) as { mip_reviews?: unknown };
+    let output: { mip_reviews?: unknown } = {};
+    try {
+      output = await askLocalLlm(
+        "You are a bounded MIP/MIPVU review executor. Return one JSON object only: {mip_reviews:[...]}. Return exactly one record per supplied coverage_candidate_id; do not add candidates or alter lexical_unit/exact_quote. Record fields: coverage_candidate_id, lexical_unit, exact_quote, contextual_meaning, basic_meaning, comparison, decision. decision is metaphor_candidate, literal, or undecidable. Use a compact phrase (at most 18 Chinese characters or 12 English words) for each of contextual_meaning, basic_meaning, comparison. Select metaphor_candidate only when contextual use contrasts with a more basic meaning; literal if no contrast; undecidable if excerpt insufficient. Do not infer theme, author intent, symbolism, or final interpretation.",
+        `Work title: ${title}\nBatch ${Math.floor(index / batchSize) + 1}; review all ${batch.length} candidates:\n${JSON.stringify(batch)}`,
+        384,
+      ) as { mip_reviews?: unknown };
+    } catch { /* Preserve every candidate below as an explicit draft instead of aborting the work. */ }
     const returned = Array.isArray(output.mip_reviews) ? output.mip_reviews.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item)) : [];
     const byId = new Map(returned.map((item) => [typeof item.coverage_candidate_id === "string" ? item.coverage_candidate_id : "", item]));
     // Missing/malformed model output becomes an explicit undecidable record,
@@ -94,7 +97,7 @@ async function reviewMipCoverage(title: string, source: string, onBatch?: (revie
     batch.forEach((candidate: MipCoverageCandidate) => {
       const raw = byId.get(candidate.id);
       if (raw && raw.lexical_unit === candidate.lexical_unit && raw.exact_quote === candidate.exact_quote) results.push(raw);
-      else results.push({ coverage_candidate_id: candidate.id, lexical_unit: candidate.lexical_unit, exact_quote: candidate.exact_quote, contextual_meaning: "模型未返回可核验的语境义。", basic_meaning: "暂不可由该次模型输出确认。", comparison: "模型输出缺失或未保持原文锚点，保留为不可判定。", decision: "undecidable" });
+      else results.push({ coverage_candidate_id: candidate.id, lexical_unit: candidate.lexical_unit, exact_quote: candidate.exact_quote, contextual_meaning: "模型未返回可核验的语境义。", basic_meaning: "暂不可由该次模型输出确认。", comparison: "模型输出缺失或未保持原文锚点，保留为不可判定。", decision: "undecidable", review_status: "machine_draft" });
     });
     onBatch?.(results);
   }
