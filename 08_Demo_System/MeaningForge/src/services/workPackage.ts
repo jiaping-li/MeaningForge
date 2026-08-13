@@ -107,10 +107,10 @@ export async function prepareTextDraft(title: string, text: string, options: { u
   let lastError: unknown;
   for (const endpoint of endpoints) {
     const controller = new AbortController();
-    // A configured traditional-NLP pass can take longer than the lightweight
-    // deterministic draft, especially on a first model invocation. Do not
-    // mislabel a still-running local construction as a disconnected service.
-    const timeout = window.setTimeout(() => controller.abort(), 35_000);
+    // Full-text MIP review makes several bounded local-model calls. It is a
+    // deliberate researcher action and can take minutes, unlike the normal
+    // deterministic draft; do not mislabel it as a disconnected service.
+    const timeout = window.setTimeout(() => controller.abort(), options.useLlm ? 360_000 : 35_000);
     try {
       let response: Response;
       try {
