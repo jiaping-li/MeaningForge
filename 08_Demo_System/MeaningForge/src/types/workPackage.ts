@@ -55,7 +55,7 @@ export interface WorkPackage {
   scenes?: Array<{ id: string; chapter_id: string; span_ids: string[]; evidence_ids: string[]; label: string; provenance_id: string; status: string }>;
   discourse_segments?: Array<{ id: string; span_id: string; type: "dialogue" | "narration"; evidence_ids: string[]; provenance_id: string; status: string }>;
   figurative_signals?: FigurativeSignal[];
-  mip_coverage?: { candidate_count: number; reviewed_count: number; executor: "LLM" | "not_run"; candidates: MipCoverageCandidate[] };
+  mip_coverage?: { candidate_count: number; reviewed_count: number; executor: "LLM" | "LLM_partial" | "not_run"; candidates: MipCoverageCandidate[] };
   mip_review_records?: MipReviewRecord[];
   candidate_carriers?: CandidateCarrierV3[];
   candidate_relations?: CandidateRelationV3[];

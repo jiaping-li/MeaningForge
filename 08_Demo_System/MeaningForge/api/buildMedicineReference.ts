@@ -14,7 +14,10 @@ const sourcePath = path.join(root, "public/books/luxun-medicine-zh.txt");
 const outputPath = path.join(root, "public/data/medicine-v3-reference.json");
 const source = fs.readFileSync(sourcePath, "utf8");
 const cleanSource = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim();
-const workPackage = buildWorkPackage("药", source, undefined);
+const reviewPath = process.env.MIP_REVIEWS_FILE;
+const reviewPayload = reviewPath ? JSON.parse(fs.readFileSync(reviewPath, "utf8")) as { mip_reviews?: unknown } : undefined;
+const mip_reviews = Array.isArray(reviewPayload?.mip_reviews) ? reviewPayload.mip_reviews : undefined;
+const workPackage = buildWorkPackage("药", source, mip_reviews ? { mip_reviews, review_notes: [`Imported ${mip_reviews.length} structured LLM MIP review records from ${path.basename(reviewPath!)}`] } : undefined);
 
 workPackage.package_id = "medicine-v3-reference";
 workPackage.package_status = "reference_ready";
@@ -33,4 +36,4 @@ workPackage.preparation = {
 const issues = validateWorkPackage(workPackage as unknown as Record<string, unknown>, cleanSource);
 if (issues.length) throw new Error(`Refusing to freeze invalid Medicine reference: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join("; ")}`);
 fs.writeFileSync(outputPath, `${JSON.stringify(workPackage, null, 2)}\n`, "utf8");
-console.log(JSON.stringify({ output: outputPath, package_id: workPackage.package_id, source_checksum: sourceChecksum, unr: workPackage.unr_manifest?.counts, validation_records: workPackage.validations?.length }, null, 2));
+console.log(JSON.stringify({ output: outputPath, package_id: workPackage.package_id, source_checksum: sourceChecksum, mip_reviews: mip_reviews?.length ?? 0, unr: workPackage.unr_manifest?.counts, validation_records: workPackage.validations?.length }, null, 2));
