@@ -81,6 +81,7 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
         label: String(item.label ?? "未命名线索"),
         type: typeof item.type === "string" ? item.type : "reader_candidate",
         evidence_id: typeof item.evidence_id === "string" ? item.evidence_id : undefined,
+        evidence_ids: Array.isArray(item.evidence_ids) ? item.evidence_ids.filter((id): id is string => typeof id === "string") : typeof item.evidence_id === "string" ? [item.evidence_id] : [],
         rationale: typeof item.rationale === "string" ? item.rationale : undefined,
         based_on_node_id: typeof item.based_on_node_id === "string" ? item.based_on_node_id : undefined,
         source_text_span_id: typeof item.source_text_span_id === "string" ? item.source_text_span_id : undefined,
@@ -91,7 +92,10 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
         history: Array.isArray(item.history) ? item.history as Array<{ at: string; action: "create" | "revise"; label: string; type: string; note?: string }> : [],
       };
     }) as ReaderSession["reader_nodes"] : [];
-    return { ...fallback, ...stored, reader_nodes: legacyNodes, reader_relations: legacyRelations };
+    const referenceReviews = stored.reference_reviews && typeof stored.reference_reviews === "object" ? stored.reference_reviews : {};
+    const counterevidence = Array.isArray(stored.counterevidence) ? stored.counterevidence : [];
+    const readerClaims = Array.isArray(stored.reader_claims) ? stored.reader_claims : stored.claim ? [{ id: "reader-claim-current", session_id: packageId, text: stored.claim, evidence_ids: stored.selected_evidence_ids ?? [], node_ids: legacyNodes.map((node) => node.id), relation_ids: legacyRelations.map((relation) => relation.id), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), provenance: "reader-authored" as const }] : [];
+    return { ...fallback, ...stored, reference_reviews: referenceReviews, counterevidence, reader_claims: readerClaims, reader_nodes: legacyNodes, reader_relations: legacyRelations };
   } catch { return fallback; }
 }
 

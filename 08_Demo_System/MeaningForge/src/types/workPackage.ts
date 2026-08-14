@@ -76,13 +76,16 @@ export interface ReaderSession {
   package_id: string;
   selected_evidence_ids: string[];
   judgments: Record<string, { judgment: Judgment | "challenge"; revision?: string; reason?: string; created_at?: string; provenance?: "reader-authored" }>;
+  reference_reviews: Record<string, { action: "accept" | "modify" | "reject"; reason?: string; created_at: string; provenance: "reader-authored"; reader_relation_id?: string }>;
+  counterevidence: Array<{ id: string; relation_id?: string; evidence_id: string; stance: "supporting" | "conflicting"; created_at: string; provenance: "reader-authored" }>;
   probes: Array<{ probe_id: string; replacement?: string; effect: ProbeEffect; note: string }>;
-  reader_nodes: Array<{ id: string; session_id: string; label: string; type: string; evidence_id?: string; source_text_span_id?: string; interpretation_type?: string; note?: string; rationale?: string; based_on_node_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; type: string; note?: string }> }>;
+  reader_nodes: Array<{ id: string; session_id: string; label: string; type: string; evidence_id?: string; evidence_ids: string[]; source_text_span_id?: string; interpretation_type?: string; note?: string; rationale?: string; based_on_node_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; type: string; note?: string }> }>;
   reader_relations: Array<{ id: string; session_id: string; source_id: string; target_id: string; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident"; evidence_ids: string[]; rationale?: string; based_on_relation_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident" }> }>;
   claim: string;
-  events: Array<{ at: string; action: string; target_id?: string; target_type?: string; payload?: Record<string, string | number | boolean> }>;
+  reader_claims: Array<{ id: string; session_id: string; text: string; evidence_ids: string[]; node_ids: string[]; relation_ids: string[]; created_at: string; updated_at: string; provenance: "reader-authored" }>;
+  events: Array<{ at: string; action: string; target_id?: string; target_type?: string; payload?: Record<string, string | number | boolean>; previous_state?: string; next_state?: string }>;
 }
 
 export const emptySession = (packageId: string): ReaderSession => ({
-  package_id: packageId, selected_evidence_ids: [], judgments: {}, probes: [], reader_nodes: [], reader_relations: [], claim: "", events: [],
+  package_id: packageId, selected_evidence_ids: [], judgments: {}, reference_reviews: {}, counterevidence: [], probes: [], reader_nodes: [], reader_relations: [], claim: "", reader_claims: [], events: [],
 });

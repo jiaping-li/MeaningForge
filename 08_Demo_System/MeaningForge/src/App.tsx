@@ -7,7 +7,7 @@ type Tab = "trace" | "compare" | "challenge" | "counter" | "probe";
 const find = <T extends { id: string }>(xs: T[], id: string) => xs.find((x) => x.id === id);
 const quote = (pkg: WorkPackage, id: string) => find(pkg.evidence, id)?.span_ids.map((s) => find(pkg.text_spans, s)?.text).filter(Boolean).join("\n") ?? "";
 const chapters = (pkg: WorkPackage) => [...new Set(pkg.text_spans.map((span) => span.chapter_id))];
-const event = (session: ReaderSession, action: string, targetId?: string, targetType?: string) => ({ ...session, events: [...session.events, { at: new Date().toISOString(), action, target_id: targetId, target_type: targetType }] });
+const event = (session: ReaderSession, action: string, targetId?: string, targetType?: string, previousState?: unknown, nextState?: unknown) => ({ ...session, events: [...session.events, { at: new Date().toISOString(), action, target_id: targetId, target_type: targetType, previous_state: JSON.stringify(previousState ?? null), next_state: JSON.stringify(nextState ?? null) }] });
 function sourceSections(source: string) {
   const parts: Array<{ id: string; paragraphs: string[] }> = [];
   let active: string | undefined;
@@ -87,7 +87,7 @@ export default function App() {
   const createReaderNodeFromText = (label: string, interpretationType: string, note: string) => {
     if (!selectedTextSpan || !label.trim()) return;
     const evidence = pkg.evidence.find((item) => item.span_ids.includes(selectedTextSpan.id)); const now = new Date().toISOString(); const id = `reader-node-${Date.now()}`;
-    persist((s) => event({ ...s, reader_nodes: [...s.reader_nodes, { id, session_id: s.package_id, label: label.trim(), type: interpretationType, interpretation_type: interpretationType, source_text_span_id: selectedTextSpan.id, evidence_id: evidence?.id, note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: interpretationType, note: note.trim() || undefined }] }] }, "reader_node_create_from_text", id, "reader_node"));
+    persist((s) => event({ ...s, reader_nodes: [...s.reader_nodes, { id, session_id: s.package_id, label: label.trim(), type: interpretationType, interpretation_type: interpretationType, source_text_span_id: selectedTextSpan.id, evidence_id: evidence?.id, evidence_ids: evidence ? [evidence.id] : [], note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: interpretationType, note: note.trim() || undefined }] }] }, "reader_node_create_from_text", id, "reader_node"));
     setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
   };
 
@@ -305,10 +305,12 @@ function SkeletonTree({ pkg, session, activeThread, onThread, onRelation, onEvid
 <input value={linkLabel} onChange={(event) => setLinkLabel(event.target.value)} placeholder="这两个节点之间有什么意义关系？" />
 <div>
 <select value={linkType} onChange={(event) => setLinkType(event.target.value)}>
-<option value="meaning_relation">意义关系</option>
-<option value="supports">支持</option>
-<option value="complicates">复杂化</option>
-<option value="contrasts">对照</option>
+<option value="symbolic">象征</option>
+<option value="contrast">对照</option>
+<option value="causal">因果</option>
+<option value="parallel">平行</option>
+<option value="thematic">主题关联</option>
+<option value="other">其他</option>
 </select>
 <select value={linkConfidence} onChange={(event) => setLinkConfidence(event.target.value as "tentative" | "developing" | "confident")}>
 <option value="tentative">暂定</option>
@@ -341,10 +343,12 @@ function SkeletonTree({ pkg, session, activeThread, onThread, onRelation, onEvid
 <input value={editRelationExplanation} onChange={(event) => setEditRelationExplanation(event.target.value)} placeholder="为什么这样连接？" />
 <div>
 <select value={editRelationType} onChange={(event) => setEditRelationType(event.target.value)}>
-<option value="meaning_relation">意义关系</option>
-<option value="supports">支持</option>
-<option value="complicates">复杂化</option>
-<option value="contrasts">对照</option>
+<option value="symbolic">象征</option>
+<option value="contrast">对照</option>
+<option value="causal">因果</option>
+<option value="parallel">平行</option>
+<option value="thematic">主题关联</option>
+<option value="other">其他</option>
 </select>
 <select value={editRelationConfidence} onChange={(event) => setEditRelationConfidence(event.target.value as "tentative" | "developing" | "confident")}>
 <option value="tentative">暂定</option>
@@ -388,10 +392,10 @@ function ThreadWorkspace({ pkg, session, thread, activeRelationId, tab, setTab, 
 <div className="tabs">{tabs.map(([id, label, Icon]) => <button key={id} className={tab === id ? "active" : ""} onClick={() => { setTab(id); onPersist((s) => event(s, `${id}_open`, activeRelationId || thread.id, activeRelationId ? "structural_relation" : "thread")); }}>
 <Icon size={14} />{label}</button>)}</div>
     {tab === "trace" && <Trace pkg={pkg} thread={thread} focusNodeIds={focusNodeIds} focusEvidenceIds={focusEvidenceIds} relations={relations} interpretations={interpretations} activeEvidence={evidenceId} onEvidence={onEvidence} onPersist={onPersist} />}
-    {tab === "compare" && <Compare pkg={pkg} thread={thread} evidenceIds={focusEvidenceIds} onEvidence={onEvidence} />}
-    {tab === "challenge" && <Challenge relations={[...relations, ...interpretations]} session={session} onPersist={onPersist} />}
-    {tab === "counter" && <Counter pkg={pkg} thread={thread} onEvidence={onEvidence} onPersist={onPersist} />}
-    {tab === "probe" && <Probe pkg={pkg} thread={thread} session={session} onPersist={onPersist} />}
+    {tab === "compare" && <Compare pkg={pkg} thread={thread} session={session} relations={relations} evidenceIds={focusEvidenceIds} onEvidence={onEvidence} />}
+    {tab === "challenge" && <Challenge pkg={pkg} relations={[...relations, ...interpretations]} session={session} onPersist={onPersist} />}
+    {tab === "counter" && <Counter pkg={pkg} thread={thread} activeRelationId={activeRelationId} onEvidence={onEvidence} onPersist={onPersist} />}
+    {tab === "probe" && <Probe pkg={pkg} thread={thread} session={session} onEvidence={onEvidence} onPersist={onPersist} />}
   </section>;
 }
 
@@ -428,10 +432,14 @@ function Trace({ pkg, thread, focusNodeIds, focusEvidenceIds, relations, interpr
 </article>)}</div>;
 }
 
-function Compare({ pkg, thread, evidenceIds, onEvidence }: { pkg: WorkPackage; thread: Thread; evidenceIds?: string[]; onEvidence: (id: string) => void }) {
+function Compare({ pkg, thread, session, relations, evidenceIds, onEvidence }: { pkg: WorkPackage; thread: Thread; session: ReaderSession; relations: WorkPackage["structural_relations"]; evidenceIds?: string[]; onEvidence: (id: string) => void }) {
   const available = evidenceIds?.length ? evidenceIds : thread.evidence_ids; const [a, setA] = useState(available[0] ?? ""); const [b, setB] = useState(available[1] ?? available[0] ?? "");
+  const reference = relations[0];
+  const alternatives = reference ? session.reader_relations.filter((relation) => relation.based_on_relation_id === reference.id || (relation.source_id === reference.source_id && relation.target_id === reference.target_id)) : [];
   return <div className="panel">
 <p>比较不是寻找唯一答案，而是让语境中的变化变得可见。</p>
+{reference && <article className="relation"><b>参考层的可检查关系</b><p>{reference.rationale}</p><small>{alternatives.length ? `你的层已有 ${alternatives.length} 个并行读法。` : "尚未建立个人替代读法；可在“质疑”中修改。"}</small></article>}
+{alternatives.map((relation) => <article className="proposal" key={relation.id}><span>我的层的关系</span><p>{relation.label}</p><small>{relation.explanation || "尚未说明理由"} · {relation.confidence === "confident" ? "较有把握" : relation.confidence === "developing" ? "形成中" : "暂定"}</small></article>)}
 <div className="compare-selects">
 <select value={a} onChange={(e) => setA(e.target.value)}>{available.map((id) => <option value={id} key={id}>{find(pkg.evidence, id)?.note}</option>)}</select>
 <select value={b} onChange={(e) => setB(e.target.value)}>{available.map((id) => <option value={id} key={id}>{find(pkg.evidence, id)?.note}</option>)}</select>
@@ -444,29 +452,36 @@ function Compare({ pkg, thread, evidenceIds, onEvidence }: { pkg: WorkPackage; t
 </div>;
 }
 
-function Challenge({ relations, session, onPersist }: { relations: Array<WorkPackage["structural_relations"][number] | WorkPackage["interpretive_relations"][number]>; session: ReaderSession; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
-  const [note, setNote] = useState(""); return <div className="panel">
-<p>判断记录在你的个人层，不会修改参考骨架。</p>{relations.map((r) => <article className="challenge" key={r.id}>
-<p>{"relation_text" in r ? r.relation_text : r.rationale}</p>
-<div>{(["keep", "unsure", "reject"] as const).map((j) => <button className={session.judgments[r.id]?.judgment === j ? "chosen" : ""} onClick={() => onPersist((s) => event({ ...s, judgments: { ...s.judgments, [r.id]: { judgment: j, revision: note || undefined } } }, "judgment_create", r.id, "relation"))} key={j}>{j === "keep" ? "保留" : j === "unsure" ? "尚不确定" : "拒绝"}</button>)}</div>
-</article>)}<label className="input-label">为下一项判断写下理由（可选）<input value={note} onChange={(e) => setNote(e.target.value)} placeholder="例如：这两处的语境仍需要更多说明" />
+function Challenge({ pkg, relations, session, onPersist }: { pkg: WorkPackage; relations: Array<WorkPackage["structural_relations"][number] | WorkPackage["interpretive_relations"][number]>; session: ReaderSession; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+  const [note, setNote] = useState(""); const [alternative, setAlternative] = useState("");
+  const structural = relations.filter((relation): relation is WorkPackage["structural_relations"][number] => "rationale" in relation);
+  const label = (id: string) => find(pkg.carriers, id)?.label ?? find(pkg.narrative_entities, id)?.label ?? "节点";
+  const review = (relationId: string, action: "accept" | "reject", reason?: string) => { const now = new Date().toISOString(); onPersist((s) => event({ ...s, reference_reviews: { ...s.reference_reviews, [relationId]: { action, reason: reason || undefined, created_at: now, provenance: "reader-authored" } } }, `reference_relation_${action}`, relationId, "reference_relation", s.reference_reviews[relationId], { action, reason })); };
+  const revise = (relation: WorkPackage["structural_relations"][number]) => { if (!alternative.trim()) return; const now = new Date().toISOString(); const id = `reader-relation-${Date.now()}`; onPersist((s) => event({ ...s, reference_reviews: { ...s.reference_reviews, [relation.id]: { action: "modify", reason: note || undefined, created_at: now, provenance: "reader-authored", reader_relation_id: id } }, reader_relations: [...s.reader_relations, { id, session_id: s.package_id, source_id: relation.source_id, target_id: relation.target_id, label: alternative.trim(), relation_type: "other", explanation: note || undefined, confidence: "tentative", evidence_ids: relation.evidence_ids, based_on_relation_id: relation.id, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: alternative.trim(), relation_type: "other", explanation: note || undefined, confidence: "tentative" }] }] }, "reference_relation_modify", relation.id, "reference_relation", s.reference_reviews[relation.id], { alternative: alternative.trim(), reason: note })); setAlternative(""); };
+  return <div className="panel">
+<p>判断记录在你的个人层，不会修改参考骨架。修改会保留参考关系，并另建一条紫色替代关系。</p>{structural.map((r) => <article className="challenge" key={r.id}>
+<b>{label(r.source_id)} → {label(r.target_id)}</b><p>{r.rationale}</p>
+<div><button className={session.reference_reviews[r.id]?.action === "accept" ? "chosen" : ""} onClick={() => review(r.id, "accept", note)}>保留</button><button className={session.reference_reviews[r.id]?.action === "reject" ? "chosen" : ""} onClick={() => review(r.id, "reject", note)}>拒绝</button></div>
+<input value={alternative} onChange={(event) => setAlternative(event.target.value)} placeholder="改为怎样的关系？例如：群体盲从" />
+<button onClick={() => revise(r)}>建立我的替代关系</button>
+</article>)}<label className="input-label">记录理由（可选）<input value={note} onChange={(e) => setNote(e.target.value)} placeholder="例如：这两处的语境仍需要更多说明" />
 </label>
 </div>;
 }
 
-function Counter({ pkg, thread, onEvidence, onPersist }: { pkg: WorkPackage; thread: Thread; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
-  const candidates = pkg.evidence.filter((e) => !thread.evidence_ids.includes(e.id)).slice(0, 5); return <div className="panel">
-<p>反证不会自动推翻一条关系；它可以使读法复杂化、变弱，或导向另一种解释。</p>{candidates.map((e) => <article className="counter-card" key={e.id}>
+function Counter({ pkg, thread, activeRelationId, onEvidence, onPersist }: { pkg: WorkPackage; thread: Thread; activeRelationId: string; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+  const candidates = pkg.evidence.filter((e) => !thread.evidence_ids.includes(e.id)).slice(0, 5); const [stance, setStance] = useState<"supporting" | "conflicting">("conflicting"); return <div className="panel">
+<p>反证不会自动推翻一条关系；它可以使读法复杂化、变弱，或导向另一种解释。</p><div className="compare-selects"><select value={stance} onChange={(event) => setStance(event.target.value as "supporting" | "conflicting")}><option value="conflicting">作为反证/复杂化</option><option value="supporting">作为支持证据</option></select></div>{candidates.map((e) => <article className="counter-card" key={e.id}>
 <b>{e.note}</b>
 <p>{quote(pkg, e.id)}</p>
-<button onClick={() => { onEvidence(e.id); onPersist((s) => ({ ...event(s, "counterevidence_open", e.id, "evidence"), selected_evidence_ids: [...new Set([...s.selected_evidence_ids, e.id])]})); }}>打开并保存为复杂化证据</button>
+<button onClick={() => { const now = new Date().toISOString(); const item = { id: `counter-${Date.now()}`, relation_id: activeRelationId || undefined, evidence_id: e.id, stance, created_at: now, provenance: "reader-authored" as const }; onEvidence(e.id); onPersist((s) => event({ ...s, counterevidence: [...s.counterevidence, item], selected_evidence_ids: [...new Set([...s.selected_evidence_ids, e.id])]}, "counterevidence_attach", e.id, "evidence", undefined, item)); }}>打开并附加为{stance === "conflicting" ? "反证" : "支持"}</button>
 </article>)}</div>;
 }
 
-function Probe({ pkg, thread, session, onPersist }: { pkg: WorkPackage; thread: Thread; session: ReaderSession; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+function Probe({ pkg, thread, session, onEvidence, onPersist }: { pkg: WorkPackage; thread: Thread; session: ReaderSession; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
   const probes = pkg.probes.filter((p) => p.thread_id === thread.id); if (!probes.length) return <div className="panel">
 <p>此线索没有适合的诊断测试。系统不会为了互动而强行制造替换游戏。</p>
-</div>; return <div className="panel">{probes.map((p) => <article className="probe" key={p.id}>
+</div>; return <div className="panel"><p>测试用于检查你的读法能否与同一参考路径中的其他证据共存，而不是寻找唯一答案。</p><h3>同一路径的其他证据</h3>{pkg.evidence.filter((evidence) => !thread.evidence_ids.includes(evidence.id)).slice(0, 3).map((evidence) => <button className="evidence-card" key={evidence.id} onClick={() => onEvidence(evidence.id)}><span>{quote(pkg, evidence.id)}</span><small>{evidence.note}</small></button>)}{probes.map((p) => <article className="probe" key={p.id}>
 <span>测试目标：{p.target_relation_ids.join(" · ")}</span>
 <p>{p.prompt}</p>
 <div>{(["preserved", "weakened", "broken", "emergent", "mixed", "unsure"] as const).map((effect) => <button className={session.probes.find((x) => x.probe_id === p.id)?.effect === effect ? "chosen" : ""} key={effect} onClick={() => onPersist((s) => event({ ...s, probes: [...s.probes.filter((x) => x.probe_id !== p.id), { probe_id: p.id, replacement: p.config?.suggested_replacement, effect, note: "" }] }, "probe_submit", p.id, "probe"))}>{({ preserved: "保留", weakened: "变弱", broken: "断裂", emergent: "新出现", mixed: "混合", unsure: "不确定" } as Record<string, string>)[effect]}</button>)}</div>
@@ -475,6 +490,9 @@ function Probe({ pkg, thread, session, onPersist }: { pkg: WorkPackage; thread: 
 
 function MyReading({ pkg, session, claim, setClaim, onEvidence, onPersist }: { pkg: WorkPackage; session: ReaderSession; claim: string; setClaim: (v: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
   const saved = [...new Set(session.selected_evidence_ids)];
+  const readerClaim = session.reader_claims.find((item) => item.id === "reader-claim-current");
+  const updateClaimLinks = (field: "evidence_ids" | "node_ids" | "relation_ids", id: string) => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? { id: "reader-claim-current", session_id: s.package_id, text: claim, evidence_ids: [], node_ids: [], relation_ids: [], created_at: now, updated_at: now, provenance: "reader-authored" as const }; const ids = current[field].includes(id) ? current[field].filter((item) => item !== id) : [...current[field], id]; const next = { ...current, [field]: ids, text: claim, updated_at: now }; return event({ ...s, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_link_update", id, field, current, next); }); };
+  const saveClaimText = () => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? { id: "reader-claim-current", session_id: s.package_id, text: "", evidence_ids: [], node_ids: [], relation_ids: [], created_at: now, updated_at: now, provenance: "reader-authored" as const }; const next = { ...current, text: claim, updated_at: now }; return event({ ...s, claim, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_update", current.id, "reader_claim", current, next); }); };
   return <section className="my-reading">
 <div className="section-heading">
 <div>
@@ -492,7 +510,8 @@ function MyReading({ pkg, session, claim, setClaim, onEvidence, onPersist }: { p
 <p>从原文选句创建紫色节点；在“连线模式”中依次选择两个节点创建关系。点击紫色节点或紫色连线，可追踪、修订、质疑或删除。</p>
 <small>当前：{session.reader_nodes.length} 个个人节点 · {session.reader_relations.length} 条个人关系；所有修改都只保存在本次 ReaderSession。</small>
 </div>
-    <textarea value={claim} onChange={(e) => setClaim(e.target.value)} onBlur={() => onPersist((s) => event({ ...s, claim }, "claim_update", "reader-claim"))} placeholder="用自己的话写下暂时的解释；说明它由哪些证据与关系支撑，也可以保留条件和疑问。" />
+    <label className="input-label">我的解释<textarea value={claim} onChange={(e) => setClaim(e.target.value)} onBlur={saveClaimText} placeholder="用自己的话写下暂时的解释；说明它由哪些证据与关系支撑，也可以保留条件和疑问。" /></label>
+    <div className="claim-links"><b>这条解释由什么支撑？</b><details open><summary>证据（{readerClaim?.evidence_ids.length ?? 0}）</summary>{saved.map((id) => <label key={id}><input type="checkbox" checked={readerClaim?.evidence_ids.includes(id) ?? false} onChange={() => updateClaimLinks("evidence_ids", id)} />{find(pkg.evidence, id)?.note}</label>)}</details><details><summary>我的节点（{readerClaim?.node_ids.length ?? 0}）</summary>{session.reader_nodes.map((node) => <label key={node.id}><input type="checkbox" checked={readerClaim?.node_ids.includes(node.id) ?? false} onChange={() => updateClaimLinks("node_ids", node.id)} />{node.label}</label>)}</details><details><summary>我的关系（{readerClaim?.relation_ids.length ?? 0}）</summary>{session.reader_relations.map((relation) => <label key={relation.id}><input type="checkbox" checked={readerClaim?.relation_ids.includes(relation.id) ?? false} onChange={() => updateClaimLinks("relation_ids", relation.id)} />{relation.label}</label>)}</details></div>
 <small>读者作者性：系统不会替你生成或定稿这段解释。</small>
 </section>;
 }
