@@ -60,3 +60,12 @@ export const medicineProtocolRelations = [
   { source_label: "给人生命的本领", target_label: "人血馒头", type: "precedes", source_quote: "老栓倒觉爽快，仿佛一旦变了少年，得了神通，有给人生命的本领似的，跨步格外高远。", target_quote: "这样的人血馒头，什么痨病都包好！", rationale: "前者呈现老栓取得“药”前的期待，后者呈现该物被宣称的疗效；该边仅记录文本中的先后与可比较位置。", review_status: "researcher_checked" },
   { source_label: "红白的花", target_label: "枯草 / 铜丝", type: "co_occurs_with", source_quote: "分明有一圈红白的花，围着那尖圆的坟顶。", target_quote: "微风早经停息了；枯草支支直立，有如铜丝。", rationale: "两个可见意象均锚定在坟地段落；该边不预设花或枯草的象征意义。", review_status: "researcher_checked" },
 ] as const;
+
+// Reader paths are a projection-layer object: they guide inspection without
+// claiming a thematic interpretation. They are deliberately separate from
+// the lower-level relation taxonomy above.
+export const medicineProtocolReaderPaths = [
+  { id: "medicine-path-execution", label: "刑场中的围观", prompt: "先看围观者的姿态，再看黑衣人的眼光；两处都在同一场景，但它们是否形成同一种压力，需要你回到原文判断。", node_labels: ["无形的手 / 鸭", "眼光 / 刀"], relation_pairs: [["无形的手 / 鸭", "眼光 / 刀"]] },
+  { id: "medicine-path-medicine", label: "治病期待与“馒头”", prompt: "比较老栓对“给人生命”的期待、治病承诺，以及坟地中的“馒头”描写；不要预先把它们归结为一个主题。", node_labels: ["给人生命的本领", "人血馒头", "坟冢 / 馒头"], relation_pairs: [["给人生命的本领", "人血馒头"], ["人血馒头", "坟冢 / 馒头"]] },
+  { id: "medicine-path-cemetery", label: "坟地里的可见细节", prompt: "并看花、枯草和乌鸦在坟地段落中的位置、形态与前后语境；它们的意义仍由你检验。", node_labels: ["红白的花", "枯草 / 铜丝", "乌鸦 / 铁铸"], relation_pairs: [["乌鸦 / 铁铸", "红白的花"], ["枯草 / 铜丝", "乌鸦 / 铁铸"], ["红白的花", "枯草 / 铜丝"]] },
+] as const;

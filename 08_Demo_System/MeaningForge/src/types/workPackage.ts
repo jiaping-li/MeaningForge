@@ -22,6 +22,7 @@ export interface StructuralRelation { id: string; thread_id: string; source_id: 
 export interface InterpretiveRelation { id: string; thread_id: string; source_ids: string[]; type: string; evidence_ids: string[]; grounding_relation_ids: string[]; relation_text: string; qualification: string; }
 export interface Thread { id: string; neutral_label: string; carrier_ids: string[]; feature_ids?: string[]; evidence_ids: string[]; structural_relation_ids: string[]; interpretive_relation_ids: string[]; distribution: { chapter_ids: string[]; span_orders: number[] }; }
 export interface Probe { id: string; thread_id: string; type: string; target_relation_ids: string[]; target_carrier_id?: string; prompt: string; config?: { suggested_replacement?: string }; }
+export interface ScaffoldPath { id: string; label: string; prompt: string; node_ids: string[]; structural_relation_ids: string[]; evidence_ids: string[]; provenance_id?: string; status?: string; }
 // Canonical v3 construction records. The reader UI consumes only the projected
 // arrays below; these records retain the pre-projection substrate for audit.
 export interface FigurativeSignal { id: string; work_id: string; span_ids: string[]; evidence_ids: string[]; surface_form?: string; type: "MIP_METAPHOR" | "RECURRENCE" | "REPETITION" | "CONTRAST" | "JUXTAPOSITION" | "PARALLEL" | "ANOMALY" | "CONTEXT_SHIFT" | "CROSS_SPAN_ASSOCIATION"; mip_status?: "applicable" | "not_applicable" | "uncertain"; mip_record?: MipRecord; linked_narrative_ids?: string[]; score?: number; rationale?: string; provenance_id: string; status: string; }
@@ -47,6 +48,7 @@ export interface WorkPackage {
   structural_relations: StructuralRelation[];
   interpretive_relations: InterpretiveRelation[];
   probes: Probe[];
+  scaffold_paths?: ScaffoldPath[];
   source_document?: { id: string; text: string; checksum?: string; provenance_id: string };
   paragraphs?: Array<{ id: string; work_id: string; order: number; chapter_id: string; text: string; start_char: number; end_char: number; provenance_id: string }>;
   sentences?: Array<{ id: string; paragraph_id: string; order: number; text: string; start_char: number; end_char: number; provenance_id: string }>;

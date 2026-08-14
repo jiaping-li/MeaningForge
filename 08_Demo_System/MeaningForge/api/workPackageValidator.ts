@@ -157,6 +157,12 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     checkReferences(issues, `threads[${index}].structural_relation_ids`, ids(record.structural_relation_ids), structuralIds);
     checkReferences(issues, `threads[${index}].interpretive_relation_ids`, ids(record.interpretive_relation_ids), interpretiveIds);
   });
+  items(workPackage.scaffold_paths).forEach((record, index) => {
+    if (!stringValue(record.label) || !stringValue(record.prompt)) issues.push({ path: `scaffold_paths[${index}]`, message: "Reader path requires a neutral label and an inspectable reading prompt." });
+    checkReferences(issues, `scaffold_paths[${index}].node_ids`, ids(record.node_ids), nodeIds);
+    checkReferences(issues, `scaffold_paths[${index}].structural_relation_ids`, ids(record.structural_relation_ids), structuralIds);
+    checkReferences(issues, `scaffold_paths[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+  });
   collections.probes.forEach((record, index) => {
     checkReferences(issues, `probes[${index}].target_relation_ids`, ids(record.target_relation_ids), new Set([...structuralIds, ...interpretiveIds]));
     const carrier = stringValue(record.target_carrier_id); if (carrier && !carrierIds.has(carrier)) issues.push({ path: `probes[${index}].target_carrier_id`, message: "Unknown carrier." });
