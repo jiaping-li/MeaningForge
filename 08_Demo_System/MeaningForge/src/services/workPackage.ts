@@ -59,24 +59,38 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
       const item = relation as unknown as Record<string, unknown>;
       return {
         id: String(item.id),
+        session_id: typeof item.session_id === "string" ? item.session_id : packageId,
         source_id: String(item.source_id ?? item.source ?? ""),
         target_id: String(item.target_id ?? item.target ?? ""),
         label: String(item.label ?? item.relation_text ?? ""),
         evidence_ids: Array.isArray(item.evidence_ids) ? item.evidence_ids.filter((id): id is string => typeof id === "string") : [],
         rationale: typeof item.rationale === "string" ? item.rationale : typeof item.qualification === "string" ? item.qualification : undefined,
+        relation_type: typeof item.relation_type === "string" ? item.relation_type : "reader_connection",
+        explanation: typeof item.explanation === "string" ? item.explanation : undefined,
+        confidence: item.confidence === "developing" || item.confidence === "confident" ? item.confidence : "tentative" as const,
+        created_at: typeof item.created_at === "string" ? item.created_at : new Date().toISOString(),
+        provenance: "reader-authored" as const,
+        history: Array.isArray(item.history) ? item.history as Array<{ at: string; action: "create" | "revise"; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident" }> : [],
       };
-    }) : [];
+    }) as ReaderSession["reader_relations"] : [];
     const legacyNodes = Array.isArray(stored.reader_nodes) ? stored.reader_nodes.map((node) => {
       const item = node as unknown as Record<string, unknown>;
       return {
         id: String(item.id ?? `legacy-node-${Date.now()}`),
+        session_id: typeof item.session_id === "string" ? item.session_id : packageId,
         label: String(item.label ?? "未命名线索"),
         type: typeof item.type === "string" ? item.type : "reader_candidate",
         evidence_id: typeof item.evidence_id === "string" ? item.evidence_id : undefined,
         rationale: typeof item.rationale === "string" ? item.rationale : undefined,
         based_on_node_id: typeof item.based_on_node_id === "string" ? item.based_on_node_id : undefined,
+        source_text_span_id: typeof item.source_text_span_id === "string" ? item.source_text_span_id : undefined,
+        interpretation_type: typeof item.interpretation_type === "string" ? item.interpretation_type : typeof item.type === "string" ? item.type : "reader_candidate",
+        note: typeof item.note === "string" ? item.note : typeof item.rationale === "string" ? item.rationale : undefined,
+        created_at: typeof item.created_at === "string" ? item.created_at : new Date().toISOString(),
+        provenance: "reader-authored" as const,
+        history: Array.isArray(item.history) ? item.history as Array<{ at: string; action: "create" | "revise"; label: string; type: string; note?: string }> : [],
       };
-    }) : [];
+    }) as ReaderSession["reader_nodes"] : [];
     return { ...fallback, ...stored, reader_nodes: legacyNodes, reader_relations: legacyRelations };
   } catch { return fallback; }
 }

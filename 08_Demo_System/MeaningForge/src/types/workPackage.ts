@@ -75,10 +75,10 @@ export interface WorkPackage {
 export interface ReaderSession {
   package_id: string;
   selected_evidence_ids: string[];
-  judgments: Record<string, { judgment: Judgment; revision?: string }>;
+  judgments: Record<string, { judgment: Judgment | "challenge"; revision?: string; reason?: string; created_at?: string; provenance?: "reader-authored" }>;
   probes: Array<{ probe_id: string; replacement?: string; effect: ProbeEffect; note: string }>;
-  reader_nodes: Array<{ id: string; label: string; type: string; evidence_id?: string; rationale?: string; based_on_node_id?: string }>;
-  reader_relations: Array<{ id: string; source_id: string; target_id: string; label: string; evidence_ids: string[]; rationale?: string; based_on_relation_id?: string }>;
+  reader_nodes: Array<{ id: string; session_id: string; label: string; type: string; evidence_id?: string; source_text_span_id?: string; interpretation_type?: string; note?: string; rationale?: string; based_on_node_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; type: string; note?: string }> }>;
+  reader_relations: Array<{ id: string; session_id: string; source_id: string; target_id: string; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident"; evidence_ids: string[]; rationale?: string; based_on_relation_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident" }> }>;
   claim: string;
   events: Array<{ at: string; action: string; target_id?: string; target_type?: string; payload?: Record<string, string | number | boolean> }>;
 }
