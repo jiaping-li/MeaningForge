@@ -110,7 +110,9 @@ function ReadingNavigator({ chapter, chapterIds, onChange }: { chapter: string; 
 }
 
 function SkeletonTree({ pkg, session, activeThread, onThread, onRelation }: { pkg: WorkPackage; session: ReaderSession; activeThread: string; onThread: (id: string) => void; onRelation: (id: string) => void }) {
-  const threadForNode = (nodeId: string) => pkg.threads.find((thread) => thread.carrier_ids.includes(nodeId) || thread.structural_relation_ids.some((relationId) => { const relation = find(pkg.structural_relations, relationId); return relation?.source_id === nodeId || relation?.target_id === nodeId; }));
+  // Prefer the node's own reader-facing thread. Falling back to the first
+  // relation-containing thread caused a shared edge to open its other end.
+  const threadForNode = (nodeId: string) => pkg.threads.find((thread) => thread.carrier_ids.includes(nodeId)) ?? pkg.threads.find((thread) => thread.structural_relation_ids.some((relationId) => { const relation = find(pkg.structural_relations, relationId); return relation?.source_id === nodeId || relation?.target_id === nodeId; }));
   const labelForNode = (nodeId: string) => find(pkg.carriers, nodeId)?.label ?? find(pkg.narrative_entities, nodeId)?.label ?? find(pkg.narrative_events ?? [], nodeId)?.label ?? find(pkg.figurative_features, nodeId)?.surface_form ?? "未解析节点";
   const openNode = (nodeId: string) => { const thread = threadForNode(nodeId); if (thread) onThread(thread.id); };
   const coreRelations = pkg.structural_relations.filter((relation) => relation.review_status === "researcher_checked");
