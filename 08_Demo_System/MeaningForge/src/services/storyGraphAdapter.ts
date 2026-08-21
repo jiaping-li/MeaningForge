@@ -103,6 +103,6 @@ export function createStoryGraphView(workPackage: WorkPackage, session: ReaderSe
       ...workPackage.structural_relations.map((relation) => ({ id: relation.id, sourceId: relation.source_id, targetId: relation.target_id, threadId: relation.thread_id, relationType: relation.type, layer: "figurative" as const })),
     ],
     threadLabels: workPackage.threads.map((thread) => ({ id: thread.id, label: thread.neutral_label })),
-    readerHasWork: Boolean(session.claim.trim() || session.reader_nodes.length || session.reader_relations.length || Object.keys(session.judgments).length || session.probes.length),
+    readerHasWork: Boolean(session.claim.trim() || session.reader_evidence_references.length || session.reader_nodes.length || session.reader_relations.length || Object.keys(session.judgments).length || session.probes.length),
   };
 }

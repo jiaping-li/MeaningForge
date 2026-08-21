@@ -493,6 +493,37 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const reference_relation_ids = structural_relations.filter((relation) => "review_status" in relation && relation.review_status === "researcher_checked" && relation.evidence_ids.some((id) => evidence.find((item) => item.id === id)?.span_ids.some((spanId) => text_spans.find((span) => span.id === spanId)?.chapter_id === chapter))).map((relation) => relation.id);
     return { chapter_id: chapter, context_anchors: [...anchors, ...fallbackAnchor], candidate_explorations, reference_relation_ids, reader_prompt: reference_relation_ids.length ? "先检查本节的语境锚点与参考关系，再决定哪些连接进入你的个人图层。" : "本节暂无严格参考关系；你可以从这些可回查语境锚点出发，选择文字创建自己的解释节点。", provenance_id: protocol ? "prov-medicine-protocol" : "prov-structure", status: protocol ? "researcher_checked" : "grounding_validated" };
   });
+  // Evidence Units, not interpretive concepts, are the default canvas input.
+  // Each unit is an exact source clause within one TextSpan.  Later layers can
+  // link a unit to narrative, MIP, or structural records, but no such record is
+  // permitted to replace the visible text cue or create a meaning conclusion.
+  const evidenceUnitLabel = (value: string) => {
+    const compact = value.replace(/^\s*[‘“"'（(]+|[’”"'）)\s]*$/g, "").replace(/\s+/g, " ").trim();
+    return compact.length > 11 ? `${compact.slice(0, 11)}…` : compact;
+  };
+  const evidenceUnitType = (value: string) => {
+    if (/^[‘“"']|说|道|问|答|喊|叫/.test(value)) return "dialogue" as const;
+    if (/华老栓|华大妈|小栓|夏瑜|康大叔|先生|太太|姑娘|老爷/.test(value)) return "character" as const;
+    if (/馒头|鲜血|血|钱|灯|茶|药|衣|门|路|花|乌鸦|锁|碗|酒/.test(value)) return "object" as const;
+    if (/夜|天|街|屋|茶馆|刑场|坟|路上|院/.test(value)) return "scene" as const;
+    if (/走|坐|拿|看|听|叫|吃|喝|哭|笑|伸手|点上|吹熄|掏出|交给/.test(value)) return "action" as const;
+    return "passage" as const;
+  };
+  const meaning_elements = text_spans.flatMap((span) => {
+    const clauses = span.text.split(/[。！？；!?;，、：:]+/).map((value) => value.replace(/^[‘“"'（）()]+|[’”"'（）()]+$/g, "").trim()).filter((value) => value.length >= 2).filter((value, index, values) => values.indexOf(value) === index).slice(0, 5);
+    return clauses.map((clause, index) => {
+      const evidence_id = `ev-${span.id}`;
+      const linkedMentions = backbone.mentions.filter((mention) => mention.span_id === span.id && !["他", "她", "它", "他们", "她们", "它们"].includes(mention.surface_form)).map((mention) => mention.id);
+      const linkedSignals = figurative_signals.filter((signal) => signal.evidence_ids.includes(evidence_id)).map((signal) => signal.id);
+      // Projection preserves the path from a lightweight reader-facing unit to
+      // the UNR carrier and validated structural relations that warranted it.
+      // The bubble remains a textual cue; these links are only revealed when a
+      // reader asks why it is available for comparison.
+      const linkedCarriers = carriers.filter((carrier) => carrier.evidence_ids.includes(evidence_id)).map((carrier) => carrier.id);
+      const linkedRelations = structural_relations.filter((relation) => relation.evidence_ids.includes(evidence_id) || linkedCarriers.includes(relation.source_id) || linkedCarriers.includes(relation.target_id)).map((relation) => relation.id);
+      return { id: `evidence-unit-${span.id}-${index + 1}`, label: evidenceUnitLabel(clause), type: evidenceUnitType(clause), chapter_id: span.chapter_id, evidence_ids: [evidence_id], source_ids: [span.id, ...linkedMentions, ...linkedSignals, ...linkedCarriers], relation_ids: linkedRelations, provenance_id: span.provenance_id, status: "grounding_validated" };
+    });
+  });
   const constructionRunId = `run-${Date.now()}`;
   const validations = [
     ...text_spans.map((span, index) => ({ id: `validation-span-${index + 1}`, work_id: workId, target_type: "TextSpan", target_id: span.id, validation_type: "source_anchor" as const, passed: clean.slice(span.start_char, span.end_char) === span.text, messages: ["Exact source offset reconstructed."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
@@ -507,7 +538,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   const workPackage = {
     schema_version: "meaningforge-1.0", package_id: `${workId}-draft-${Date.now()}`, package_status: "draft", work: { id: workId, title: safeTitle, author: "导入文本", language: "zh", edition_id: "local-import", source_uri: "", status: "draft", chapter_markers: chapterIds.map((id) => ({ id, label: `第 ${id} 节`, marker: id })) },
     source_document: { id: `source-${workId}`, text: clean, provenance_id: "prov-direct" }, paragraphs: text_spans.map((span) => ({ id: span.paragraph_id, work_id: workId, order: span.order, chapter_id: span.chapter_id, text: span.text, start_char: span.start_char, end_char: span.end_char, provenance_id: span.provenance_id })), sentences, text_spans, evidence, entity_mentions: backbone.mentions, event_mentions: backbone.events, narrative_events: backbone.narrative_events, scenes: context.scenes, discourse_segments: context.discourse_segments, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations, mip_coverage: { candidate_count: mipCoverage.length, reviewed_count: mip_review_records.length, executor: mipExecutor, candidates: mipCoverage }, mip_review_records,
-    figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], scaffold_paths, chapter_scaffolds, reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
+    figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], scaffold_paths, chapter_scaffolds, meaning_elements, reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
     construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "complete", coreference_event_linking: backbone.narrative_relations.length ? "complete" : "draft", figurative_signals: figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? "complete" : "draft", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete", reader_interpretive_layer: "skipped" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked." },
     preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), backbone.stanza.note, `MIP coverage: ${mipCoverage.length} source-anchored candidates; ${mip_review_records.length} structured LLM review records.`, ...(mip_review_records.length ? [] : ["MIP/MIPVU lexical coverage candidates were generated, but no semantic executor review ran; no automatic MIP decision is claimed."]), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
   };

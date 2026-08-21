@@ -97,8 +97,9 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
     const referenceReviews = stored.reference_reviews && typeof stored.reference_reviews === "object" ? stored.reference_reviews : {};
     const candidateDecisions = stored.candidate_decisions && typeof stored.candidate_decisions === "object" ? stored.candidate_decisions : {};
     const counterevidence = Array.isArray(stored.counterevidence) ? stored.counterevidence : [];
+    const readerEvidenceReferences = Array.isArray(stored.reader_evidence_references) ? stored.reader_evidence_references : [];
     const readerClaims = Array.isArray(stored.reader_claims) ? stored.reader_claims.map((claim) => ({ ...claim, confidence: claim.confidence === "developing" || claim.confidence === "confident" ? claim.confidence : "tentative" as const, history: Array.isArray(claim.history) ? claim.history.map((entry) => ({ ...entry, trigger: entry.trigger === "new_evidence" || entry.trigger === "reconsidered_evidence" || entry.trigger === "new_relation" || entry.trigger === "contradictory_evidence" || entry.trigger === "context_change" || entry.trigger === "reader_uncertainty" ? entry.trigger : "initial" as const })) : [] })) : stored.claim ? [{ id: "reader-claim-current", session_id: packageId, text: stored.claim, evidence_ids: stored.selected_evidence_ids ?? [], node_ids: legacyNodes.map((node) => node.id), relation_ids: legacyRelations.map((relation) => relation.id), confidence: "tentative" as const, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), provenance: "reader-authored" as const, history: [] }] : [];
-    return { ...fallback, ...stored, reference_reviews: referenceReviews, candidate_decisions: candidateDecisions, counterevidence, reader_claims: readerClaims, reader_nodes: legacyNodes, reader_relations: legacyRelations };
+    return { ...fallback, ...stored, reference_reviews: referenceReviews, candidate_decisions: candidateDecisions, counterevidence, reader_evidence_references: readerEvidenceReferences, reader_claims: readerClaims, reader_nodes: legacyNodes, reader_relations: legacyRelations };
   } catch { return fallback; }
 }
 
