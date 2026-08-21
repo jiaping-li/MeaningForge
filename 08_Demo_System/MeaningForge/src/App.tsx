@@ -1,20 +1,28 @@
 import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type ReactNode } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, Download, FileUp, Flag, FlaskConical, GitCompareArrows, HeartHandshake, Lightbulb, LoaderCircle, Plus, ShieldQuestion, X } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Download, FileUp, Flag, FlaskConical, GitCompareArrows, HeartHandshake, LoaderCircle, Plus, ShieldQuestion, X } from "lucide-react";
 import { downloadSession, loadDevelopmentPackage, loadSession, preparedWorks, prepareTextDraft, saveSession, sourceWorks, type PreparationDraft } from "@/services/workPackage";
 import { emptySession, type ReaderSession, type Thread, type WorkPackage } from "@/types/workPackage";
 
 type Tab = "trace" | "compare" | "challenge" | "counter" | "probe";
 const find = <T extends { id: string }>(xs: T[], id: string) => xs.find((x) => x.id === id);
 const quote = (pkg: WorkPackage, id: string) => find(pkg.evidence, id)?.span_ids.map((s) => find(pkg.text_spans, s)?.text).filter(Boolean).join("\n") ?? "";
-const chapters = (pkg: WorkPackage) => [...new Set(pkg.text_spans.map((span) => span.chapter_id))];
+// Some frozen source packages retain a numeric front-matter span (for source
+// metadata) before the edition's actual chapter markers.  It is not a reader
+// chapter and must not be rendered beside “一 / 二 / 三 / 四”.
+const chapters = (pkg: WorkPackage) => { const ids = [...new Set(pkg.text_spans.map((span) => span.chapter_id))]; return ids.some((id) => /[一二三四五六七八九十]/.test(id)) ? ids.filter((id) => !/^\d+$/.test(id)) : ids; };
 const event = (session: ReaderSession, action: string, targetId?: string, targetType?: string, previousState?: unknown, nextState?: unknown) => ({ ...session, events: [...session.events, { at: new Date().toISOString(), action, target_id: targetId, target_type: targetType, previous_state: JSON.stringify(previousState ?? null), next_state: JSON.stringify(nextState ?? null) }] });
+const changeTriggerLabels = { initial: "首次形成", new_evidence: "发现了新证据", reconsidered_evidence: "重新考虑已有证据", new_relation: "建立了新关系", contradictory_evidence: "遇到反证", context_change: "阅读到新的语境", reader_uncertainty: "意识到仍有不确定性" } as const;
 function sourceSections(source: string) {
   const parts: Array<{ id: string; paragraphs: string[] }> = [];
   let active: string | undefined;
   const paragraphs = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   paragraphs.forEach((paragraph) => {
     const heading = paragraph.match(/^(?:第)?([一二三四五六七八九十]+|\d+)(?:[章节回])?(?:\s+.*)?$/)?.[1];
-    if (heading) { active = String(parts.length + 1); parts.push({ id: active, paragraphs: [] }); }
+    // Keep the edition's actual chapter marker.  The frozen WorkPackage uses
+    // “一 / 二 / 三 / 四” for 《药》, so renumbering the reader text as
+    // “1 / 2 / 3 / 4” made evidence navigation and manual page changes use
+    // two incompatible chapter IDs.
+    if (heading) { active = heading; parts.push({ id: active, paragraphs: [] }); }
     else if (active) parts[parts.length - 1].paragraphs.push(paragraph);
   });
   return parts.length ? parts : Array.from({ length: Math.ceil(paragraphs.length / 7) }, (_, index) => ({ id: String(index + 1), paragraphs: paragraphs.slice(index * 7, index * 7 + 7) }));
@@ -39,6 +47,7 @@ export default function App() {
   const [evidenceId, setEvidenceId] = useState("");
   const [tab, setTab] = useState<Tab>("trace");
   const [claim, setClaim] = useState("");
+  const [readerWorkspaceOpen, setReaderWorkspaceOpen] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [useMIPForDrafts, setUseMIPForDrafts] = useState(false);
   const [loadingSource, setLoadingSource] = useState("");
@@ -54,11 +63,11 @@ export default function App() {
     const restored = loadSession(next.package_id, emptySession(next.package_id));
     const sourceChapterIds = sourceSections(text).map((section) => section.id);
     setPkg(next); setSource(text); setSession(restored); setClaim(restored.claim); setChapter(sourceChapterIds[0] ?? chapters(next)[0] ?? "1");
-    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(true);
+    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(true); setReaderWorkspaceOpen(false);
   };
   useEffect(() => { loadDevelopmentPackage().then(async (next) => activate(next, next.work.source_uri ? await fetch(next.work.source_uri).then((r) => r.text()) : "")).catch(() => undefined); }, []);
   const persist = (fn: (old: ReaderSession) => ReaderSession) => setSession((old) => { if (!old) return old; const next = fn(old); saveSession(next); return next; });
-  const openEvidence = (id: string) => { if (!pkg) return; const span = find(pkg.text_spans, find(pkg.evidence, id)?.span_ids[0] ?? ""); if (span) setChapter(span.chapter_id); setEvidenceId(id); persist((s) => event(s, "evidence_open", id, "evidence")); };
+  const openEvidence = (id: string) => { if (!pkg) return; const span = find(pkg.text_spans, find(pkg.evidence, id)?.span_ids[0] ?? ""); if (span) setChapter(chapters(pkg).includes(span.chapter_id) ? span.chapter_id : chapters(pkg)[0] ?? span.chapter_id); setEvidenceId(id); persist((s) => event(s, "evidence_open", id, "evidence")); };
   const currentThread = pkg && find(pkg.threads, threadId);
   const openThread = (id: string) => { setThreadId(id); setRelationId(""); setTab("trace"); if (pkg) { const t = find(pkg.threads, id); if (t?.evidence_ids[0]) openEvidence(t.evidence_ids[0]); } persist((s) => event(s, "thread_open", id, "thread")); };
   const openRelation = (id: string) => { if (!pkg) return; const relation = find(pkg.structural_relations, id); if (!relation) return; const thread = pkg.threads.find((item) => item.structural_relation_ids.includes(id)); setRelationId(id); if (thread) setThreadId(thread.id); setTab("trace"); if (relation.evidence_ids[0]) openEvidence(relation.evidence_ids[0]); persist((s) => event(s, "relation_open", id, "structural_relation")); };
@@ -74,6 +83,7 @@ export default function App() {
     window.setTimeout(() => setOverviewFlash(false), 900);
   };
   if (!pkg || !session) return <main className="loading">正在准备 MeaningForge…</main>;
+  const researchView = new URLSearchParams(window.location.search).get("view") === "research";
   const readerSections = sourceSections(source);
   const readerChapterIds = readerSections.length ? readerSections.map((section) => section.id) : chapters(pkg);
   const sectionSpans = pkg.text_spans.filter((s) => s.chapter_id === chapter).sort((a, b) => a.order - b.order);
@@ -102,14 +112,15 @@ export default function App() {
 </div>
 <div className="top-actions">
 <span className="status">
-<i /> {pkg.package_status === "development" ? "开发材料 · 非研究结论" : "已加载参考骨架"}</span>
-<button onClick={() => downloadSession(session)} title="导出本次阅读记录">
+<i /> {researchView ? "研究视图" : "可探索的参考线索"}</span>
+{researchView && <button onClick={() => downloadSession(session)} title="导出本次阅读记录">
 <Download size={16} />导出记录</button>
+}
 </div>
 </header>
     <div className="study-note">
 <ShieldQuestion size={16} />
-<span>这是一个可质疑的参考初稿，不是标准答案。请始终回到原文，保留不确定性与替代读法。</span>
+<span>这里整理的是值得检查的文本细节，不是标准答案。请回到原文，保留不确定性与不同读法。</span>
 </div>
     <div className="workspace">
       <aside className="left-rail">
@@ -120,7 +131,7 @@ export default function App() {
 <small>{work.author} · {work.kind}</small>
 </span>
 </button>)}</CollapsibleSection>
-        <CollapsibleSection title="草稿书库">
+        {researchView && <><CollapsibleSection title="草稿书库">
 <label className="mip-option">
 <input type="checkbox" checked={useMIPForDrafts} onChange={(event) => setUseMIPForDrafts(event.target.checked)} />使用本地模型 MIP 核查</label>{sourceWorks.map((work) => <button className="work-choice draft-work" key={work.bookUrl} disabled={Boolean(loadingSource)} onClick={() => loadSourceWork(work)}>{loadingSource === work.bookUrl ? <LoaderCircle className="spin" size={16} /> : <BookOpen size={16} />}<span>
 <b>《{work.title}》</b>
@@ -130,17 +141,17 @@ export default function App() {
         <CollapsibleSection title="导入原文">
 <button className="import-toggle" onClick={() => setShowImport((v) => !v)}>
 <FileUp size={16} />选择 TXT <ChevronRight size={14} />
-</button>{showImport && <ImportCard onReady={(draft) => activate(draft.work_package, draft.source_text)} />}</CollapsibleSection>
+</button>{showImport && <ImportCard onReady={(draft) => activate(draft.work_package, draft.source_text)} />}</CollapsibleSection></>}
         <CollapsibleSection title={`《${pkg.work.title}》章节`} defaultOpen>
 <div className="chapter-list">{readerChapterIds.map((id, n) => <button className={chapter === id ? "selected" : ""} onClick={() => { setChapter(id); setEvidenceId(""); }} key={id}>第 {n + 1} 节</button>)}</div>
 </CollapsibleSection>
-        <CollapsibleSection title="材料状态">
+        {researchView && <CollapsibleSection title="材料状态">
 <div className="method-card">
 <b>全文 → UNR → 投影</b>
 <small>{pkg.construction_run?.validation_summary ?? "固定协议、原文锚定与关系核查后形成的参考骨架。"}</small>
 <button onClick={() => alert(JSON.stringify({ package: pkg.package_id, construction: pkg.construction_run ?? "legacy development package", provenance: pkg.provenance }, null, 2))}>查看可追溯元数据</button>
 </div>
-</CollapsibleSection>
+</CollapsibleSection>}
       </aside>
       <section className="reading-pane">
 <header>
@@ -161,21 +172,17 @@ export default function App() {
         <section id="overview" ref={overviewRef} className={`overview ${skeletonExpanded ? "expanded" : "collapsed"} ${overviewFlash ? "spotlight" : ""}`}>
 <div className="section-heading">
 <div>
-<p className="eyebrow">全文参考骨架</p>
-<h2>从全文到可检查的关系</h2>
+<p className="eyebrow">系统整理的可检查线索</p>
+<h2>从本节细节到全文证据</h2>
 </div>
-<button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起骨架" : `展开骨架（${pkg.threads.length}）`}<ChevronRight size={14} />
+<button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起本节线索" : "查看本节线索"}<ChevronRight size={14} />
 </button>
 </div>{skeletonExpanded && <>
-<p className="quiet">参考层提供可检查起点；紫色的“我的层”可直接在图谱中创建和编辑。</p>
-<SkeletonTree pkg={pkg} session={session} activeThread={threadId} onThread={openThread} onRelation={openRelation} onEvidence={openEvidence} onPersist={persist} />
+<p className="quiet">这些是系统整理、可回到原文检查的线索；紫色内容是你自己建立的解释。</p>
+<SkeletonTree pkg={pkg} chapter={chapter} session={session} activeThread={threadId} onThread={openThread} onRelation={openRelation} onEvidence={openEvidence} onPersist={persist} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "relationship_interpretation_begin", relationId, "structural_relation", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} />
 </>}</section>
-        {currentThread ? <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} activeRelationId={relationId} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => { setThreadId(""); setRelationId(""); }} /> : <section className="empty-thread">
-<Lightbulb size={20} />
-<b>从图谱开始</b>
-<p>点击节点或连线，回到原文并开始比较、质疑或补充自己的关系。</p>
-</section>}
-        <MyReading pkg={pkg} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} />
+        {currentThread && <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} activeRelationId={relationId} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => { setThreadId(""); setRelationId(""); }} />}
+        <details className="reader-workspace" open={readerWorkspaceOpen} onToggle={(event) => setReaderWorkspaceOpen(event.currentTarget.open)}><summary>我的解释：把证据写成自己的看法</summary><small>这些线索只是起点；当你准备好时，再创建节点、关系与论证。</small><MyReading pkg={pkg} chapter={chapter} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} /></details>
       </aside>
     </div>
   </main>;
@@ -231,11 +238,12 @@ function ReadingNavigator({ chapter, chapterIds, onChange }: { chapter: string; 
 </nav>;
 }
 
-function SkeletonTree({ pkg, session, activeThread, onThread, onRelation, onEvidence, onPersist }: { pkg: WorkPackage; session: ReaderSession; activeThread: string; onThread: (id: string) => void; onRelation: (id: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+function SkeletonTree({ pkg, chapter, session, activeThread, onThread, onRelation, onEvidence, onPersist, onBeginInterpretation }: { pkg: WorkPackage; chapter: string; session: ReaderSession; activeThread: string; onThread: (id: string) => void; onRelation: (id: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void; onBeginInterpretation: (evidenceIds: string[], relationId: string) => void }) {
   // Prefer the node's own reader-facing thread. Falling back to the first
   // relation-containing thread caused a shared edge to open its other end.
   const threadForNode = (nodeId: string) => pkg.threads.find((thread) => thread.carrier_ids.includes(nodeId)) ?? pkg.threads.find((thread) => thread.structural_relation_ids.some((relationId) => { const relation = find(pkg.structural_relations, relationId); return relation?.source_id === nodeId || relation?.target_id === nodeId; }));
   const labelForNode = (nodeId: string) => find(pkg.carriers, nodeId)?.label ?? find(pkg.narrative_entities, nodeId)?.label ?? find(pkg.narrative_events ?? [], nodeId)?.label ?? find(pkg.figurative_features, nodeId)?.surface_form ?? "未解析节点";
+  const relationLabel = (type: string) => ({ shares_scene: "同场景", co_occurs_with: "并看", recurs_with: "回返", precedes: "前后位置", contrasts_with: "对照", parallels: "平行" } as Record<string, string>)[type] ?? "关系";
   const openNode = (nodeId: string) => { const thread = threadForNode(nodeId); if (thread) onThread(thread.id); };
   const coreRelations = pkg.structural_relations.filter((relation) => relation.review_status === "researcher_checked");
   const visibleRelations = coreRelations.length ? coreRelations : pkg.structural_relations;
@@ -250,23 +258,53 @@ function SkeletonTree({ pkg, session, activeThread, onThread, onRelation, onEvid
   }
   const readerPaths = pkg.scaffold_paths?.length ? pkg.scaffold_paths.map((path) => ({ id: path.id, label: path.label, prompt: path.prompt, node_ids: path.node_ids, relations: path.structural_relation_ids.map((id) => find(pkg.structural_relations, id)).filter((relation): relation is WorkPackage["structural_relations"][number] => Boolean(relation)) })) : clusters.map((relations, index) => ({ id: `derived-path-${index + 1}`, label: pkg.threads[index]?.neutral_label ?? `路径 ${index + 1}`, prompt: "沿着这条路径打开原文，比较各节点所在的语境与位置。", node_ids: [...new Set(relations.flatMap((relation) => [relation.source_id, relation.target_id]))], relations }));
   const [focusedCluster, setFocusedCluster] = useState(0);
+  const [wholeFocus, setWholeFocus] = useState<{ label: string; evidenceIds: string[]; carrierIds: string[]; relationIds?: string[]; why: string } | null>(null);
+  const [selectedCarrierId, setSelectedCarrierId] = useState("");
+  const [explorationOpen, setExplorationOpen] = useState(false);
+  const [selectedConnectionId, setSelectedConnectionId] = useState("");
+  const [connectionNote, setConnectionNote] = useState("");
+  const [alternativeConnection, setAlternativeConnection] = useState("");
+  const [selectedAnchorId, setSelectedAnchorId] = useState("");
   const [graphMode, setGraphMode] = useState<"inspect" | "connect">("inspect"); const [showReference, setShowReference] = useState(true); const [showReader, setShowReader] = useState(true); const [linkStart, setLinkStart] = useState(""); const [linkEnd, setLinkEnd] = useState(""); const [linkLabel, setLinkLabel] = useState(""); const [linkType, setLinkType] = useState("meaning_relation"); const [linkConfidence, setLinkConfidence] = useState<"tentative" | "developing" | "confident">("tentative"); const [editingNodeId, setEditingNodeId] = useState(""); const [editLabel, setEditLabel] = useState(""); const [editType, setEditType] = useState(""); const [editNote, setEditNote] = useState(""); const [editingRelationId, setEditingRelationId] = useState(""); const [editRelationLabel, setEditRelationLabel] = useState(""); const [editRelationExplanation, setEditRelationExplanation] = useState(""); const [editRelationType, setEditRelationType] = useState("meaning_relation"); const [editRelationConfidence, setEditRelationConfidence] = useState<"tentative" | "developing" | "confident">("tentative"); const [challengeReason, setChallengeReason] = useState("");
+  useEffect(() => {
+    const chapterPath = readerPaths.findIndex((path) => path.relations.some((relation) => relation.evidence_ids.some((evidenceId) => find(pkg.evidence, evidenceId)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter))));
+    if (chapterPath >= 0) setFocusedCluster(chapterPath);
+  }, [chapter, pkg.package_id]);
   const clusterIndex = Math.min(focusedCluster, Math.max(0, readerPaths.length - 1));
   const activePath = readerPaths[clusterIndex] ?? { id: "empty", label: "路径", prompt: "", node_ids: [], relations: [] };
   const cluster = activePath.relations;
+  const chapterRelationCount = visibleRelations.filter((relation) => relation.evidence_ids.some((evidenceId) => find(pkg.evidence, evidenceId)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter))).length;
+  const chapterScaffold = pkg.chapter_scaffolds?.find((item) => item.chapter_id === chapter);
   const nodeIds = activePath.node_ids;
+  const isContextRelation = (type: string) => ["occurs_in", "shared_scene", "shares_scene", "shares_actor", "spoken_by", "directed_to", "participates_in", "co_occurs_with"].includes(type);
+  const contextRelations = cluster.filter((relation) => isContextRelation(relation.type));
+  const meaningRelations = cluster.filter((relation) => !isContextRelation(relation.type));
+  const contextNode = contextRelations.length ? { id: `context-${activePath.id}`, label: activePath.label, x: 50, y: 23 } : undefined;
   const positions = nodeIds.map((id, index) => {
-    const presets = nodeIds.length === 2 ? [[22, 50], [78, 50]] : nodeIds.length === 3 ? [[22, 53], [52, 20], [78, 64]] : [[18, 24], [51, 14], [82, 28], [25, 74], [72, 76]];
+    const presets = contextNode && nodeIds.length === 2 ? [[25, 72], [75, 72]] : contextNode && nodeIds.length === 3 ? [[18, 70], [50, 78], [82, 70]] : nodeIds.length === 2 ? [[22, 50], [78, 50]] : nodeIds.length === 3 ? [[22, 53], [52, 20], [78, 64]] : [[18, 24], [51, 14], [82, 28], [25, 74], [72, 76]];
     const [x, y] = presets[index] ?? [50, 50]; return { id, x, y };
   });
   const readerPositions = session.reader_nodes.map((node, index) => ({ id: node.id, x: [18, 50, 82][index % 3], y: 86 + Math.floor(index / 3) * 9 }));
   const positionFor = (id: string) => [...positions, ...readerPositions].find((position) => position.id === id);
   const visibleReaderRelations = session.reader_relations.filter((relation) => positionFor(relation.source_id) && positionFor(relation.target_id));
-  const chooseNode = (id: string, reader = false) => { if (graphMode === "connect") { if (!linkStart || linkEnd) { setLinkStart(id); setLinkEnd(""); } else if (id !== linkStart) setLinkEnd(id); return; } if (reader) { const node = session.reader_nodes.find((item) => item.id === id); if (node) { setEditingNodeId(id); setEditLabel(node.label); setEditType(node.interpretation_type ?? node.type); setEditNote(node.note ?? ""); } } else openNode(id); };
+  const chooseNode = (id: string, reader = false) => { if (graphMode === "connect") { if (!linkStart || linkEnd) { setLinkStart(id); setLinkEnd(""); } else if (id !== linkStart) setLinkEnd(id); return; } if (reader) { const node = session.reader_nodes.find((item) => item.id === id); if (node) { setEditingNodeId(id); setEditLabel(node.label); setEditType(node.interpretation_type ?? node.type); setEditNote(node.note ?? ""); } } else { setSelectedCarrierId(id); openNode(id); } };
+  const renderCarrierLabel = (nodeId: string) => { const label = labelForNode(nodeId); const parts = label.split(/\s*\/\s*/).filter(Boolean); return <>{parts.length > 1 ? <><small>原文片段</small>{parts.map((part) => <span key={part}>{part}</span>)}</> : label}{threadForNode(nodeId) && <em>全文线索</em>}</>; };
+  const selectedCarrier = find(pkg.carriers, selectedCarrierId);
+  const selectedConnection = find(pkg.structural_relations, selectedConnectionId);
+  const selectedAnchor = chapterScaffold?.context_anchors.find((anchor) => anchor.id === selectedAnchorId);
+  const relatedConnections = selectedCarrier ? pkg.structural_relations.filter((relation) => relation.source_id === selectedCarrier.id || relation.target_id === selectedCarrier.id) : [];
+  const connectionLabel = (relation: WorkPackage["structural_relations"][number], side: "source" | "target") => labelForNode(relation[`${side}_id`]);
+  const decideConnection = (action: "accept" | "question" | "ignore") => { if (!selectedConnection) return; const now = new Date().toISOString(); onPersist((s) => { if (action === "accept") return event({ ...s, reference_reviews: { ...s.reference_reviews, [selectedConnection.id]: { action: "accept", reason: connectionNote.trim() || undefined, created_at: now, provenance: "reader-authored" } } }, "relationship_accept", selectedConnection.id, "structural_relation", undefined, { reason: connectionNote }); return event({ ...s, judgments: { ...s.judgments, [selectedConnection.id]: { judgment: action === "question" ? "challenge" : "unsure", reason: connectionNote.trim() || undefined, created_at: now, provenance: "reader-authored" } } }, action === "question" ? "relationship_question" : "relationship_ignore", selectedConnection.id, "structural_relation", undefined, { reason: connectionNote }); }); };
+  const modifyConnection = () => { if (!selectedConnection || !alternativeConnection.trim()) return; const now = new Date().toISOString(); const id = `reader-relation-${Date.now()}`; onPersist((s) => event({ ...s, reference_reviews: { ...s.reference_reviews, [selectedConnection.id]: { action: "modify", reason: connectionNote.trim() || undefined, created_at: now, provenance: "reader-authored", reader_relation_id: id } }, reader_relations: [...s.reader_relations, { id, session_id: s.package_id, source_id: selectedConnection.source_id, target_id: selectedConnection.target_id, label: alternativeConnection.trim(), relation_type: "other", explanation: connectionNote.trim() || undefined, confidence: "tentative", evidence_ids: selectedConnection.evidence_ids, based_on_relation_id: selectedConnection.id, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: alternativeConnection.trim(), relation_type: "other", explanation: connectionNote.trim() || undefined, confidence: "tentative" }] }] }, "relationship_modify", selectedConnection.id, "structural_relation", undefined, { reader_relation_id: id, alternative: alternativeConnection.trim() })); setAlternativeConnection(""); };
   const evidenceForNode = (id: string) => session.reader_nodes.find((node) => node.id === id)?.evidence_id ?? find(pkg.carriers, id)?.evidence_ids[0] ?? find(pkg.narrative_entities, id)?.evidence_ids[0] ?? find(pkg.narrative_events ?? [], id)?.evidence_ids[0] ?? find(pkg.figurative_features, id)?.evidence_id;
+  const openWholeText = (focus: { label: string; evidenceIds: string[]; carrierIds?: string[]; relationIds?: string[]; why: string }) => { setWholeFocus({ ...focus, carrierIds: focus.carrierIds ?? [] }); onPersist((s) => event(s, "whole_text_association_open", focus.label, "whole_text_scaffold", undefined, { evidence_count: focus.evidenceIds.length, why: focus.why })); };
+  const carrierIdsForEvidence = (evidenceIds: string[]) => pkg.carriers.filter((carrier) => carrier.evidence_ids.some((id) => evidenceIds.includes(id))).map((carrier) => carrier.id);
+  const openContextAnchor = (anchor: NonNullable<WorkPackage["chapter_scaffolds"]>[number]["context_anchors"][number]) => { setSelectedAnchorId(anchor.id); onEvidence(anchor.evidence_ids[0]); onPersist((s) => event(s, "context_anchor_view", anchor.id, "context_anchor", undefined, anchor)); };
+  const openCandidate = (candidate: NonNullable<WorkPackage["chapter_scaffolds"]>[number]["candidate_explorations"][number]) => { onEvidence(candidate.evidence_ids[0]); onPersist((s) => event(s, "candidate_view", candidate.id, "candidate_exploration", undefined, candidate)); };
+  const decideCandidate = (candidate: NonNullable<WorkPackage["chapter_scaffolds"]>[number]["candidate_explorations"][number], action: "explore" | "accept" | "reject" | "ignore") => { const now = new Date().toISOString(); const readerNodeId = action === "accept" ? `reader-node-${Date.now()}` : undefined; onPersist((s) => { const decision = { action, created_at: now, provenance: "reader-authored" as const, ...(readerNodeId ? { reader_node_id: readerNodeId } : {}) }; const reader_nodes = readerNodeId ? [...s.reader_nodes, { id: readerNodeId, session_id: s.package_id, label: candidate.label, type: "candidate_exploration", interpretation_type: "interpretive_candidate", source_candidate_id: candidate.id, evidence_id: candidate.evidence_ids[0], evidence_ids: candidate.evidence_ids, note: candidate.prompt, created_at: now, provenance: "reader-authored" as const, history: [{ at: now, action: "create" as const, label: candidate.label, type: "candidate_exploration", note: candidate.prompt }] }] : s.reader_nodes; return event({ ...s, candidate_decisions: { ...s.candidate_decisions, [candidate.id]: decision }, reader_nodes, selected_evidence_ids: action === "explore" || action === "accept" ? [...new Set([...s.selected_evidence_ids, ...candidate.evidence_ids])] : s.selected_evidence_ids }, `candidate_${action}`, candidate.id, "candidate_exploration", s.candidate_decisions[candidate.id], decision); }); onEvidence(candidate.evidence_ids[0]); };
   const createGraphRelation = () => { if (!linkStart || !linkEnd || !linkLabel.trim()) return; const now = new Date().toISOString(); const id = `reader-relation-${Date.now()}`; const evidenceIds = [...new Set([...session.selected_evidence_ids, evidenceForNode(linkStart), evidenceForNode(linkEnd)].filter((value): value is string => Boolean(value)))]; onPersist((s) => event({ ...s, reader_relations: [...s.reader_relations, { id, session_id: s.package_id, source_id: linkStart, target_id: linkEnd, label: linkLabel.trim(), relation_type: linkType, explanation: linkLabel.trim(), confidence: linkConfidence, evidence_ids: evidenceIds, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: linkLabel.trim(), relation_type: linkType, explanation: linkLabel.trim(), confidence: linkConfidence }] }] }, "reader_relation_create_on_graph", id, "reader_relation")); setLinkStart(""); setLinkEnd(""); setLinkLabel(""); setGraphMode("inspect"); };
   const editingNode = session.reader_nodes.find((node) => node.id === editingNodeId); const editingRelation = session.reader_relations.find((relation) => relation.id === editingRelationId);
-  return <div className={`skeleton-tree focus-graph ${showReference ? "" : "hide-reference"} ${showReader ? "" : "hide-reader"}`}>
+  return <div className={`skeleton-tree focus-graph ${explorationOpen ? "exploration-open" : "entry-only"} ${showReference ? "" : "hide-reference"} ${showReader ? "" : "hide-reader"}`}>
 <div className="tree-root">
 <BookOpen size={15} />
 <span>《{pkg.work.title}》</span>
@@ -278,28 +316,35 @@ function SkeletonTree({ pkg, session, activeThread, onThread, onRelation, onEvid
 <ChevronRight size={11} />
 <span>{activePath.label}</span>
 </div>
+<p className="chapter-graph-status">当前第 {chapter} 节：{meaningRelations.length ? `有 ${meaningRelations.length} 条可检查的结构关系；语境连接单独呈现。` : contextRelations.length ? "当前只确认局部语境连接；尚未形成更强的全文参考关系。你仍可检查证据并建立自己的关系。" : chapterRelationCount ? `自动聚焦 ${chapterRelationCount} 条可检查关系。` : "本节没有直接进入参考层的关系；保留全文路径供你跨章比较。"}</p>
 <div className="cluster-switcher" aria-label="切换阅读路径">{readerPaths.map((path, index) => <button key={path.id} className={index === clusterIndex ? "active" : ""} onClick={() => setFocusedCluster(index)} title={path.label} aria-label={`查看：${path.label}`}>{index + 1}</button>)}</div>
 <p className="path-prompt">{activePath.prompt}</p>
+<button className="whole-path-link" onClick={() => openWholeText({ label: activePath.label, evidenceIds: [...new Set(activePath.relations.flatMap((relation) => relation.evidence_ids))], carrierIds: activePath.node_ids.filter((id) => Boolean(find(pkg.carriers, id))), relationIds: activePath.relations.map((relation) => relation.id), why: "这条全文线索把可回查的分散证据与结构关系组织在一起；它不是主题结论。" })}>查看“{activePath.label}”的全文关联</button>
+{chapterScaffold && <section className="chapter-scaffold"><div><b>本节有哪些值得看的细节？</b><small>这是探索入口，不是解释结论。</small></div><p className="entry-guidance">先点一个细节查看原文与出现原因；需要时再展开探索地图或全文线索。</p><div className="context-anchor-list">{chapterScaffold.context_anchors.slice(0, 5).map((anchor) => <span className="anchor-with-whole" key={anchor.id}><button className={`context-anchor ${anchor.type}`} onClick={() => openContextAnchor(anchor)}><span>{({ character: "人物", object: "物件", event: "事件", action: "行动", scene: "场景" } as Record<string, string>)[anchor.type]}</span>{anchor.label}</button><button className="whole-link" onClick={() => openWholeText({ label: anchor.label, evidenceIds: anchor.evidence_ids, carrierIds: carrierIdsForEvidence(anchor.evidence_ids), why: "该语境锚点可与全文中共享证据、物件或结构连接的材料一并检查。" })}>线索</button></span>)}</div>{chapterScaffold.candidate_explorations.length > 0 && <div className="candidate-exploration"><b>可探索候选</b>{chapterScaffold.candidate_explorations.map((candidate) => <article key={candidate.id}><button onClick={() => openCandidate(candidate)}><span>{candidate.uncertainty === "undecidable" ? "尚不确定" : "候选"}</span>{candidate.label}</button><small>出现原因：{candidate.uncertainty === "undecidable" ? "语言信号仍待判断；可回到语境核查。" : "候选信号与叙事位置值得进一步检查。"}</small>{explorationOpen && <><small>{candidate.prompt}</small>{session.candidate_decisions[candidate.id] && <small>你的决定：{({ explore: "已探索", accept: "已作为我的节点", reject: "已拒绝", ignore: "已忽略" } as Record<string, string>)[session.candidate_decisions[candidate.id].action]}</small>}<div><button onClick={() => decideCandidate(candidate, "explore")}>查看证据</button><button onClick={() => openWholeText({ label: candidate.label, evidenceIds: candidate.evidence_ids, carrierIds: carrierIdsForEvidence(candidate.evidence_ids), why: "候选并非结论；这里显示它能追踪到的全文证据与结构基础。" })}>全文线索</button>{explorationOpen && <><button onClick={() => decideCandidate(candidate, "accept")}>作为我的节点</button><button onClick={() => decideCandidate(candidate, "reject")}>拒绝</button><button onClick={() => decideCandidate(candidate, "ignore")}>忽略</button></>}</div></>}</article>)}</div>}<button className="exploration-start" onClick={() => setExplorationOpen((value) => !value)}>{explorationOpen ? "收起探索地图" : "展开探索地图"}</button>{explorationOpen && <p>{chapterScaffold.reader_prompt}</p>}</section>}
+{selectedAnchor && <section className="reasoning-path"><p className="eyebrow">从“{selectedAnchor.label}”开始</p><h3>你接下来想做什么？</h3><p>系统提供可检查路径；你决定它是否重要、如何关联，以及最终如何解释。</p><div><button onClick={() => openWholeText({ label: selectedAnchor.label, evidenceIds: selectedAnchor.evidence_ids, carrierIds: carrierIdsForEvidence(selectedAnchor.evidence_ids), why: "追踪这个细节在全文中的语境是否保持或发生变化。" })}>看看它后来有没有变化<small>沿着全文比较它出现的语境</small></button><button onClick={() => { const carrierId = carrierIdsForEvidence(selectedAnchor.evidence_ids)[0]; const relation = pkg.structural_relations.find((item) => carrierId && (item.source_id === carrierId || item.target_id === carrierId)); setExplorationOpen(true); setSelectedCarrierId(carrierId ?? ""); setSelectedConnectionId(relation?.id ?? ""); onPersist((s) => event(s, "reasoning_path_compare", selectedAnchor.id, "context_anchor", undefined, { carrier_id: carrierId, relation_id: relation?.id })); }}>比较其他类似描写<small>判断两个细节是否值得放在一起看</small></button><button onClick={() => { onEvidence(selectedAnchor.evidence_ids[0]); onPersist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...selectedAnchor.evidence_ids])] }, "reasoning_path_evidence", selectedAnchor.id, "context_anchor")); }}>回到原文看看<small>先检查这处描写本身</small></button><button className="reasoning-primary" onClick={() => onBeginInterpretation(selectedAnchor.evidence_ids, selectedAnchor.id)}>把它写进我的解释<small>将这处证据带入我的层</small></button></div></section>}
+{wholeFocus && <WholeTextAssociations pkg={pkg} session={session} focus={wholeFocus} onEvidence={onEvidence} onClose={() => setWholeFocus(null)} onPersist={onPersist} />}
 <div className="graph-legend">
 <button className={showReference ? "layer-active" : ""} onClick={() => setShowReference((value) => !value)}>
-<i className="legend-reference" />参考层</button>
+<i className="legend-reference" />系统线索</button>
 <button className={showReader ? "layer-active" : ""} onClick={() => setShowReader((value) => !value)}>
-<i className="legend-reader" />我的层</button>
+<i className="legend-reader" />我的解释</button>
 <button className={graphMode === "connect" ? "mode-active" : ""} onClick={() => { setGraphMode(graphMode === "connect" ? "inspect" : "connect"); setLinkStart(""); setLinkEnd(""); }}>连线模式</button>
 </div>
-<div className="network-canvas layered-canvas">{cluster.map((relation) => { const source = positionFor(relation.source_id); const target = positionFor(relation.target_id); if (!source || !target) return null; return <div className="network-edge reference-edge" key={relation.id}>
+<div className="network-canvas layered-canvas">{contextNode && contextRelations.map((relation) => { const source = positionFor(relation.source_id); const target = positionFor(relation.target_id); if (!source || !target) return null; return <div className="network-edge context-edge" key={relation.id}>
+<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1={contextNode.x} y1={contextNode.y} x2={source.x} y2={source.y} /><line x1={contextNode.x} y1={contextNode.y} x2={target.x} y2={target.y} /></svg>
+</div>; })}{meaningRelations.map((relation) => { const source = positionFor(relation.source_id); const target = positionFor(relation.target_id); if (!source || !target) return null; return <div className="network-edge reference-edge structural-edge" key={relation.id}>
 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
 <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} />
 </svg>
 <button className="edge-label" style={{ left: `${(source.x + target.x) / 2}%`, top: `${(source.y + target.y) / 2}%` }} title="打开这条关系的证据、比较与质疑工具" onClick={() => onRelation(relation.id)}>
-<BookOpen size={10} />
+{relationLabel(relation.type)}
 </button>
-</div>; })}{visibleReaderRelations.map((relation) => { const source = positionFor(relation.source_id)!; const target = positionFor(relation.target_id)!; return <div className="network-edge reader-edge" key={relation.id}>
+</div>; })}{contextNode && <button className="network-node context-node" style={{ left: `${contextNode.x}%`, top: `${contextNode.y}%` } as CSSProperties} title="这是叙事语境节点，不是系统给出的意义结论" onClick={() => openWholeText({ label: contextNode.label, evidenceIds: activePath.relations.flatMap((relation) => relation.evidence_ids), carrierIds: activePath.node_ids.filter((id) => Boolean(find(pkg.carriers, id))), relationIds: contextRelations.map((relation) => relation.id), why: "该节点只说明这些原文片段处于同一可回查语境；可展开查看全文分布。" })}><small>语境</small>{contextNode.label}</button>}{visibleReaderRelations.map((relation) => { const source = positionFor(relation.source_id)!; const target = positionFor(relation.target_id)!; return <div className="network-edge reader-edge" key={relation.id}>
 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
 <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} />
 </svg>
 <button className="reader-edge-label" style={{ left: `${(source.x + target.x) / 2}%`, top: `${(source.y + target.y) / 2}%` }} onClick={() => { setEditingRelationId(relation.id); setEditRelationLabel(relation.label); setEditRelationExplanation(relation.explanation ?? ""); setEditRelationType(relation.relation_type ?? "meaning_relation"); setEditRelationConfidence(relation.confidence ?? "tentative"); setChallengeReason(""); }}>{relation.label}</button>
-</div>; })}{positions.map((position) => <button key={position.id} className={`network-node reference-node ${threadForNode(position.id)?.id === activeThread ? "active" : ""} ${linkStart === position.id || linkEnd === position.id ? "selected-link" : ""}`} style={{ left: `${position.x}%`, top: `${position.y}%` } as CSSProperties} title={graphMode === "connect" ? "选择关系端点" : `打开“${labelForNode(position.id)}”的证据与工作台`} onClick={() => chooseNode(position.id)}>{labelForNode(position.id)}</button>)}{session.reader_nodes.map((node) => { const position = positionFor(node.id); if (!position) return null; return <button key={node.id} className={`network-node reader-node ${linkStart === node.id || linkEnd === node.id ? "selected-link" : ""}`} style={{ left: `${position.x}%`, top: `${position.y}%` } as CSSProperties} title={graphMode === "connect" ? "选择关系端点" : "编辑我的节点"} onClick={() => chooseNode(node.id, true)}>{node.label}</button>; })}</div>{graphMode === "connect" && <div className="graph-editor">
+</div>; })}{positions.map((position) => <button key={position.id} className={`network-node reference-node ${threadForNode(position.id)?.id === activeThread ? "active" : ""} ${linkStart === position.id || linkEnd === position.id ? "selected-link" : ""}`} style={{ left: `${position.x}%`, top: `${position.y}%` } as CSSProperties} title={graphMode === "connect" ? "选择关系端点" : `打开“${labelForNode(position.id)}”的证据与工作台`} onClick={() => chooseNode(position.id)}>{renderCarrierLabel(position.id)}</button>)}{session.reader_nodes.map((node) => { const position = positionFor(node.id); if (!position) return null; return <button key={node.id} className={`network-node reader-node ${linkStart === node.id || linkEnd === node.id ? "selected-link" : ""}`} style={{ left: `${position.x}%`, top: `${position.y}%` } as CSSProperties} title={graphMode === "connect" ? "选择关系端点" : "编辑我的节点"} onClick={() => chooseNode(node.id, true)}>{node.label}</button>; })}</div>{selectedCarrier && <section className="carrier-expansion"><div><b>{selectedCarrier.label}</b><small>局部原文载体</small></div><p>为什么显示：{selectedCarrier.selection_reasons.map((reason) => ({ observability: "可回查原文", figurative_signal: "修辞/语言信号", narrative_salience: "叙事显著性", reader_actionability: "可供读者操作", relational_load: "可连接结构", contrast: "可比较对照", probe_potential: "可进行替换测试" } as Record<string, string>)[reason] ?? reason).join(" · ")}</p><div>{selectedCarrier.evidence_ids.map((id) => <button key={id} onClick={() => onEvidence(id)}>查看当前证据</button>)}<button onClick={() => { setSelectedConnectionId(relatedConnections[0]?.id ?? ""); onPersist((s) => event(s, "relationship_explore", selectedCarrier.id, "carrier", undefined, { relation_count: relatedConnections.length })); }} disabled={!relatedConnections.length}>探索连接（{relatedConnections.length}）</button><button className="thread-entry" onClick={() => openWholeText({ label: selectedCarrier.label, evidenceIds: selectedCarrier.evidence_ids, carrierIds: [selectedCarrier.id], relationIds: relatedConnections.map((relation) => relation.id), why: "这是由原文证据、修辞/叙事信号与可检查结构组织的中性全文线索，不是意义结论。" })}>查看全文线索</button></div></section>}{selectedConnection && <section className="relationship-inspector"><p className="eyebrow">正在检查连接</p><h3>{connectionLabel(selectedConnection, "source")} ↔ {connectionLabel(selectedConnection, "target")}</h3><p>连接基础：{({ shares_scene: "同一可回查场景", co_occurs_with: "同一语境中的并看", recurs_with: "跨位置回返", contrasts_with: "对照", parallels: "平行", precedes: "前后位置" } as Record<string, string>)[selectedConnection.type] ?? "可回查结构"}</p><small>{selectedConnection.reader_metadata?.contestability ?? "系统只呈现值得检查的连接，不替你决定其意义。"}</small><div className="connection-evidence">{selectedConnection.evidence_ids.map((id) => <button key={id} onClick={() => onEvidence(id)}>查看证据：{find(pkg.evidence, id)?.note}</button>)}</div><label>你怎么看这条连接？<input value={connectionNote} onChange={(event) => setConnectionNote(event.target.value)} placeholder="可选：写下保留、质疑或忽略的理由" /></label><div><button onClick={() => decideConnection("accept")}>保留</button><button onClick={() => decideConnection("question")}>质疑</button><button onClick={() => decideConnection("ignore")}>忽略</button><button className="thread-entry" onClick={() => onBeginInterpretation(selectedConnection.evidence_ids, selectedConnection.id)}>基于这条连接创建我的解释</button></div><label>改为我的关系<input value={alternativeConnection} onChange={(event) => setAlternativeConnection(event.target.value)} placeholder="用自己的话说明两者如何关联" /></label><button onClick={modifyConnection} disabled={!alternativeConnection.trim()}>建立我的替代关系</button></section>}{graphMode === "connect" && <div className="graph-editor">
 <b>创建我的关系</b>
 <small>{linkStart ? `起点：${labelForNode(linkStart) || session.reader_nodes.find((node) => node.id === linkStart)?.label}` : "在图上选择起点"}{linkEnd ? `　终点：${labelForNode(linkEnd) || session.reader_nodes.find((node) => node.id === linkEnd)?.label}` : ""}</small>
 <input value={linkLabel} onChange={(event) => setLinkLabel(event.target.value)} placeholder="这两个节点之间有什么意义关系？" />
@@ -411,7 +456,7 @@ function Trace({ pkg, thread, focusNodeIds, focusEvidenceIds, relations, interpr
 <span>{quote(pkg, id)}</span>
 <small>{find(pkg.evidence, id)?.note}</small>
 </button>)}{mipFeatures.length > 0 && <>
-<h3>MIP 词汇核查</h3>{mipFeatures.map((feature) => <article className="mip-record" key={feature.id}>
+<h3>词语比较</h3>{mipFeatures.map((feature) => <article className="mip-record" key={feature.id}>
 <b>词汇单元：{feature.mip_record?.lexical_unit}</b>
 <p>
 <span>语境义：</span>{feature.mip_record?.contextual_meaning}</p>
@@ -423,7 +468,7 @@ function Trace({ pkg, thread, focusNodeIds, focusEvidenceIds, relations, interpr
 </article>)}</>}<h3>正在检查的连接</h3>{relations.map((r) => <article className="relation" key={r.id}>
 <p>{r.rationale}</p>
 <small>点击上方证据回到原文；你可以在“质疑”中保留、修改或拒绝它。</small>
-</article>)}{interpretations.map((r) => <article className="proposal" key={r.id}>
+</article>)}{relations.map((r) => r.reader_metadata && <article className="reasoning-trigger" key={`${r.id}-trigger`}><b>为什么这条关系出现在参考层</b><ul>{r.reader_metadata.selection_reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul><p><span>与阅读有什么关系：</span>{r.reader_metadata.relevance}</p><p><span>仍需你判断：</span>{r.reader_metadata.contestability}</p><small>{r.reader_metadata.reader_trigger}</small></article>)}{interpretations.map((r) => <article className="proposal" key={r.id}>
 <span>可质疑的解释提案</span>
 <p>{r.relation_text}</p>
 <small>{r.qualification}</small>
@@ -488,11 +533,19 @@ function Probe({ pkg, thread, session, onEvidence, onPersist }: { pkg: WorkPacka
 </article>)}</div>;
 }
 
-function MyReading({ pkg, session, claim, setClaim, onEvidence, onPersist }: { pkg: WorkPackage; session: ReaderSession; claim: string; setClaim: (v: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+function MyReading({ pkg, chapter, session, claim, setClaim, onEvidence, onPersist }: { pkg: WorkPackage; chapter: string; session: ReaderSession; claim: string; setClaim: (v: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+  const [changeTrigger, setChangeTrigger] = useState<Exclude<keyof typeof changeTriggerLabels, "initial">>("new_evidence");
+  const [changeNote, setChangeNote] = useState("");
   const saved = [...new Set(session.selected_evidence_ids)];
   const readerClaim = session.reader_claims.find((item) => item.id === "reader-claim-current");
-  const updateClaimLinks = (field: "evidence_ids" | "node_ids" | "relation_ids", id: string) => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? { id: "reader-claim-current", session_id: s.package_id, text: claim, evidence_ids: [], node_ids: [], relation_ids: [], created_at: now, updated_at: now, provenance: "reader-authored" as const }; const ids = current[field].includes(id) ? current[field].filter((item) => item !== id) : [...current[field], id]; const next = { ...current, [field]: ids, text: claim, updated_at: now }; return event({ ...s, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_link_update", id, field, current, next); }); };
-  const saveClaimText = () => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? { id: "reader-claim-current", session_id: s.package_id, text: "", evidence_ids: [], node_ids: [], relation_ids: [], created_at: now, updated_at: now, provenance: "reader-authored" as const }; const next = { ...current, text: claim, updated_at: now }; return event({ ...s, claim, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_update", current.id, "reader_claim", current, next); }); };
+  const chapterScaffold = pkg.chapter_scaffolds?.find((item) => item.chapter_id === chapter);
+  type ReaderClaim = ReaderSession["reader_claims"][number];
+  const freshClaim = (sessionId: string, now: string, text = claim): ReaderClaim => ({ id: "reader-claim-current", session_id: sessionId, text, evidence_ids: [], node_ids: [], relation_ids: [], confidence: "tentative", created_at: now, updated_at: now, provenance: "reader-authored", history: [] });
+  const snapshot = (current: ReaderClaim, now: string, overrides: Partial<ReaderClaim> = {}, trigger: keyof typeof changeTriggerLabels = current.history.length ? changeTrigger : "initial") => ({ at: now, text: overrides.text ?? current.text, evidence_ids: overrides.evidence_ids ?? current.evidence_ids, node_ids: overrides.node_ids ?? current.node_ids, relation_ids: overrides.relation_ids ?? current.relation_ids, confidence: overrides.confidence ?? current.confidence, trigger, ...(trigger === "initial" || !changeNote.trim() ? {} : { trigger_note: changeNote.trim() }) });
+  const updateClaimLinks = (field: "evidence_ids" | "node_ids" | "relation_ids", id: string) => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? freshClaim(s.package_id, now); const ids = current[field].includes(id) ? current[field].filter((item) => item !== id) : [...current[field], id]; const next = { ...current, [field]: ids, text: claim, updated_at: now, history: [...current.history, snapshot(current, now, { [field]: ids, text: claim }, field === "relation_ids" ? "new_relation" : field === "evidence_ids" ? "new_evidence" : changeTrigger)] }; return event({ ...s, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_link_update", id, field, current, next); }); };
+  const saveClaimText = () => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? freshClaim(s.package_id, now, ""); const next = { ...current, text: claim, updated_at: now, history: [...current.history, snapshot(current, now, { text: claim })] }; return event({ ...s, claim, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_claim_update", current.id, "reader_argument", current, next); }); };
+  const setClaimConfidence = (confidence: "tentative" | "developing" | "confident") => { const now = new Date().toISOString(); onPersist((s) => { const current = s.reader_claims.find((item) => item.id === "reader-claim-current") ?? freshClaim(s.package_id, now); const next = { ...current, confidence, updated_at: now, history: [...current.history, snapshot(current, now, { confidence })] }; return event({ ...s, reader_claims: [...s.reader_claims.filter((item) => item.id !== current.id), next] }, "reader_argument_confidence", current.id, "reader_argument", current, next); }); };
+  const pendingEvidence = saved.filter((id) => !readerClaim?.evidence_ids.includes(id));
   return <section className="my-reading">
 <div className="section-heading">
 <div>
@@ -504,16 +557,42 @@ function MyReading({ pkg, session, claim, setClaim, onEvidence, onPersist }: { p
     {saved.length ? <div className="saved-evidence">{saved.map((id) => <span key={id}>
 <button onClick={() => onEvidence(id)}>{find(pkg.evidence, id)?.note}</button>
 <button aria-label="移除这条证据" className="remove-chip" onClick={() => onPersist((s) => event({ ...s, selected_evidence_ids: s.selected_evidence_ids.filter((item) => item !== id) }, "selection_remove", id, "evidence"))}>×</button>
-</span>)}</div> : <p className="quiet">在“追踪”或“反证”中保存证据；它们会留在这里，也可以随时移除。</p>}
+</span>)}</div> : <p className="quiet">在“追踪”或“反证”中保存证据；它们会留在这里，也可以随时移除。</p>}{saved.length > 0 && <p className="interpretation-bridge">你已经选出了 {saved.length} 条原文证据。下一步：用自己的话写下它们之间可能有什么联系；不确定也可以保留。</p>}
     <div className="reader-layer-note">
 <b>图谱中建构</b>
 <p>从原文选句创建紫色节点；在“连线模式”中依次选择两个节点创建关系。点击紫色节点或紫色连线，可追踪、修订、质疑或删除。</p>
 <small>当前：{session.reader_nodes.length} 个个人节点 · {session.reader_relations.length} 条个人关系；所有修改都只保存在本次 ReaderSession。</small>
 </div>
+    <div className="layer-comparison"><b>本节的四层对照</b><span>语境：{chapterScaffold?.context_anchors.length ?? 0} 个可回查对象</span><span>候选：{chapterScaffold?.candidate_explorations.length ?? 0} 个待探索信号</span><span>参考：{chapterScaffold?.reference_relation_ids.length ?? 0} 条严格关系</span><span>我的层：{session.reader_nodes.filter((node) => node.evidence_ids.some((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter))).length} 个本节节点</span></div>
+    <section className="workflow-guidance"><b>这一节可以怎样读？</b><ol><li>先从语境锚点回到原文，确认人物、物件与行动。</li><li>打开候选或严格关系，检查它们为何被呈现。</li><li>从原文创建自己的紫色节点与关系，再把证据附到论证上。</li><li>读到后文或反证时，修订而非替换掉先前的理解。</li></ol><small>这是一条阅读行动路径，不是对文本意义的推荐。</small></section>
     <label className="input-label">我的解释<textarea value={claim} onChange={(e) => setClaim(e.target.value)} onBlur={saveClaimText} placeholder="用自己的话写下暂时的解释；说明它由哪些证据与关系支撑，也可以保留条件和疑问。" /></label>
+    <div className="revision-trigger"><b>如果这次是在修订：是什么促使你改变？</b><select value={changeTrigger} onChange={(e) => setChangeTrigger(e.target.value as Exclude<keyof typeof changeTriggerLabels, "initial">)}>{(Object.keys(changeTriggerLabels).filter((key) => key !== "initial") as Exclude<keyof typeof changeTriggerLabels, "initial">[]).map((key) => <option key={key} value={key}>{changeTriggerLabels[key]}</option>)}</select><input value={changeNote} onChange={(e) => setChangeNote(e.target.value)} placeholder="可选：写下具体是哪条证据或哪种疑问" /></div>
+    <label className="input-label">我目前对这条解释的把握<select value={readerClaim?.confidence ?? "tentative"} onChange={(event) => setClaimConfidence(event.target.value as "tentative" | "developing" | "confident")}><option value="tentative">暂定</option><option value="developing">形成中</option><option value="confident">较有把握</option></select></label>
     <div className="claim-links"><b>这条解释由什么支撑？</b><details open><summary>证据（{readerClaim?.evidence_ids.length ?? 0}）</summary>{saved.map((id) => <label key={id}><input type="checkbox" checked={readerClaim?.evidence_ids.includes(id) ?? false} onChange={() => updateClaimLinks("evidence_ids", id)} />{find(pkg.evidence, id)?.note}</label>)}</details><details><summary>我的节点（{readerClaim?.node_ids.length ?? 0}）</summary>{session.reader_nodes.map((node) => <label key={node.id}><input type="checkbox" checked={readerClaim?.node_ids.includes(node.id) ?? false} onChange={() => updateClaimLinks("node_ids", node.id)} />{node.label}</label>)}</details><details><summary>我的关系（{readerClaim?.relation_ids.length ?? 0}）</summary>{session.reader_relations.map((relation) => <label key={relation.id}><input type="checkbox" checked={readerClaim?.relation_ids.includes(relation.id) ?? false} onChange={() => updateClaimLinks("relation_ids", relation.id)} />{relation.label}</label>)}</details></div>
+    {readerClaim?.text && pendingEvidence.length > 0 && <aside className="reflection-prompt"><b>有 {pendingEvidence.length} 条新保存的证据尚未进入这条论证。</b><p>它们可能会支持、限制或动摇你当前的解释；系统不会自动修改它。</p><button onClick={() => { onEvidence(pendingEvidence[0]); onPersist((s) => event(s, "argument_reconsider_prompt_open", readerClaim.id, "reader_argument", undefined, { evidence_id: pendingEvidence[0] })); }}>查看并重新检查</button><button onClick={() => onPersist((s) => event(s, "argument_reconsider_prompt_dismiss", readerClaim.id, "reader_argument", undefined, { evidence_ids: pendingEvidence }))}>暂不处理</button></aside>}
+    <details className="interpretation-history"><summary>理解如何变化（{readerClaim?.history.length ?? 0} 次记录）</summary>{readerClaim?.history.length ? readerClaim.history.slice().reverse().map((entry, index, entries) => { const before = entries[index + 1]; const addedEvidence = before ? entry.evidence_ids.filter((id) => !before.evidence_ids.includes(id)).length : entry.evidence_ids.length; return <article key={`${entry.at}-${index}`}><time>{new Date(entry.at).toLocaleString()}</time>{before ? <><small>之前：{before.text || "尚未写下文字解释"}</small><p>现在：{entry.text || "尚未写下文字解释"}</p></> : <p>起点：{entry.text || "尚未写下文字解释"}</p>}<small>触发：{changeTriggerLabels[entry.trigger ?? "initial"]}{entry.trigger_note ? ` · ${entry.trigger_note}` : ""}</small><small>{entry.evidence_ids.length} 条证据{before && addedEvidence ? `（新增 ${addedEvidence} 条）` : ""} · {entry.node_ids.length} 个节点 · {entry.relation_ids.length} 条关系 · {entry.confidence === "confident" ? "较有把握" : entry.confidence === "developing" ? "形成中" : "暂定"}</small></article>; }) : <p>当你首次保存、补充证据或调整把握程度后，这里会保留“之前／现在／为何改变”的轨迹。</p>}</details>
+    <details className="reasoning-timeline"><summary>本次阅读的推理轨迹（{session.events.length} 个事件）</summary>{session.events.length ? session.events.slice().reverse().slice(0, 20).map((item, index) => <p key={`${item.at}-${index}`}><time>{new Date(item.at).toLocaleTimeString()}</time> {({ evidence_open: "查看原文证据", context_anchor_view: "查看语境锚点", candidate_explore: "探索候选", candidate_accept: "将候选作为我的节点", candidate_reject: "拒绝候选", candidate_ignore: "忽略候选", reader_node_create: "创建个人节点", reader_relation_create: "创建个人关系", reader_claim_update: "修订我的解释", reader_claim_link_update: "更新论证支撑", reader_argument_confidence: "调整把握程度", counterevidence_attach: "附加支持／反证", relation_review_accept: "保留参考关系", relation_review_reject: "拒绝参考关系", argument_reconsider_prompt_open: "重新检查新证据", argument_reconsider_prompt_dismiss: "暂不处理新证据" } as Record<string, string>)[item.action] ?? item.action}</p>) : <p>你查看、建立、质疑和修订的动作会按时间保留在这里，供后续研究分析。</p>}</details>
 <small>读者作者性：系统不会替你生成或定稿这段解释。</small>
 </section>;
+}
+
+function WholeTextAssociations({ pkg, session, focus, onEvidence, onClose, onPersist }: { pkg: WorkPackage; session: ReaderSession; focus: { label: string; evidenceIds: string[]; carrierIds: string[]; relationIds?: string[]; why: string }; onEvidence: (id: string) => void; onClose: () => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
+  const [trajectoryOpen, setTrajectoryOpen] = useState(false);
+  const [inspectedChapter, setInspectedChapter] = useState("");
+  const [inspectedRelation, setInspectedRelation] = useState("");
+  const directMatches = focus.label.length > 1 ? pkg.evidence.filter((evidence) => quote(pkg, evidence.id).includes(focus.label)).map((evidence) => evidence.id) : [];
+  const seedEvidence = [...new Set([...focus.evidenceIds, ...directMatches])];
+  const carrierIds = [...new Set([...focus.carrierIds, ...pkg.carriers.filter((carrier) => carrier.evidence_ids.some((id) => seedEvidence.includes(id))).map((carrier) => carrier.id)])];
+  const relations = pkg.structural_relations.filter((relation) => focus.relationIds?.includes(relation.id) || carrierIds.includes(relation.source_id) || carrierIds.includes(relation.target_id) || relation.evidence_ids.some((id) => seedEvidence.includes(id)));
+  const evidenceIds = [...new Set([...seedEvidence, ...relations.flatMap((relation) => relation.evidence_ids)])];
+  const threads = pkg.threads.filter((thread) => thread.carrier_ids.some((id) => carrierIds.includes(id)) || thread.evidence_ids.some((id) => evidenceIds.includes(id)) || thread.structural_relation_ids.some((id) => relations.some((relation) => relation.id === id)));
+  const chaptersWithEvidence = chapters(pkg).map((chapterId) => ({ chapterId, ids: evidenceIds.filter((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapterId)) })).filter((item) => item.ids.length);
+  const relationBasis = (type: string) => ({ recurs_with: "跨位置回返", shares_scene: "共享场景", co_occurs_with: "同场景并看", contrasts_with: "对照", parallels: "平行", precedes: "前后位置" } as Record<string, string>)[type] ?? "可回查结构连接";
+  const contextFor = (entry: typeof chaptersWithEvidence[number]) => { const anchor = pkg.chapter_scaffolds?.find((scaffold) => scaffold.chapter_id === entry.chapterId)?.context_anchors.find((item) => item.type === "scene" && item.evidence_ids.some((id) => entry.ids.includes(id))); const relationContext = relations.flatMap((relation) => relation.reader_metadata?.narrative_context ?? []).find((item) => item.includes(`第 ${entry.chapterId} 节`)); return anchor?.label ?? relationContext ?? `第 ${entry.chapterId} 节的可回查语境`; };
+  const trajectory = chaptersWithEvidence.map((entry, index) => { const context = contextFor(entry); const previous = index ? contextFor(chaptersWithEvidence[index - 1]) : undefined; return { ...entry, context, transition: index === 0 ? "当前／起始位置" : context === previous ? "语境保持" : "语境变化" }; });
+  const nodeLabel = (id: string) => find(pkg.carriers, id)?.label ?? find(pkg.narrative_entities, id)?.label ?? "原文细节";
+  const involvedContexts = [...new Set(trajectory.map((entry) => entry.context))];
+  return <section className="whole-text-associations"><header><div><p className="eyebrow">全文线索</p><h3>{focus.label}</h3></div><button onClick={onClose}>关闭</button></header><p className="quiet">{focus.why}</p><section className="thread-discovery"><b>值得追踪什么？</b><span>全文可回查位置 {evidenceIds.length} 处</span><p>涉及：{involvedContexts.length ? involvedContexts.join(" · ") : "当前可回查的原文位置"}</p><div className="whole-distribution">{chapters(pkg).map((chapterId) => { const item = chaptersWithEvidence.find((entry) => entry.chapterId === chapterId); return <span key={chapterId} className={item ? "has-occurrence" : ""}>第 {chapterId} 节 <i>{item ? "●".repeat(Math.min(4, item.ids.length)) : "○"}</i></span>; })}</div><button className="trajectory-open" onClick={() => { setTrajectoryOpen((value) => !value); onPersist((s) => event(s, trajectoryOpen ? "thread_trajectory_collapse" : "thread_trajectory_open", focus.label, "whole_text_thread")); }}>{trajectoryOpen ? "收起语境轨迹" : "查看语境轨迹"}</button><small>{trajectoryOpen ? "你正在比较这个细节在不同位置的语境。" : "看看这个细节是否在后文发生变化。"}</small></section>{trajectoryOpen && <><section className="context-trajectory"><b>它如何出现在文本中？</b>{trajectory.length ? trajectory.map((entry, index) => <article key={entry.chapterId}><div><strong>{index + 1}. 第 {entry.chapterId} 节</strong><span>{entry.transition}</span></div><p>语境：{entry.context}</p><button onClick={() => { setInspectedChapter(inspectedChapter === entry.chapterId ? "" : entry.chapterId); onPersist((s) => event(s, "thread_occurrence_inspect", entry.chapterId, "chapter", undefined, { focus: focus.label })); }}>{inspectedChapter === entry.chapterId ? "收起证据" : "查看证据"}</button>{inspectedChapter === entry.chapterId && entry.ids.map((id) => <button className="trajectory-evidence" key={id} onClick={() => { onEvidence(id); onPersist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, id])] }, "whole_text_evidence_open", id, "evidence", undefined, { focus: focus.label, saved_for_reader: true })); }}>{quote(pkg, id)}<small>保存为个人证据并回到原文</small></button>)}</article>) : <p>当前没有可跨章追踪的精确证据；这并不表示它没有意义，只表示参考 scaffold 尚未把它投影为跨章结构。</p>}</section>{relations.length > 0 && <section className="relationship-landscape"><b>查看关联</b>{relations.map((relation) => <article key={relation.id}><button className="relation-open" onClick={() => { setInspectedRelation(inspectedRelation === relation.id ? "" : relation.id); onPersist((s) => event(s, "thread_relation_inspect", relation.id, "structural_relation")); }}>{nodeLabel(relation.source_id)} 与 {nodeLabel(relation.target_id)}</button>{inspectedRelation === relation.id && <><details><summary>为什么关联？</summary><p>连接基础：{relationBasis(relation.type)}</p><p>{relation.reader_metadata?.relevance ?? relation.rationale}</p><small>{relation.reader_metadata?.contestability ?? "这是可检查的结构信息，不是文学结论。"}</small></details><button onClick={() => relation.evidence_ids[0] && onEvidence(relation.evidence_ids[0])}>查看证据</button><small>可问：这条连接在后文是否发生变化？是否有支持或反驳它的证据？</small></>}</article>)}</section>}</>}{threads.length > 0 && trajectoryOpen && <section className="whole-threads"><b>中性全文线索</b>{threads.map((thread) => <span key={thread.id}>{thread.neutral_label}</span>)}</section>}{session.reader_relations.filter((relation) => relation.evidence_ids.some((id) => evidenceIds.includes(id))).length > 0 && trajectoryOpen && <section className="whole-reader-links"><b>我的跨段连接</b>{session.reader_relations.filter((relation) => relation.evidence_ids.some((id) => evidenceIds.includes(id))).map((relation) => <span key={relation.id}>{relation.label}</span>)}</section>}<small>系统只组织证据、语境与结构基础；你可从不同章节保存证据，再回到原文创建紫色节点、关系和自己的解释。</small></section>;
 }
 
 function EvidenceBlock({ pkg, id, onOpen }: { pkg: WorkPackage; id: string; onOpen: (id: string) => void }) { return <article className="evidence-block">

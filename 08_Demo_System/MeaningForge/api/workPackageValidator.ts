@@ -140,6 +140,11 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     if (!ids(record.evidence_ids).length) issues.push({ path: `structural_relations[${index}].evidence_ids`, message: "Structural relation requires evidence." });
     checkReferences(issues, `structural_relations[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
     if (!stringValue(record.rationale)) issues.push({ path: `structural_relations[${index}].rationale`, message: "Structural relation requires a rationale." });
+    if (Array.isArray(workPackage.figurative_signals)) {
+      const metadata = record.reader_metadata as Item | undefined;
+      if (!metadata || !ids(metadata.evidence_span_ids).length || !ids(metadata.selection_reasons).length || !stringValue(metadata.relevance) || !stringValue(metadata.contestability) || !stringValue(metadata.reader_trigger)) issues.push({ path: `structural_relations[${index}].reader_metadata`, message: "Reference relation requires reader-facing evidence, relevance, contestability, and trigger metadata." });
+      else checkReferences(issues, `structural_relations[${index}].reader_metadata.evidence_span_ids`, ids(metadata.evidence_span_ids), spanIds);
+    }
     if (record.review_status !== undefined && !["machine_draft", "machine_reviewed", "researcher_checked"].includes(stringValue(record.review_status))) issues.push({ path: `structural_relations[${index}].review_status`, message: "Structural relation review status is invalid." });
     const thread = stringValue(record.thread_id); if (thread && !threadIds.has(thread)) issues.push({ path: `structural_relations[${index}].thread_id`, message: "Unknown thread." });
   });
@@ -162,6 +167,15 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     checkReferences(issues, `scaffold_paths[${index}].node_ids`, ids(record.node_ids), nodeIds);
     checkReferences(issues, `scaffold_paths[${index}].structural_relation_ids`, ids(record.structural_relation_ids), structuralIds);
     checkReferences(issues, `scaffold_paths[${index}].evidence_ids`, ids(record.evidence_ids), evidenceIds);
+  });
+  items(workPackage.chapter_scaffolds).forEach((record, index) => {
+    const chapter = stringValue(record.chapter_id);
+    if (!chapter || !collections.text_spans.some((span) => stringValue(span.chapter_id) === chapter)) issues.push({ path: `chapter_scaffolds[${index}].chapter_id`, message: "Chapter scaffold must target an existing chapter." });
+    const anchors = items(record.context_anchors);
+    if (!anchors.length) issues.push({ path: `chapter_scaffolds[${index}].context_anchors`, message: "Every chapter scaffold needs at least one contextual anchor." });
+    anchors.forEach((anchor, anchorIndex) => checkReferences(issues, `chapter_scaffolds[${index}].context_anchors[${anchorIndex}].evidence_ids`, ids(anchor.evidence_ids), evidenceIds));
+    items(record.candidate_explorations).forEach((candidate, candidateIndex) => checkReferences(issues, `chapter_scaffolds[${index}].candidate_explorations[${candidateIndex}].evidence_ids`, ids(candidate.evidence_ids), evidenceIds));
+    checkReferences(issues, `chapter_scaffolds[${index}].reference_relation_ids`, ids(record.reference_relation_ids), structuralIds);
   });
   collections.probes.forEach((record, index) => {
     checkReferences(issues, `probes[${index}].target_relation_ids`, ids(record.target_relation_ids), new Set([...structuralIds, ...interpretiveIds]));

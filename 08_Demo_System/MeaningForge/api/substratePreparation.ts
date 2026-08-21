@@ -1,5 +1,5 @@
 import { validateWorkPackage } from "./workPackageValidator.ts";
-import { MEDICINE_PROTOCOL_VERSION, medicineProtocolCandidates, medicineProtocolReaderPaths, medicineProtocolRelations } from "./medicineProtocol.ts";
+import { MEDICINE_PROTOCOL_VERSION, medicineProtocolCandidates, medicineProtocolChapterAnchors, medicineProtocolReaderPaths, medicineProtocolRelations } from "./medicineProtocol.ts";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
@@ -33,6 +33,7 @@ function mipRecord(value: unknown, quote: string, machineStatus: "machine_draft"
 function protocolCandidates(title: string) { return title.trim() === "药" ? medicineProtocolCandidates : []; }
 function protocolRelations(title: string) { return title.trim() === "药" ? medicineProtocolRelations : []; }
 function protocolReaderPaths(title: string) { return title.trim() === "药" ? medicineProtocolReaderPaths : []; }
+function protocolChapterAnchors(title: string) { return title.trim() === "药" ? medicineProtocolChapterAnchors : []; }
 
 function segment(source: string) {
   const lines = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
@@ -379,7 +380,47 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     if (!sharedScenes.length) return [];
     return [{ id: `srel-shared-scene-${source.id}-${target.id}`, work_id: workId, source_id: source.id, target_id: target.id, type: "shares_scene", evidence_ids: unique([...source.evidence_ids, ...target.evidence_ids]).slice(0, 4), rationale: `“${source.label}”与“${target.label}”均出现在${sharedScenes.map((scene) => scene.label).join("、")}的可回查证据中；该边只提示场景共现。`, provenance_id: "prov-structure", status: "candidate" }];
   })).slice(0, 12);
-  const structural_relations = [...proposedRelations, ...sceneRelations, ...fallbackRelations].slice(0, 20);
+  // Projection is deliberately a reader-attention gate, not an interpretation
+  // generator. Every admitted edge carries a bounded explanation of why it is
+  // useful to inspect and what remains for the reader to decide.
+  const structural_relations = [...proposedRelations, ...sceneRelations, ...fallbackRelations].slice(0, 20).map((relation) => {
+    const source = carriers.find((carrier) => carrier.id === relation.source_id);
+    const target = carriers.find((carrier) => carrier.id === relation.target_id);
+    const sourceFeature = source && figurative_features.find((feature) => feature.id === source.feature_ids[0]);
+    const targetFeature = target && figurative_features.find((feature) => feature.id === target.feature_ids[0]);
+    const relationScenes = context.scenes.filter((scene) => relation.evidence_ids.some((id) => scene.evidence_ids.includes(id))).map((scene) => scene.label);
+    const sharesBoundedScene = Boolean(source && target && context.scenes.some((scene) => source.evidence_ids.some((id) => scene.evidence_ids.includes(id)) && target.evidence_ids.some((id) => scene.evidence_ids.includes(id))));
+    const signalLabels = unique([
+      ...(sourceFeature?.mip_record ? ["MIP/MIPVU 词汇比较"] : []),
+      ...(targetFeature?.mip_record ? ["MIP/MIPVU 词汇比较"] : []),
+      ...(relation.type === "recurs_with" ? ["跨位置回返"] : []),
+      ...(relation.type === "shares_scene" || relation.type === "co_occurs_with" ? ["可回查场景连接"] : []),
+      ...(relation.type === "precedes" ? ["叙事先后位置"] : []),
+    ]);
+    const recurrence = relation.type === "recurs_with";
+    const reviewed = "review_status" in relation && relation.review_status === "researcher_checked";
+    const structuralImportance = reviewed ? "high" : relation.evidence_ids.length >= 2 ? "medium" : "low";
+    const selectionReasons = unique([
+      "精确原文锚定",
+      ...signalLabels,
+      ...(relationScenes.length ? ["处于可定位的叙事场景"] : []),
+      ...(recurrence ? ["需要比较跨段语境"] : []),
+      "可由读者保留、修改或拒绝",
+    ]);
+    const sourceSpans = relation.evidence_ids.flatMap((id) => evidence.find((item) => item.id === id)?.span_ids ?? []);
+    return {
+      ...relation,
+      reader_metadata: {
+        evidence_span_ids: unique(sourceSpans), signal_labels: signalLabels, narrative_context: relationScenes, recurrence,
+        structural_importance: structuralImportance,
+        uncertainty: reviewed ? "reviewed_observation" : "machine_candidate",
+        selection_reasons: selectionReasons,
+        relevance: recurrence ? "同一表达或物件跨位置出现，可能需要比较其语境是否变化。" : sharesBoundedScene ? "它把同一可定位场景中的两个细节放在一起，便于检查它们是否形成可比较的压力、姿态或对照。" : "它连接了两个有精确原文依据的位置，便于检查叙事先后、跨段变化或可见关系。",
+        contestability: "这不是主题结论；关系的意义、强弱与是否保留由读者在原文中判断。",
+        reader_trigger: "回到两处原文：比较它们的场景、叙事位置和作用，再决定这条连接是否值得纳入你的解释。",
+      },
+    };
+  });
   const scaffold_paths = protocolReaderPaths(safeTitle).flatMap((raw) => {
     const node_ids = raw.node_labels.map((label) => carrierByLabel.get(label)?.id).filter((id): id is string => Boolean(id));
     const structural_relation_ids = raw.relation_pairs.map(([sourceLabel, targetLabel]) => structural_relations.find((relation) => relation.source_id === carrierByLabel.get(sourceLabel)?.id && relation.target_id === carrierByLabel.get(targetLabel)?.id)?.id).filter((id): id is string => Boolean(id));
@@ -436,7 +477,22 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     if (linked.length < 2) return [];
     return [{ id: `candidate-relation-signal-${index + 1}`, work_id: workId, source_id: linked[0].id, target_id: linked[1].id, proposed_layer: "STRUCTURAL" as const, proposed_type: seed.type === "CONTRAST" ? "contrasts_with" : seed.type === "PARALLEL" ? "parallels" : "co_occurs_with", evidence_ids: unique([...linked[0].evidence_ids.filter((id) => evidenceIds.includes(id)), ...linked[1].evidence_ids.filter((id) => evidenceIds.includes(id))]), signal_ids: [`signal-structural-${index + 1}`], rationale: seed.rationale, provenance_id: "prov-structure", status: "grounding_validated" }];
   });
-  const candidate_relations = [...structural_relations.map((relation) => ({ id: `candidate-${relation.id}`, work_id: workId, source_id: relation.source_id, target_id: relation.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: relation.type, evidence_ids: relation.evidence_ids, signal_ids: carriers.filter((carrier) => carrier.id === relation.source_id).map((carrier) => `signal-${carriers.indexOf(carrier) + 1}`), rationale: relation.rationale, provenance_id: relation.provenance_id, status: "grounding_validated" })), ...candidateRelationsFromSignals, ...crossSpanAssociations.map((association, index) => ({ id: `candidate-relation-cross-span-${index + 1}`, work_id: workId, source_id: association.source_id, target_id: association.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: "shares_scene", evidence_ids: association.evidence_ids, signal_ids: [association.signal_id], rationale: "The two candidates occur in a shared narrative scene/event context; this is a checkable association, not an interpretive conclusion.", provenance_id: "prov-narrative", status: "grounding_validated" }))];
+  const candidate_relations = [...structural_relations.map((relation) => ({ id: `candidate-${relation.id}`, work_id: workId, source_id: relation.source_id, target_id: relation.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: relation.type, evidence_ids: relation.evidence_ids, evidence_span_ids: relation.reader_metadata?.evidence_span_ids, figurative_signals: relation.reader_metadata?.signal_labels, narrative_context: relation.reader_metadata?.narrative_context, recurrence: relation.reader_metadata?.recurrence, structural_importance: relation.reader_metadata?.structural_importance, uncertainty: relation.reader_metadata?.uncertainty, selection_reasons: relation.reader_metadata?.selection_reasons, reader_trigger: relation.reader_metadata?.reader_trigger, signal_ids: carriers.filter((carrier) => carrier.id === relation.source_id).map((carrier) => `signal-${carriers.indexOf(carrier) + 1}`), rationale: relation.rationale, provenance_id: relation.provenance_id, status: "grounding_validated" })), ...candidateRelationsFromSignals, ...crossSpanAssociations.map((association, index) => ({ id: `candidate-relation-cross-span-${index + 1}`, work_id: workId, source_id: association.source_id, target_id: association.target_id, proposed_layer: "STRUCTURAL" as const, proposed_type: "shares_scene", evidence_ids: association.evidence_ids, evidence_span_ids: association.evidence_ids.flatMap((id) => evidence.find((item) => item.id === id)?.span_ids ?? []), figurative_signals: ["跨证据场景关联"], narrative_context: [], recurrence: false, structural_importance: "low" as const, uncertainty: "machine_candidate", selection_reasons: ["精确原文锚定", "跨位置关联", "可由读者复核"], reader_trigger: "回到两处原文，检查这种场景关联是否真的有助于你的解释。", signal_ids: [association.signal_id], rationale: "The two candidates occur in a shared narrative scene/event context; this is a checkable association, not an interpretive conclusion.", provenance_id: "prov-narrative", status: "grounding_validated" }))];
+  const chapter_scaffolds = chapterIds.filter((chapter) => safeTitle !== "药" || ["一", "二", "三", "四"].includes(chapter)).map((chapter) => {
+    const protocol = protocolChapterAnchors(safeTitle).find((item) => item.chapter === chapter);
+    const anchors = protocol?.anchors.flatMap((anchor, index) => {
+      const evidence_ids = evidenceForQuote(anchor.quote).map((item) => item.id);
+      return evidence_ids.length ? [{ id: `context-${chapter}-${index + 1}`, type: anchor.type, label: anchor.label, evidence_ids, provenance_id: "prov-medicine-protocol", status: "researcher_checked" }] : [];
+    }) ?? [];
+    const fallbackAnchor = anchors.length ? [] : context.scenes.filter((scene) => scene.chapter_id === chapter).flatMap((scene, index) => scene.evidence_ids.length ? [{ id: `context-${chapter}-${index + 1}`, type: "scene" as const, label: scene.label, evidence_ids: scene.evidence_ids, provenance_id: scene.provenance_id, status: "grounding_validated" }] : []);
+    const candidate_explorations = protocol?.candidates.flatMap((candidate, index) => {
+      const evidence_ids = evidenceForQuote(candidate.quote).map((item) => item.id);
+      const signal_ids = figurative_signals.filter((signal) => signal.evidence_ids.some((id) => evidence_ids.includes(id))).map((signal) => signal.id);
+      return evidence_ids.length ? [{ id: `explore-${chapter}-${index + 1}`, label: candidate.label, type: "figurative_candidate", evidence_ids, signal_ids, uncertainty: candidate.uncertainty, prompt: candidate.prompt, provenance_id: "prov-medicine-protocol" }] : [];
+    }) ?? [];
+    const reference_relation_ids = structural_relations.filter((relation) => "review_status" in relation && relation.review_status === "researcher_checked" && relation.evidence_ids.some((id) => evidence.find((item) => item.id === id)?.span_ids.some((spanId) => text_spans.find((span) => span.id === spanId)?.chapter_id === chapter))).map((relation) => relation.id);
+    return { chapter_id: chapter, context_anchors: [...anchors, ...fallbackAnchor], candidate_explorations, reference_relation_ids, reader_prompt: reference_relation_ids.length ? "先检查本节的语境锚点与参考关系，再决定哪些连接进入你的个人图层。" : "本节暂无严格参考关系；你可以从这些可回查语境锚点出发，选择文字创建自己的解释节点。", provenance_id: protocol ? "prov-medicine-protocol" : "prov-structure", status: protocol ? "researcher_checked" : "grounding_validated" };
+  });
   const constructionRunId = `run-${Date.now()}`;
   const validations = [
     ...text_spans.map((span, index) => ({ id: `validation-span-${index + 1}`, work_id: workId, target_type: "TextSpan", target_id: span.id, validation_type: "source_anchor" as const, passed: clean.slice(span.start_char, span.end_char) === span.text, messages: ["Exact source offset reconstructed."], validator_version: "meaningforge-v3", created_at: new Date().toISOString() })),
@@ -451,7 +507,7 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
   const workPackage = {
     schema_version: "meaningforge-1.0", package_id: `${workId}-draft-${Date.now()}`, package_status: "draft", work: { id: workId, title: safeTitle, author: "导入文本", language: "zh", edition_id: "local-import", source_uri: "", status: "draft", chapter_markers: chapterIds.map((id) => ({ id, label: `第 ${id} 节`, marker: id })) },
     source_document: { id: `source-${workId}`, text: clean, provenance_id: "prov-direct" }, paragraphs: text_spans.map((span) => ({ id: span.paragraph_id, work_id: workId, order: span.order, chapter_id: span.chapter_id, text: span.text, start_char: span.start_char, end_char: span.end_char, provenance_id: span.provenance_id })), sentences, text_spans, evidence, entity_mentions: backbone.mentions, event_mentions: backbone.events, narrative_events: backbone.narrative_events, scenes: context.scenes, discourse_segments: context.discourse_segments, narrative_units: chapterIds.map((chapter, index) => ({ id: `unit-${index + 1}`, work_id: workId, order: index + 1, chapter_id: chapter, span_ids: text_spans.filter((span) => span.chapter_id === chapter).map((span) => span.id), summary: `第 ${chapter} 节`, provenance_id: "prov-direct" })), narrative_entities, narrative_relations, mip_coverage: { candidate_count: mipCoverage.length, reviewed_count: mip_review_records.length, executor: mipExecutor, candidates: mipCoverage }, mip_review_records,
-    figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], scaffold_paths, reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
+    figurative_signals, candidate_carriers, candidate_relations, unr_manifest, validations, projection_run: { id: `projection-run-${workId}`, work_id: workId, protocol_version: "MeaningForge v7.3", source_unr_manifest_id: unr_manifest.id, projection_record_ids: projection_records.map((record) => record.id), created_at: new Date().toISOString() }, figurative_features, carriers, threads, structural_relations, interpretive_relations: [], probes: [], scaffold_paths, chapter_scaffolds, reference_skeleton: { id: `skeleton-${workId}`, work_id: workId, carrier_ids: carriers.map((carrier) => carrier.id), thread_ids: threads.map((thread) => thread.id), structural_relation_ids: structural_relations.map((relation) => relation.id), interpretive_relation_ids: [], provenance_id: "prov-structure" }, provenance, projection_records,
     construction_run: { protocol_version: "MeaningForge v7.3", stage_status: { text_structuring: "complete", narrative_backbone: "complete", coreference_event_linking: backbone.narrative_relations.length ? "complete" : "draft", figurative_signals: figurative_signals.some((signal) => signal.type === "MIP_METAPHOR") ? "complete" : "draft", candidate_generation: "complete", unr_assembly: "complete", validation: "complete", meaning_relevance_projection: "complete", reference_skeleton: "complete", reader_interpretive_layer: "skipped" }, validation_summary: sample.sampled ? `完整原文保留用于阅读；初始候选草稿从全书均匀抽取的 ${paragraphs.length} 段构建，后续可按章节扩展。` : "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked." },
     preparation: { protocol: "MeaningForge substrate protocol v7.3", deterministic_pass: true, llm_review_used: Boolean(llm), review_notes: [...(Array.isArray(llm?.review_notes) ? llm?.review_notes.filter((item): item is string => typeof item === "string") : []), backbone.stanza.note, `MIP coverage: ${mipCoverage.length} source-anchored candidates; ${mip_review_records.length} structured LLM review records.`, ...(mip_review_records.length ? [] : ["MIP/MIPVU lexical coverage candidates were generated, but no semantic executor review ran; no automatic MIP decision is claimed."]), ...(sample.sampled ? [`Large-text draft: sampled ${paragraphs.length} of ${fullParagraphs.length} paragraphs for the initial candidate pass.`] : [])] },
   };

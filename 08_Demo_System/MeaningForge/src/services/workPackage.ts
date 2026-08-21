@@ -68,6 +68,7 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
         relation_type: typeof item.relation_type === "string" ? item.relation_type : "reader_connection",
         explanation: typeof item.explanation === "string" ? item.explanation : undefined,
         confidence: item.confidence === "developing" || item.confidence === "confident" ? item.confidence : "tentative" as const,
+        uncertainty: typeof item.uncertainty === "string" ? item.uncertainty : undefined,
         created_at: typeof item.created_at === "string" ? item.created_at : new Date().toISOString(),
         provenance: "reader-authored" as const,
         history: Array.isArray(item.history) ? item.history as Array<{ at: string; action: "create" | "revise"; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident" }> : [],
@@ -85,6 +86,7 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
         rationale: typeof item.rationale === "string" ? item.rationale : undefined,
         based_on_node_id: typeof item.based_on_node_id === "string" ? item.based_on_node_id : undefined,
         source_text_span_id: typeof item.source_text_span_id === "string" ? item.source_text_span_id : undefined,
+        source_candidate_id: typeof item.source_candidate_id === "string" ? item.source_candidate_id : undefined,
         interpretation_type: typeof item.interpretation_type === "string" ? item.interpretation_type : typeof item.type === "string" ? item.type : "reader_candidate",
         note: typeof item.note === "string" ? item.note : typeof item.rationale === "string" ? item.rationale : undefined,
         created_at: typeof item.created_at === "string" ? item.created_at : new Date().toISOString(),
@@ -93,9 +95,10 @@ export function loadSession(packageId: string, fallback: ReaderSession): ReaderS
       };
     }) as ReaderSession["reader_nodes"] : [];
     const referenceReviews = stored.reference_reviews && typeof stored.reference_reviews === "object" ? stored.reference_reviews : {};
+    const candidateDecisions = stored.candidate_decisions && typeof stored.candidate_decisions === "object" ? stored.candidate_decisions : {};
     const counterevidence = Array.isArray(stored.counterevidence) ? stored.counterevidence : [];
-    const readerClaims = Array.isArray(stored.reader_claims) ? stored.reader_claims : stored.claim ? [{ id: "reader-claim-current", session_id: packageId, text: stored.claim, evidence_ids: stored.selected_evidence_ids ?? [], node_ids: legacyNodes.map((node) => node.id), relation_ids: legacyRelations.map((relation) => relation.id), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), provenance: "reader-authored" as const }] : [];
-    return { ...fallback, ...stored, reference_reviews: referenceReviews, counterevidence, reader_claims: readerClaims, reader_nodes: legacyNodes, reader_relations: legacyRelations };
+    const readerClaims = Array.isArray(stored.reader_claims) ? stored.reader_claims.map((claim) => ({ ...claim, confidence: claim.confidence === "developing" || claim.confidence === "confident" ? claim.confidence : "tentative" as const, history: Array.isArray(claim.history) ? claim.history.map((entry) => ({ ...entry, trigger: entry.trigger === "new_evidence" || entry.trigger === "reconsidered_evidence" || entry.trigger === "new_relation" || entry.trigger === "contradictory_evidence" || entry.trigger === "context_change" || entry.trigger === "reader_uncertainty" ? entry.trigger : "initial" as const })) : [] })) : stored.claim ? [{ id: "reader-claim-current", session_id: packageId, text: stored.claim, evidence_ids: stored.selected_evidence_ids ?? [], node_ids: legacyNodes.map((node) => node.id), relation_ids: legacyRelations.map((relation) => relation.id), confidence: "tentative" as const, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), provenance: "reader-authored" as const, history: [] }] : [];
+    return { ...fallback, ...stored, reference_reviews: referenceReviews, candidate_decisions: candidateDecisions, counterevidence, reader_claims: readerClaims, reader_nodes: legacyNodes, reader_relations: legacyRelations };
   } catch { return fallback; }
 }
 

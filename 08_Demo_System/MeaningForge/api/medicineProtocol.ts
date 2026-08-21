@@ -69,3 +69,36 @@ export const medicineProtocolReaderPaths = [
   { id: "medicine-path-medicine", label: "治病期待与“馒头”", prompt: "比较老栓对“给人生命”的期待、治病承诺，以及坟地中的“馒头”描写；不要预先把它们归结为一个主题。", node_labels: ["给人生命的本领", "人血馒头", "坟冢 / 馒头"], relation_pairs: [["给人生命的本领", "人血馒头"], ["人血馒头", "坟冢 / 馒头"]] },
   { id: "medicine-path-cemetery", label: "坟地里的可见细节", prompt: "并看花、枯草和乌鸦在坟地段落中的位置、形态与前后语境；它们的意义仍由你检验。", node_labels: ["红白的花", "枯草 / 铜丝", "乌鸦 / 铁铸"], relation_pairs: [["乌鸦 / 铁铸", "红白的花"], ["枯草 / 铜丝", "乌鸦 / 铁铸"], ["红白的花", "枯草 / 铜丝"]] },
 ] as const;
+
+// Chapter anchors provide coverage without claiming that the chapter already
+// contains a literary relation. Labels are bounded, observable references to
+// the frozen edition and are separately retained from Reference Relations.
+export const medicineProtocolChapterAnchors = [
+  { chapter: "一", anchors: [
+    { type: "character", label: "老栓", quote: "华老栓忽然坐起身。" },
+    { type: "scene", label: "刑场围观", quote: "老栓也向那边看，却只见一堆人的后背；" },
+    { type: "action", label: "一手交钱，一手交货", quote: "‘喂！一手交钱，一手交货！’" },
+    { type: "object", label: "鲜红的馒头", quote: "一只手却撮着一个鲜红的馒头，那红的还是一点一点的往下滴。" },
+  ], candidates: [] },
+  { chapter: "二", anchors: [
+    { type: "character", label: "老栓", quote: "老栓走到家，店面早经收拾干净，一排一排的茶桌" },
+    { type: "character", label: "华大妈", quote: "华大妈便出去了，不多时，拿着一片老荷叶回来，摊在桌上。" },
+    { type: "character", label: "小栓", quote: "小栓撮起这黑东西，看了一会，似乎" },
+    { type: "action", label: "服药", quote: "‘吃下去罢，——病便好了。’" },
+    { type: "object", label: "乌黑的圆东西", quote: "他的母亲端过一碟乌黑的圆东西，轻轻说：——" },
+  ], candidates: [
+    { label: "“自己的性命一般”", quote: "小栓撮起这黑东西，看了一会，似乎拿着自己的性命一般，心里说不出的奇怪。", uncertainty: "undecidable", prompt: "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。" },
+  ] },
+  { chapter: "三", anchors: [
+    { type: "scene", label: "茶馆议论", quote: "店里坐着许多人，老栓也忙了，提着大铜壶，一趟" },
+    { type: "character", label: "康大叔", quote: "这康大叔却没有觉察，仍然提高了喉咙只是嚷，嚷得" },
+    { type: "object", label: "人血馒头", quote: "这样的趁热吃下。这样的人血馒头，什么痨病都包好！" },
+    { type: "action", label: "重复宣称“包好”", quote: "‘包好，包好！这样的趁热吃下。’" },
+  ], candidates: [] },
+  { chapter: "四", anchors: [
+    { type: "scene", label: "坟地", quote: "西关外靠着城根的地面，本是一块官地；" },
+    { type: "character", label: "华大妈", quote: "天明未久，华大妈已在右边的一坐新坟前面，排出" },
+    { type: "object", label: "红白的花", quote: "分明有一圈红白的花，围着那尖圆的坟顶。" },
+    { type: "object", label: "乌鸦", quote: "一只乌鸦，站在一株没有叶的树上" },
+  ], candidates: [] },
+] as const;
