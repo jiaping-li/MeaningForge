@@ -94,10 +94,11 @@ export default function App() {
     const selected = window.getSelection()?.toString().trim(); if (!selected || selected.length < 2) return;
     const span = sectionSpans.find((item) => item.text.includes(selected)); if (span) setSelectedTextSpan({ id: span.id, text: selected });
   };
-  const createReaderNodeFromText = (label: string, interpretationType: string, note: string) => {
+  const createReaderNodeFromText = (label: string, readingIntent: "keep" | "question", note: string) => {
     if (!selectedTextSpan || !label.trim()) return;
-    const evidence = pkg.evidence.find((item) => item.span_ids.includes(selectedTextSpan.id)); const now = new Date().toISOString(); const id = `reader-node-${Date.now()}`;
-    persist((s) => event({ ...s, reader_nodes: [...s.reader_nodes, { id, session_id: s.package_id, label: label.trim(), type: interpretationType, interpretation_type: interpretationType, source_text_span_id: selectedTextSpan.id, evidence_id: evidence?.id, evidence_ids: evidence ? [evidence.id] : [], note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: interpretationType, note: note.trim() || undefined }] }] }, "reader_node_create_from_text", id, "reader_node"));
+    const evidence = pkg.evidence.find((item) => item.span_ids.includes(selectedTextSpan.id)); if (!evidence) return;
+    const now = new Date().toISOString(); const id = `reader-node-${Date.now()}`;
+    persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, evidence.id])], meaning_map: { layout: "reader", positions: s.meaning_map?.positions ?? {} }, reader_nodes: [...s.reader_nodes, { id, session_id: s.package_id, label: label.trim(), type: "reader_evidence", interpretation_type: "reader_exploration", reading_intent: readingIntent, source_text_span_id: selectedTextSpan.id, evidence_id: evidence.id, evidence_ids: [evidence.id], note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: "reader_evidence", note: note.trim() || undefined }] }] }, "reader_node_create_from_text", id, "reader_node", undefined, { evidence_id: evidence.id, reading_intent: readingIntent }));
     setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
   };
 
@@ -179,7 +180,7 @@ export default function App() {
 </button>
 </div>{skeletonExpanded && <>
 <p className="quiet">系统只提供可回到原文的探索入口；紫色内容始终是你自己建立的解释。</p>
-<MeaningSpace pkg={pkg} chapter={chapter} session={session} onEvidence={openEvidence} onPersist={persist} onOpenMyReading={() => { setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "meaning_space_interpretation_begin", relationId, "meaning_anchor", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} />
+<MeaningSpace pkg={pkg} chapter={chapter} session={session} researchView={researchView} onEvidence={openEvidence} onPersist={persist} onOpenMyReading={() => { setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "meaning_space_interpretation_begin", relationId, "meaning_anchor", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} />
 {researchView && <details className="research-graph"><summary>研究视图：查看完整参考图与图上编辑</summary><SkeletonTree pkg={pkg} chapter={chapter} session={session} activeThread={threadId} onThread={openThread} onRelation={openRelation} onEvidence={openEvidence} onPersist={persist} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "relationship_interpretation_begin", relationId, "structural_relation", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); }} /></details>}
 </>}</section>
         {currentThread && <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} activeRelationId={relationId} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => { setThreadId(""); setRelationId(""); }} />}
@@ -202,24 +203,23 @@ function ImportCard({ onReady }: { onReady: (draft: PreparationDraft) => void })
 <button onClick={submit} disabled={busy}>{busy ? "正在构建…" : useMIP ? "生成含 MIP 候选的草稿" : "生成可检验草稿"}</button>{message && <small>{message}</small>}</div>;
 }
 
-function TextSpanComposer({ text, onCreate, onCancel }: { text: string; onCreate: (label: string, interpretationType: string, note: string) => void; onCancel: () => void }) {
+function TextSpanComposer({ text, onCreate, onCancel }: { text: string; onCreate: (label: string, readingIntent: "keep" | "question", note: string) => void; onCancel: () => void }) {
   const initialLabel = text.replace(/[‘’“”"'，。！？；：]/g, "").trim().slice(0, 10);
-  const [label, setLabel] = useState(initialLabel); const [type, setType] = useState("evidence_cue"); const [note, setNote] = useState("");
+  const [label, setLabel] = useState(initialLabel); const [intent, setIntent] = useState<"keep" | "question">("keep"); const [note, setNote] = useState("");
   return <aside className="text-span-composer">
-<p>
-<b>已选原文</b>：{text.length > 54 ? `${text.slice(0, 54)}…` : text}</p>
-<div>
-<input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="用原文中的短语标记这条线索" />
-<select value={type} onChange={(event) => setType(event.target.value)}>
-<option value="evidence_cue">我的原文线索</option>
-<option value="question">待追问</option>
-<option value="counterevidence">反证线索</option>
-</select>
+<header className="composer-header"><b>添加紫色圆圈</b><small>与系统圆圈一样，可回到原文</small></header>
+<blockquote>{text.length > 72 ? `${text.slice(0, 72)}…` : text}</blockquote>
+<div className="composer-intents" role="group" aria-label="是否给这个圆圈附加阅读问题">
+<button type="button" aria-pressed={intent === "keep"} className={intent === "keep" ? "active" : ""} onClick={() => setIntent("keep")}><b>直接添加</b><small>稍后比较或建立关联</small></button>
+<button type="button" aria-pressed={intent === "question"} className={intent === "question" ? "active" : ""} onClick={() => setIntent("question")}><b>附带一个问题</b><small>圆圈不变，只记录疑问</small></button>
 </div>
-<input value={note} onChange={(event) => setNote(event.target.value)} placeholder="为什么这段文字值得保留？（可选）" />
+<div className="composer-fields">
+<label><span>地图上的短名称</span><input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="用原文中的短语标记" /></label>
+<label><span>{intent === "question" ? "我想追问" : "为什么想继续留意？（可选）"}</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder={intent === "question" ? "例如：这里的‘动摇’只是动作，还是也改变了群体状态？" : "例如：这个动作在后文可能再次出现"} /></label>
+</div>
 <footer>
 <button onClick={onCancel}>取消</button>
-<button className="primary" disabled={!label.trim()} onClick={() => onCreate(label, type, note)}>加入我的探索</button>
+<button className="primary" disabled={!label.trim() || intent === "question" && !note.trim()} onClick={() => onCreate(label, intent, note)}>添加到我的探索</button>
 </footer>
 </aside>;
 }
@@ -245,9 +245,18 @@ function MapReadingPreview({ pkg, chapter, evidenceIds, onEvidence }: { pkg: Wor
   return <aside className="map-reading-preview"><header><b>原文</b><small>第 {chapter} 节</small></header>{spans.map((span) => <button key={span.id} className={selectedSpanIds.has(span.id) ? "marked" : ""} onClick={() => { const evidence = pkg.evidence.find((item) => item.span_ids.includes(span.id)); if (evidence) onEvidence(evidence.id); }}>{span.text}</button>)}</aside>;
 }
 
-function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist, onOpenMyReading, onBeginInterpretation }: { pkg: WorkPackage; chapter: string; session: ReaderSession; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void; onOpenMyReading: () => void; onBeginInterpretation: (evidenceIds: string[], relationId: string) => void }) {
+function MeaningSpace({ pkg, chapter, session: rawSession, researchView, onEvidence, onPersist, onOpenMyReading, onBeginInterpretation }: { pkg: WorkPackage; chapter: string; session: ReaderSession; researchView: boolean; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void; onOpenMyReading: () => void; onBeginInterpretation: (evidenceIds: string[], relationId: string) => void }) {
   const session = { ...rawSession, reader_nodes: rawSession.reader_nodes.filter((node): node is typeof node & { evidence_id: string } => Boolean(node.evidence_id)) };
   const scaffold = pkg.chapter_scaffolds?.find((item) => item.chapter_id === chapter);
+  const chapterReferenceRelationIds = new Set(scaffold?.reference_relation_ids ?? []);
+  // An existing chapter scaffold with an empty relation list means exactly
+  // that: this chapter has no projected strict reference relation. Falling
+  // back to every researcher-checked relation in the book makes an empty
+  // chapter look like a dense whole-text graph and erases that distinction.
+  const referenceRelations = scaffold
+    ? pkg.structural_relations.filter((relation) => chapterReferenceRelationIds.has(relation.id))
+    : pkg.structural_relations.filter((relation) => relation.review_status === "researcher_checked");
+  const referenceCarrierIds = new Set(referenceRelations.flatMap((relation) => [relation.source_id, relation.target_id]));
   const [selectedId, setSelectedId] = useState("");
   const [selectedReaderId, setSelectedReaderId] = useState("");
   const [pickedElementIds, setPickedElementIds] = useState<string[]>([]);
@@ -258,9 +267,9 @@ function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist
   const [relationExplanation, setRelationExplanation] = useState("");
   const [canvasLimit, setCanvasLimit] = useState(24);
   const [hoveredId, setHoveredId] = useState("");
-  const [clusterBy, setClusterBy] = useState<"context" | "type" | "frequency">("context");
-  const [colorBy, setColorBy] = useState<"type" | "frequency" | "attention">("type");
-  const [sizeBy, setSizeBy] = useState<"frequency" | "attention" | "uniform">("frequency");
+  const [clusterBy, setClusterBy] = useState<"source" | "type" | "routes">("source");
+  const [colorBy, setColorBy] = useState<"type" | "uniform" | "routes" | "views">("type");
+  const [sizeBy, setSizeBy] = useState<"routes" | "views" | "uniform">("uniform");
   const [layout, setLayout] = useState<"reference" | "reader" | "compare">(rawSession.meaning_map?.layout ?? "reference");
   const [readerPositions, setReaderPositions] = useState<Record<string, [number, number]>>(rawSession.meaning_map?.positions ?? {});
   const [showMap, setShowMap] = useState(true);
@@ -271,29 +280,36 @@ function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist
   const draggedIdRef = useRef("");
   const positionsRef = useRef(readerPositions);
   positionsRef.current = readerPositions;
+  useEffect(() => { if (rawSession.meaning_map?.layout) setLayout(rawSession.meaning_map.layout); }, [rawSession.meaning_map?.layout]);
   // The canvas is not a dump of every clause-level Evidence Unit.  It starts
   // from the neutral chapter anchors, then exposes only the MIP/UNR carriers
   // and candidates that are actually grounded in this chapter.  All remaining
   // units stay available in the evidence/provenance layer after selection.
   const carrierIdsForEvidence = (evidenceIds: string[]) => pkg.carriers.filter((carrier) => carrier.evidence_ids.some((id) => evidenceIds.includes(id))).map((carrier) => carrier.id);
-  const relationIdsForEvidence = (evidenceIds: string[], carrierIds: string[]) => pkg.structural_relations.filter((relation) => relation.evidence_ids.some((id) => evidenceIds.includes(id)) || carrierIds.includes(relation.source_id) || carrierIds.includes(relation.target_id)).map((relation) => relation.id);
+  const relationIdsForEvidence = (evidenceIds: string[], carrierIds: string[]) => referenceRelations.filter((relation) => relation.evidence_ids.some((id) => evidenceIds.includes(id)) || carrierIds.includes(relation.source_id) || carrierIds.includes(relation.target_id)).map((relation) => relation.id);
   const anchorItems = (scaffold?.context_anchors ?? []).map((anchor) => {
     const carrierIds = carrierIdsForEvidence(anchor.evidence_ids);
-    return { id: `anchor:${anchor.id}`, label: anchor.label, kind: anchor.type, evidenceIds: anchor.evidence_ids, note: "这是研究者校准的叙事语境锚点；它说明文本中有什么，不预设它意味着什么。", carrierIds, relationIds: relationIdsForEvidence(anchor.evidence_ids, carrierIds) };
+    return { id: `anchor:${anchor.id}`, label: anchor.label, kind: anchor.type, sourceLayer: "context_anchor" as const, evidenceIds: anchor.evidence_ids, note: "这是研究者校准的叙事语境锚点；它说明文本中有什么，不预设它意味着什么。", carrierIds, relationIds: relationIdsForEvidence(anchor.evidence_ids, carrierIds), isCrossChapter: false };
   });
-  const carrierItems = pkg.carriers.filter((carrier) => carrier.evidence_ids.some((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter))).flatMap((carrier) => {
+  const carrierItems = pkg.carriers.filter((carrier) => referenceCarrierIds.has(carrier.id) || carrier.evidence_ids.some((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter))).map((carrier) => {
     const parts = carrier.label.split(/\s*\/\s*/).map((label) => label.trim()).filter(Boolean);
-    return parts.map((label, index) => ({
-      id: `carrier:${carrier.id}:part-${index + 1}`,
-      label,
+    const features = carrier.feature_ids.map((id) => find(pkg.figurative_features, id)).filter(Boolean);
+    const hasMipComparison = features.some((feature) => feature?.mip_status === "applicable" && feature.mip_record?.decision === "metaphor_candidate");
+    const localEvidenceIds = carrier.evidence_ids.filter((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter));
+    const isCrossChapter = localEvidenceIds.length === 0;
+    return {
+      id: `carrier:${carrier.id}`,
+      label: carrier.label,
       kind: carrier.type === "object" ? "object" : carrier.type === "scene" ? "scene" : "image",
-      evidenceIds: carrier.evidence_ids.filter((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter)),
-      note: parts.length > 1 ? `原文中的“${label}”进入了一组值得比较的修辞线索；是否形成更深联系由你判断。` : "这是从原文中保留的修辞或叙事线索；是否值得进入解释由你判断。",
+      sourceLayer: isCrossChapter ? "cross_chapter_carrier" as const : hasMipComparison ? "mip_carrier" as const : "structural_carrier" as const,
+      evidenceIds: localEvidenceIds.length ? localEvidenceIds : carrier.evidence_ids,
+      note: isCrossChapter ? "这是系统严格参考关系在其他章节的端点；保留它是为了让当前线索能够进入全文关系路径。" : hasMipComparison && parts.length > 1 ? `“${parts[0]}”与“${parts.slice(1).join("、")}”来自同一条词义比较记录；它是可检查的修辞候选，不是两个独立的意义结论。` : "这是由全文结构信号保留的修辞或叙事载体；是否值得进入解释由你判断。",
       carrierIds: [carrier.id],
-      relationIds: pkg.structural_relations.filter((relation) => relation.source_id === carrier.id || relation.target_id === carrier.id).map((relation) => relation.id),
-    }));
+      relationIds: referenceRelations.filter((relation) => relation.source_id === carrier.id || relation.target_id === carrier.id).map((relation) => relation.id),
+      isCrossChapter,
+    };
   });
-  const candidateItems = (scaffold?.candidate_explorations ?? []).map((candidate) => ({ id: `candidate:${candidate.id}`, label: candidate.label, kind: "candidate", evidenceIds: candidate.evidence_ids, note: candidate.prompt, carrierIds: [] as string[], relationIds: [] as string[] }));
+  const candidateItems = (scaffold?.candidate_explorations ?? []).map((candidate) => ({ id: `candidate:${candidate.id}`, label: candidate.label, kind: "candidate", sourceLayer: "candidate" as const, evidenceIds: candidate.evidence_ids, note: candidate.prompt, carrierIds: [] as string[], relationIds: [] as string[], isCrossChapter: false }));
   const projectedItems = [...anchorItems, ...carrierItems, ...candidateItems].filter((item, index, all) => item.evidenceIds.length > 0 && all.findIndex((other) => other.label === item.label && other.evidenceIds[0] === item.evidenceIds[0]) === index);
   // Frozen reference packages created before Evidence Unit Projection remain
   // usable: derive the same neutral clause-level units on the reader side.
@@ -310,81 +326,97 @@ function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist
     const evidenceId = pkg.evidence.find((item) => item.span_ids.includes(span.id))?.id;
     const carrierIds = evidenceId ? pkg.carriers.filter((carrier) => carrier.evidence_ids.includes(evidenceId)).map((carrier) => carrier.id) : [];
     const relationIds = evidenceId ? pkg.structural_relations.filter((relation) => relation.evidence_ids.includes(evidenceId) || carrierIds.includes(relation.source_id) || carrierIds.includes(relation.target_id)).map((relation) => relation.id) : [];
-    return cuesFrom(span.text).map((text, index) => ({ id: `frozen-evidence-unit-${span.id}-${index + 1}`, label: text.length > 11 ? `${text.slice(0, 11)}…` : text, kind: classifyCue(text), evidenceIds: evidenceId ? [evidenceId] : [], note: "这是可回到原文的文本证据单元；是否与其他细节形成意义联系由你判断。", carrierIds, relationIds }));
+    return cuesFrom(span.text).map((text, index) => ({ id: `frozen-evidence-unit-${span.id}-${index + 1}`, label: text.length > 11 ? `${text.slice(0, 11)}…` : text, kind: classifyCue(text), sourceLayer: "compatibility_fallback" as const, evidenceIds: evidenceId ? [evidenceId] : [], note: "这是旧数据包缺少投影记录时使用的兼容性文本线索，不应视为 MIP/UNR 载体。", carrierIds, relationIds, isCrossChapter: false }));
   });
   const items = (projectedItems.length ? projectedItems : frozenEvidenceItems).filter((item, index, list) => item.evidenceIds.length && list.findIndex((other) => other.label === item.label && other.evidenceIds[0] === item.evidenceIds[0]) === index);
+  const sourceOrderForEvidence = (evidenceId: string) => Math.min(...(find(pkg.evidence, evidenceId)?.span_ids.map((spanId) => find(pkg.text_spans, spanId)?.order ?? Number.MAX_SAFE_INTEGER) ?? [Number.MAX_SAFE_INTEGER]));
   const elements = items.flatMap((item) => {
     const localEvidenceIds = item.evidenceIds.filter((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter));
-    const evidenceIds = (localEvidenceIds.length ? localEvidenceIds : item.evidenceIds).slice(0, 2);
-    return evidenceIds.map((evidenceId, occurrence) => ({ ...item, id: `element:${item.id}:${evidenceId}`, evidenceIds: [evidenceId], occurrence }));
-  }).slice(0, 30);
-  const entryRankFor = (item: typeof elements[number]) => {
-    const routes = item.relationIds.length + item.carrierIds.length;
-    if (routes >= 3 || item.relationIds.length >= 2) return 3;
-    if (["character", "object", "scene", "image", "recurrence", "candidate"].includes(item.kind) || routes >= 1) return 2;
-    return 1;
+    const evidenceIds = (localEvidenceIds.length ? localEvidenceIds : item.evidenceIds).slice(0, item.isCrossChapter ? 1 : 2);
+    return evidenceIds.map((evidenceId, occurrence) => ({ ...item, id: `element:${item.id}:${evidenceId}`, evidenceIds: [evidenceId], occurrence, sourceOrder: sourceOrderForEvidence(evidenceId) }));
+  }).sort((a, b) => a.sourceOrder - b.sourceOrder || a.label.localeCompare(b.label, "zh-CN")).slice(0, 30);
+  const routeCountFor = (item: typeof elements[number]) => new Set([...item.relationIds, ...item.carrierIds]).size;
+  const routeRankFor = (item: typeof elements[number]) => {
+    const routes = routeCountFor(item);
+    return routes >= 3 ? 3 : routes >= 1 ? 2 : 1;
   };
   const clusterFor = (item: typeof elements[number]) => {
-    if (clusterBy === "type") return ["character", "action", "event", "dialogue"].includes(item.kind) ? "people" : ["object", "image", "recurrence"].includes(item.kind) ? "objects" : "context";
-    if (clusterBy === "frequency") return `entry-${entryRankFor(item)}`;
-    // The reference arrangement follows source order only.  It is a neutral
-    // reading route, not an inferred topical or interpretive cluster.
-    const order = elements.indexOf(item);
-    return order % 3 === 0 ? "objects" : order % 3 === 1 ? "people" : "context";
+    if (clusterBy === "type") {
+      if (item.kind === "character") return "people";
+      if (["action", "event", "dialogue"].includes(item.kind)) return "actions";
+      if (["object", "image", "recurrence"].includes(item.kind)) return "objects";
+      return "context";
+    }
+    if (clusterBy === "routes") return `routes-${routeRankFor(item)}`;
+    return "source";
   };
   // These are deliberately loose point clouds, rather than labelled boxes: the
   // grouping changes how evidence can be noticed, not what the text "means".
-  const clusterSlots: Record<string, Array<[number, number]>> = { objects: [[14, 18], [25, 12], [37, 20], [10, 31], [23, 35], [40, 31], [17, 45], [32, 46], [7, 54], [45, 54]], context: [[65, 16], [78, 11], [90, 21], [60, 31], [74, 35], [89, 38], [67, 45], [81, 50], [55, 53], [94, 55]], people: [[15, 69], [30, 62], [47, 70], [63, 64], [80, 72], [24, 84], [41, 88], [57, 82], [74, 89], [91, 84]], "entry-3": [[48, 40], [62, 52], [44, 61]], "entry-2": [[20, 20], [76, 18], [23, 53], [79, 57], [49, 78], [16, 82]], "entry-1": [[8, 12], [91, 11], [8, 40], [93, 41], [31, 92], [70, 91]] };
+  const clusterSlots: Record<string, Array<[number, number]>> = { objects: [[12, 16], [25, 11], [39, 19], [10, 32], [26, 36], [42, 31], [17, 45], [35, 48]], context: [[61, 15], [76, 10], [90, 20], [58, 31], [74, 35], [90, 38], [66, 47], [83, 50]], people: [[13, 67], [27, 61], [41, 70], [11, 82], [27, 87], [43, 83]], actions: [[58, 67], [73, 61], [89, 70], [57, 83], [73, 88], [90, 83]], "routes-3": [[48, 40], [62, 52], [44, 61]], "routes-2": [[20, 20], [76, 18], [23, 53], [79, 57], [49, 78], [16, 82]], "routes-1": [[8, 12], [91, 11], [8, 40], [93, 41], [31, 92], [70, 91]] };
   const sourceSlots: Array<[number, number]> = [[11, 16], [24, 11], [38, 18], [53, 10], [67, 21], [82, 13], [92, 28], [17, 32], [32, 38], [47, 29], [61, 40], [76, 32], [88, 46], [9, 51], [24, 57], [40, 50], [54, 59], [69, 51], [83, 62], [94, 69], [15, 73], [31, 82], [49, 75], [65, 86], [80, 78], [91, 88], [7, 89], [39, 93], [57, 94], [73, 95]];
-  const compactSlots: Array<[number, number]> = [[14, 43], [33, 22], [50, 58], [65, 25], [84, 48], [82, 18], [32, 75], [58, 78], [18, 71], [90, 74]];
-  const compactTypeSlots: Record<string, Array<[number, number]>> = { people: [[18, 26], [31, 48], [20, 71]], objects: [[60, 23], [80, 40], [65, 65]], context: [[44, 76], [84, 76], [46, 42], [92, 20]] };
-  const compactEntrySlots: Record<string, Array<[number, number]>> = { "entry-3": [[50, 42], [63, 63]], "entry-2": [[24, 24], [76, 25], [25, 67], [76, 71], [49, 77]], "entry-1": [[13, 48], [89, 49], [45, 17], [53, 90]] };
+  const compactSlots: Array<[number, number]> = [[15, 23], [38, 17], [62, 24], [85, 18], [18, 52], [43, 46], [68, 54], [88, 47], [32, 79], [67, 77]];
+  const compactTypeSlots: Record<string, Array<[number, number]>> = { people: [[18, 24], [31, 37], [18, 48]], actions: [[18, 69], [34, 81], [42, 63]], objects: [[62, 23], [82, 37], [64, 45]], context: [[61, 68], [83, 80], [88, 58]] };
+  const compactRouteSlots: Record<string, Array<[number, number]>> = { "routes-3": [[50, 42], [63, 63]], "routes-2": [[24, 24], [76, 25], [25, 67], [76, 71], [49, 77]], "routes-1": [[13, 48], [89, 49], [45, 17], [53, 90]] };
   const clusterUse = new Map<string, number>();
-  const positionedElements = elements.slice(0, canvasLimit).map((item, sourceIndex) => { const cluster = clusterFor(item); const index = clusterUse.get(cluster) ?? 0; clusterUse.set(cluster, index + 1); const sparsePosition = clusterBy === "context" ? compactSlots[sourceIndex % compactSlots.length] : clusterBy === "type" ? compactTypeSlots[cluster][index % compactTypeSlots[cluster].length] : compactEntrySlots[cluster][index % compactEntrySlots[cluster].length]; return { ...item, cluster, position: elements.length <= 10 ? sparsePosition : clusterBy === "context" ? sourceSlots[sourceIndex % sourceSlots.length] : clusterSlots[cluster][index % clusterSlots[cluster].length] }; });
-  const frequencyFor = (item: typeof elements[number]) => elements.filter((element) => element.label === item.label).length;
-  // An evidence unit often appears only once by definition. This is a reading
-  // entry score, not a literary-importance score: persistent textual anchors
-  // (people, objects, places, repeated cues) are easier points of departure;
-  // extra traceable routes can increase their visual prominence.
-  const explorationWeightFor = (item: typeof elements[number]) => {
-    const sameSpanUnits = elements.filter((element) => element.evidenceIds[0] === item.evidenceIds[0]).length;
-    const groundedRoutes = item.relationIds.length + item.carrierIds.length;
-    const anchor = ["character", "object", "scene", "image", "recurrence"].includes(item.kind) ? 2 : 1;
-    const routeBonus = (frequencyFor(item) > 1 || groundedRoutes >= 2 || sameSpanUnits >= 4 && anchor === 2) ? 1 : 0;
-    return Math.max(entryRankFor(item), Math.min(3, anchor + routeBonus));
-  };
-  const attentionFor = (item: typeof elements[number]) => session.events.filter((entry) => entry.target_id === item.id).length;
-  const colorClassFor = (item: typeof elements[number]) => colorBy === "type" ? `color-type-${item.kind}` : colorBy === "frequency" ? `color-frequency-${explorationWeightFor(item)}` : `color-attention-${Math.min(3, attentionFor(item) + 1)}`;
-  const sizeClassFor = (item: typeof elements[number]) => sizeBy === "uniform" ? "size-uniform" : sizeBy === "frequency" ? `size-${explorationWeightFor(item)}` : `size-${Math.min(3, attentionFor(item) + 1)}`;
-  const referencedNodeIds = new Set(session.reader_evidence_references.map((reference) => reference.reference_node_id));
+  const positionedElements = elements.slice(0, canvasLimit).map((item, sourceIndex) => { const cluster = clusterFor(item); const index = clusterUse.get(cluster) ?? 0; clusterUse.set(cluster, index + 1); const sparsePosition = clusterBy === "source" ? compactSlots[sourceIndex % compactSlots.length] : clusterBy === "type" ? compactTypeSlots[cluster][index % compactTypeSlots[cluster].length] : compactRouteSlots[cluster][index % compactRouteSlots[cluster].length]; return { ...item, cluster, position: elements.length <= 10 ? sparsePosition : clusterBy === "source" ? sourceSlots[sourceIndex % sourceSlots.length] : clusterSlots[cluster][index % clusterSlots[cluster].length] }; });
+  const attentionFor = (item: typeof elements[number]) => session.events.filter((entry) => entry.action === "meaning_space_bubble_open" && entry.target_id === item.id).length;
+  const colorClassFor = (item: typeof elements[number]) => colorBy === "type" ? `color-type-${item.kind}` : colorBy === "uniform" ? "color-uniform" : colorBy === "routes" ? `color-frequency-${routeRankFor(item)}` : `color-attention-${Math.min(3, attentionFor(item) + 1)}`;
+  const sizeClassFor = (item: typeof elements[number]) => sizeBy === "uniform" ? "size-uniform" : sizeBy === "routes" ? `size-${routeRankFor(item)}` : `size-${Math.min(3, attentionFor(item) + 1)}`;
+  const normalizeReferenceNodeId = (id: string) => id.replace(/:part-\d+(?=:)/, "");
+  const referencedNodeIds = new Set(session.reader_evidence_references.flatMap((reference) => [reference.reference_node_id, normalizeReferenceNodeId(reference.reference_node_id)]));
   const visiblePositionedElements = layout === "reader" ? positionedElements.filter((item) => referencedNodeIds.has(item.id)) : positionedElements;
-  const weakRelations = pkg.structural_relations.flatMap((relation) => {
-    const source = visiblePositionedElements.find((item) => item.carrierIds.includes(relation.source_id));
-    const target = visiblePositionedElements.find((item) => item.carrierIds.includes(relation.target_id));
-    return source && target && source.id !== target.id && source.cluster === target.cluster ? [{ id: relation.id, source, target }] : [];
+  const exactCarrierEndpoint = (carrierId: string) => visiblePositionedElements.find((item) => item.carrierIds.length === 1 && item.carrierIds[0] === carrierId && ["mip_carrier", "structural_carrier", "cross_chapter_carrier"].includes(item.sourceLayer))
+    ?? visiblePositionedElements.find((item) => item.carrierIds.includes(carrierId));
+  const weakRelationCandidates = referenceRelations.flatMap((relation) => {
+    // The relation must terminate at its actual projected carriers. A context
+    // anchor can share the same paragraph/evidence, but it is not therefore an
+    // endpoint of the carrier-to-carrier relation.
+    const source = exactCarrierEndpoint(relation.source_id);
+    const target = exactCarrierEndpoint(relation.target_id);
+    return source && target && source.id !== target.id ? [{ id: relation.id, source, target }] : [];
+  });
+  const weakRelations = weakRelationCandidates.filter((relation, index, relations) => {
+    const key = [relation.source.carrierIds[0], relation.target.carrierIds[0]].sort().join("::");
+    return relations.findIndex((candidate) => [candidate.source.carrierIds[0], candidate.target.carrierIds[0]].sort().join("::") === key) === index;
   }).slice(0, 8);
+  // Candidate paths are not ReferenceRelations. They only show which neutral
+  // chapter anchors a still-undecided figurative cue is grounded beside.
+  // Keeping them visually separate prevents an empty strict layer from
+  // becoming either a blank canvas or a fabricated validated network.
+  const candidatePaths = (scaffold?.candidate_explorations ?? []).flatMap((candidate) => {
+    const source = visiblePositionedElements.find((item) => item.id.includes(`candidate:${candidate.id}:`));
+    return (candidate.context_anchor_ids ?? []).flatMap((anchorId) => {
+      const target = visiblePositionedElements.find((item) => item.id.includes(`anchor:${anchorId}:`));
+      return source && target ? [{ id: `${candidate.id}:${anchorId}`, source, target, basis: candidate.relation_basis ?? "可回查语境" }] : [];
+    });
+  }).slice(0, 4);
   const selected = elements.find((item) => item.id === selectedId);
   const pickedElements = elements.filter((item) => pickedElementIds.includes(item.id));
   const readerNodesInChapter = session.reader_nodes.filter((node) => node.evidence_ids.some((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter)));
   const selectedReader = readerNodesInChapter.find((node) => node.id === selectedReaderId);
   const selectedPosition = positionedElements.find((item) => item.id === selectedId);
-  const relatedRelations = selected ? pkg.structural_relations.filter((relation) => selected.carrierIds.includes(relation.source_id) || selected.carrierIds.includes(relation.target_id) || relation.evidence_ids.some((id) => selected.evidenceIds.includes(id))).slice(0, 3) : [];
+  const relatedRelationCandidates = selected ? referenceRelations.filter((relation) => selected.carrierIds.includes(relation.source_id) || selected.carrierIds.includes(relation.target_id) || relation.evidence_ids.some((id) => selected.evidenceIds.includes(id))) : [];
+  const relatedRelations = relatedRelationCandidates.filter((relation, index, relations) => {
+    const key = `${[relation.source_id, relation.target_id].sort().join("::")}::${relation.type}`;
+    return relations.findIndex((candidate) => `${[candidate.source_id, candidate.target_id].sort().join("::")}::${candidate.type}` === key) === index;
+  }).slice(0, 3);
   const relatedEvidenceIds = new Set(relatedRelations.flatMap((relation) => relation.evidence_ids));
   const nearbyElements = selectedPosition ? positionedElements.filter((item) => item.id !== selectedPosition.id && (item.relationIds.some((id) => relatedRelations.some((relation) => relation.id === id)) || item.evidenceIds.some((id) => relatedEvidenceIds.has(id)))).slice(0, 4) : [];
   const relationText = (relation: WorkPackage["structural_relations"][number]) => ({ shares_scene: "在同一场景出现", co_occurs_with: "在相近语境出现", recurs_with: "在不同位置再次出现", contrasts_with: "可与另一处形成对照", parallels: "可与另一处平行比较", precedes: "处于可比较的前后位置" } as Record<string, string>)[relation.type] ?? "存在可回查的连接";
   const carrierParts = (id: string) => (find(pkg.carriers, id)?.label ?? "").split(/\s*\/\s*/).map((label) => label.trim()).filter(Boolean);
-  const relationEndpointLabel = (id: string) => carrierParts(id)[0] ?? find(pkg.narrative_entities, id)?.label ?? find(pkg.narrative_events ?? [], id)?.label ?? "原文线索";
+  const relationEndpointLabel = (id: string) => find(pkg.carriers, id)?.label ?? find(pkg.narrative_entities, id)?.label ?? find(pkg.narrative_events ?? [], id)?.label ?? "原文线索";
   const relationSignalText = (relation: WorkPackage["structural_relations"][number]) => [relation.source_id, relation.target_id].flatMap((id) => { const parts = carrierParts(id); return parts.length > 1 ? [`${parts[0]}与${parts.slice(1).join("、")}`] : []; }).join("；");
   const typeLabel = (type: string) => ({ passage: "原文片段", dialogue: "对话片段", character: "人物", object: "物件／意象", event: "事件", action: "行动", scene: "场景", image: "修辞线索", recurrence: "重复线索", pattern: "结构线索", candidate: "待探索线索" } as Record<string, string>)[type] ?? "文本线索";
-  const readerTypeLabel = (type: string) => ({ evidence_cue: "我的原文线索", question: "待追问", counterevidence: "反证线索", interpretive_candidate: "暂定概念", image_relation: "意象关系", reader_exploration: "我的线索" } as Record<string, string>)[type] ?? "我的线索";
+  const sourceLayerLabel = (sourceLayer: string) => ({ context_anchor: "叙事语境锚点", mip_carrier: researchView ? "MIP 词汇比较载体" : "修辞比较线索", structural_carrier: "全文结构线索", cross_chapter_carrier: "跨章关系端点", candidate: "待检查候选", compatibility_fallback: researchView ? "旧数据兼容线索" : "文本线索" } as Record<string, string>)[sourceLayer] ?? "可追溯线索";
+  const readerTypeLabel = (type: string) => ({ reader_evidence: "我添加的原文线索", evidence_cue: "我添加的原文线索", question: "我的阅读问题", counterevidence: "针对关系的反证", interpretive_candidate: "暂定概念", image_relation: "意象关系", reader_exploration: "我添加的原文线索" } as Record<string, string>)[type] ?? "我的线索";
   const canvasLabel = (label: string) => {
     const cue = label.split(/[，。；：:、]/)[0].trim();
     return cue.length > 6 ? `${cue.slice(0, 6)}…` : cue;
   };
   const positions = [[14, 18], [28, 14], [43, 20], [58, 14], [74, 20], [87, 16], [19, 42], [34, 38], [49, 45], [65, 37], [81, 44], [91, 39], [14, 68], [29, 75], [45, 67], [61, 76], [77, 68], [90, 77]];
   const readerSlots: Array<[number, number]> = [[14, 86], [29, 80], [45, 89], [61, 81], [78, 88], [24, 66], [48, 70], [74, 66]];
-  const openItem = (item: typeof items[number]) => { setSelectedReaderId(""); setSelectedId(item.id); setWholeFocus(null); onPersist((s) => event(s, "meaning_space_bubble_open", item.id, "meaning_anchor", undefined, { label: item.label, chapter })); };
-  const openReaderNode = (node: typeof readerNodesInChapter[number]) => { setSelectedId(""); setSelectedReaderId(node.id); setWholeFocus(null); onPersist((s) => event(s, "meaning_space_reader_node_open", node.id, "reader_node", undefined, { label: node.label, chapter })); };
+  const openItem = (item: typeof items[number]) => { const endpoint = { id: item.carrierIds[0] ?? item.id, label: item.label, evidenceIds: item.evidenceIds }; if (relationEndpoints.length === 1 && relationEndpoints[0].id !== endpoint.id) { const alreadyReferenced = session.reader_evidence_references.some((reference) => normalizeReferenceNodeId(reference.reference_node_id) === item.id); if (!alreadyReferenced) toggleReferenceUse(item); toggleRelationEndpoint(endpoint); return; } setSelectedReaderId(""); setSelectedId(item.id); setWholeFocus(null); onPersist((s) => event(s, "meaning_space_bubble_open", item.id, "meaning_anchor", undefined, { label: item.label, chapter })); };
+  const openReaderNode = (node: typeof readerNodesInChapter[number]) => { const endpoint = { id: node.id, label: node.label, evidenceIds: node.evidence_ids }; if (relationEndpoints.length === 1 && relationEndpoints[0].id !== endpoint.id) { toggleRelationEndpoint(endpoint); return; } setSelectedId(""); setSelectedReaderId(node.id); setWholeFocus(null); onPersist((s) => event(s, "meaning_space_reader_node_open", node.id, "reader_node", undefined, { label: node.label, chapter })); };
   // The reference field must stay stable.  Only purple reader-authored nodes
   // can carry saved positions; otherwise a prior drag turns the evidence map
   // into an ungrounded blank whiteboard.
@@ -429,30 +461,65 @@ function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist
     onPersist((s) => event({ ...s, reader_relations: [...s.reader_relations, { id, session_id: s.package_id, source_id: source.id, target_id: target.id, label: relationLabel.trim(), relation_type: relationType, explanation: relationExplanation.trim() || undefined, confidence: "tentative", evidence_ids: evidenceIds, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: relationLabel.trim(), relation_type: relationType, explanation: relationExplanation.trim() || undefined, confidence: "tentative" }] }] }, "reader_relation_create_on_canvas", id, "reader_relation", undefined, { source: source.id, target: target.id, evidence_ids: evidenceIds }));
     setLayout("reader"); setRelationEndpoints([]); setRelationComposerOpen(false); setRelationLabel(""); setRelationExplanation("");
   };
-  const toggleReferenceUse = (item: typeof elements[number]) => {
-    const existing = session.reader_evidence_references.find((reference) => reference.reference_node_id === item.id);
+  const toggleReferenceUse = (item: typeof items[number] | typeof elements[number]) => {
+    const existing = session.reader_evidence_references.find((reference) => normalizeReferenceNodeId(reference.reference_node_id) === item.id);
     const now = new Date().toISOString();
     onPersist((s) => existing
       ? event({ ...s, reader_evidence_references: s.reader_evidence_references.filter((reference) => reference.id !== existing.id) }, "reader_reference_remove", existing.id, "reader_evidence_reference", existing)
       : event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...item.evidenceIds])], reader_evidence_references: [...s.reader_evidence_references, { id: `reader-reference-${Date.now()}`, session_id: s.package_id, reference_node_id: item.id, label: item.label, evidence_ids: item.evidenceIds, created_at: now, provenance: "reader-selected-reference" }] }, "reader_reference_add", item.id, "meaning_anchor", undefined, { evidence_ids: item.evidenceIds }));
     if (!existing) setLayout("reader");
   };
+  const startRelationFromReference = (item: typeof elements[number]) => {
+    const existing = session.reader_evidence_references.find((reference) => normalizeReferenceNodeId(reference.reference_node_id) === item.id);
+    if (!existing) toggleReferenceUse(item);
+    toggleRelationEndpoint(endpointForItem(item));
+    setLayout("compare");
+  };
   const reviewReference = (relation: WorkPackage["structural_relations"][number], action: "accept" | "challenge") => { const now = new Date().toISOString(); onPersist((s) => action === "accept" ? event({ ...s, reference_reviews: { ...s.reference_reviews, [relation.id]: { action: "accept", created_at: now, provenance: "reader-authored" } } }, "reference_relation_accept", relation.id, "reference_relation") : event({ ...s, judgments: { ...s.judgments, [relation.id]: { judgment: "challenge", created_at: now, provenance: "reader-authored" } } }, "reference_relation_challenge", relation.id, "reference_relation")); };
   if (!scaffold) return <section className="meaning-space-empty"><b>本节尚没有整理好的探索入口。</b><p>你仍可直接从原文选取句子，创建自己的解释节点。</p></section>;
   const localContext = scaffold.context_anchors.find((anchor) => anchor.type === "scene")?.label ?? "本节可比较的细节";
   return <section className="meaning-space">
-    <header className="meaning-space-heading"><div><p className="eyebrow">Meaning Space</p><h3>从哪些细节开始想？</h3></div><small>气泡是可检查的文本细节，不是意义答案。</small></header>
-    <p className="meaning-space-intro">先选择一个让你停下来的细节。需要时，再查看它在全文中的变化、与其他细节的关联，或写下自己的看法。</p>
+    <header className="meaning-space-heading"><div><p className="eyebrow">Meaning Space</p><h3>{layout === "reference" ? "从哪些细节开始想？" : layout === "reader" ? "我正在追踪什么？" : "系统起点和我的探索有何不同？"}</h3></div><small>{layout === "reference" ? "气泡是可检查的文本细节，不是意义答案。" : layout === "reader" ? "这里只保留你主动选择的证据、问题与紫色关系。" : "两层并置，但不会互相覆盖。"}</small></header>
+    <p className="meaning-space-intro">{layout === "reference" ? "先选择一个让你停下来的细节。需要时，再查看全文变化或相关证据。" : layout === "reader" ? "从原文选句或引用系统线索；比较之后再建立自己的关系。反证需要针对具体关系添加。" : "检查哪些系统线索被你采用、质疑或改成了自己的关系。"}</p>
     <div className="meaning-canvas-layout">
       <div className="canvas-settings" aria-label="证据地图设置">
         <span className="layout-choice"><button className={layout === "reference" ? "active" : ""} onClick={() => setLayoutMode("reference")}>系统参考</button><button title="这里保留你引用的系统证据，以及你自己创建的紫色节点和关系。" className={layout === "reader" ? "active" : ""} onClick={() => setLayoutMode("reader")}>我的探索</button><button title="同时显示系统参考与我的探索，便于检查两者的差异。" className={layout === "compare" ? "active" : ""} onClick={() => setLayoutMode("compare")}>两层对照</button></span>
-        <details className="canvas-display-settings"><summary>调整显示</summary><div><label title="按证据在本节原文中的先后位置、形态或阅读入口重新排列。">排列<select value={clusterBy} onChange={(e) => { const value = e.target.value as typeof clusterBy; setClusterBy(value); onPersist((s) => event(s, "meaning_canvas_cluster_change", chapter, "chapter", undefined, { value })); }}><option value="context">原文位置</option><option value="type">证据形态</option><option value="frequency">阅读入口</option></select></label><label title="颜色只编码证据属性或你的阅读关注，不表示文学意义。">颜色<select value={colorBy} onChange={(e) => { const value = e.target.value as typeof colorBy; setColorBy(value); onPersist((s) => event(s, "meaning_canvas_color_change", chapter, "chapter", undefined, { value })); }}><option value="type">证据形态</option><option value="frequency">阅读入口</option><option value="attention">我的关注</option></select></label><label title="大小编码阅读入口或你的阅读关注，不表示意义强度。">大小<select value={sizeBy} onChange={(e) => { const value = e.target.value as typeof sizeBy; setSizeBy(value); onPersist((s) => event(s, "meaning_canvas_size_change", chapter, "chapter", undefined, { value })); }}><option value="frequency">阅读入口</option><option value="attention">我的关注</option><option value="uniform">相同大小</option></select></label></div></details>
+        <details className="canvas-display-settings">
+          <summary>{researchView ? "研究显示" : "调整显示"}</summary>
+          <div>
+            <label title={researchView ? "原文顺序使用 TextSpan.order；证据类型使用叙事/修辞类型；可检查连接数使用实际 carrier 与 relation 数量。" : "按原文 TextSpan 的先后顺序排列，或按人物、物件、行动、场景、修辞线索等证据类型聚合。"}>排列
+              <select value={clusterBy} onChange={(e) => { const value = e.target.value as typeof clusterBy; setClusterBy(value); onPersist((s) => event(s, "meaning_canvas_cluster_change", chapter, "chapter", undefined, { value })); }}>
+                <option value="source">原文顺序</option>
+                <option value="type">证据类型</option>
+                {researchView && <option value="routes">可检查连接数</option>}
+              </select>
+            </label>
+            <label title={researchView ? "颜色依据证据类型、实际可检查连接数或本次会话查看次数；均不表示文学意义强度。" : "按证据类型着色，或使用统一颜色；颜色不表示文学意义或重要性。"}>颜色
+              <select value={colorBy} onChange={(e) => { const value = e.target.value as typeof colorBy; setColorBy(value); onPersist((s) => event(s, "meaning_canvas_color_change", chapter, "chapter", undefined, { value })); }}>
+                <option value="type">证据类型</option>
+                <option value="uniform">统一颜色</option>
+                {researchView && <option value="routes">可检查连接数</option>}
+                {researchView && <option value="views">本次查看次数</option>}
+              </select>
+            </label>
+            <label title={researchView ? "大小可显示实际可检查连接数或本次查看次数；均不表示文学意义强度。" : "保持同等大小，或按该线索实际连接到的载体与关系记录数分级；不表示文学意义强度。"}>大小
+              <select value={sizeBy} onChange={(e) => { const value = e.target.value as typeof sizeBy; setSizeBy(value); onPersist((s) => event(s, "meaning_canvas_size_change", chapter, "chapter", undefined, { value })); }}>
+                <option value="uniform">相同大小</option>
+                <option value="routes">可检查连接数</option>
+                {researchView && <option value="views">本次查看次数</option>}
+              </select>
+            </label>
+          </div>
+          {!researchView && <small className="encoding-boundary">“可检查连接数”只表示可打开的证据/关系入口数量，不表示线索更重要。</small>}
+        </details>
       </div>
       <div ref={mapRef} className={`meaning-map ${visiblePositionedElements.length <= 10 ? "sparse-map" : ""} ${showMap ? "map-open" : ""} ${layout === "reader" ? "reader-arranging" : "reference-arrangement"}`} aria-label="本节意义探索图" onPointerMove={updateDrag} onPointerUp={() => { const drag = dragRef.current; dragRef.current = null; if (drag?.moved) saveLayout(drag.id); }} onPointerCancel={() => { dragRef.current = null; }}>
-      <div className="map-arrangement-note"><b>{layout === "reference" ? "系统参考" : layout === "reader" ? "我的探索" : "两层对照"}</b><span>{layout === "reference" ? (clusterBy === "context" ? "从原文线索开始检查" : "按所选证据属性排列") : layout === "reader" ? "引用证据与紫色结构属于你的阅读过程" : "同时查看系统起点与自己的构建"}</span></div>
-      {layout !== "reader" && weakRelations.length > 0 && <svg className="meaning-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{weakRelations.map((relation) => <line key={relation.id} x1={relation.source.position[0]} y1={relation.source.position[1]} x2={relation.target.position[0]} y2={relation.target.position[1]} />)}</svg>}
+      <div className="map-arrangement-note"><b>{layout === "reference" ? "系统参考" : layout === "reader" ? "我的探索" : "两层对照"}</b><span>{layout === "reference" ? (clusterBy === "source" ? "按原文先后位置排列" : "按所选证据属性排列") : layout === "reader" ? "引用证据与紫色结构属于你的阅读过程" : "同时查看系统起点与自己的构建"}</span></div>
+      {layout !== "reader" && <div className={`reference-relation-status ${referenceRelations.length ? "has-relations" : "no-relations"}`}>{referenceRelations.length ? `${referenceRelations.length} 条严格参考关系` : `暂无严格参考关系${candidatePaths.length ? ` · ${candidateItems.length} 个候选路径` : ""}`}</div>}
+      {layout !== "reader" && weakRelations.length > 0 && <svg className="meaning-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="系统严格参考关系">{weakRelations.map((relation) => { const highlighted = [selectedId, hoveredId].filter(Boolean).some((id) => id === relation.source.id || id === relation.target.id); return <line className={highlighted ? "active" : ""} key={relation.id} x1={relation.source.position[0]} y1={relation.source.position[1]} x2={relation.target.position[0]} y2={relation.target.position[1]} />; })}</svg>}
+      {layout !== "reader" && candidatePaths.length > 0 && <svg className="meaning-map-candidate-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="待检查候选路径">{candidatePaths.map((path) => { const highlighted = [selectedId, hoveredId].filter(Boolean).some((id) => id === path.source.id || id === path.target.id); return <line className={highlighted ? "active" : ""} key={path.id} x1={path.source.position[0]} y1={path.source.position[1]} x2={path.target.position[0]} y2={path.target.position[1]}><title>{path.basis} · 尚未验证</title></line>; })}</svg>}
       {readerMapRelations.length > 0 && <svg className="meaning-map-reader-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="我的关系">{readerMapRelations.map((relation) => <line key={relation.id} x1={relation.source[0]} y1={relation.source[1]} x2={relation.target[0]} y2={relation.target[1]} />)}</svg>}
-      {visiblePositionedElements.map((item, index) => { const hovered = visiblePositionedElements.find((entry) => entry.id === hoveredId); const position = referencePosition(item.id, item.position); const spanOrder = (entry: typeof item) => find(pkg.text_spans, find(pkg.evidence, entry.evidenceIds[0])?.span_ids[0] ?? "")?.order ?? -99; const comparable = !hovered || item.id === hovered.id || Math.abs(spanOrder(item) - spanOrder(hovered)) <= 1 || item.relationIds.some((id) => hovered.relationIds.includes(id)); return <button key={item.id} title={`${item.label}${item.occurrence ? ` · 出现 ${item.occurrence + 1}` : ""}`} data-bubble-info={`${item.label} · ${typeLabel(item.kind)} · 第 ${chapter} 节`} aria-label={`查看：${item.label}`} className={`meaning-bubble system-evidence-bubble ${colorClassFor(item)} ${sizeClassFor(item)} ${selected?.id === item.id ? "selected" : ""} ${pickedElementIds.includes(item.id) ? "picked" : ""} ${referencedNodeIds.has(item.id) ? "reader-referenced" : ""} ${hovered && !comparable ? "muted" : ""} ${hovered && comparable && item.id !== hovered.id ? "hover-related" : ""} bubble-${(index % 6) + 1}`} style={{ left: `${showMap ? position[0] : 18 + index * 6}%`, top: `${showMap ? position[1] : 50}%` } as CSSProperties} onMouseEnter={() => setHoveredId(item.id)} onMouseLeave={() => setHoveredId("")} onClick={() => openItem(item)}><span>{canvasLabel(item.label)}</span><i aria-hidden="true" /></button>; })}
+      {visiblePositionedElements.map((item, index) => { const hovered = visiblePositionedElements.find((entry) => entry.id === hoveredId); const position = referencePosition(item.id, item.position); const spanOrder = (entry: typeof item) => find(pkg.text_spans, find(pkg.evidence, entry.evidenceIds[0])?.span_ids[0] ?? "")?.order ?? -99; const itemChapter = find(pkg.text_spans, find(pkg.evidence, item.evidenceIds[0])?.span_ids[0] ?? "")?.chapter_id ?? chapter; const comparable = !hovered || item.id === hovered.id || Math.abs(spanOrder(item) - spanOrder(hovered)) <= 1 || item.relationIds.some((id) => hovered.relationIds.includes(id)); return <button key={item.id} title={`${item.label}${item.occurrence ? ` · 出现 ${item.occurrence + 1}` : ""}`} data-bubble-info={`${item.label} · ${typeLabel(item.kind)} · 第 ${itemChapter} 节 · ${sourceLayerLabel(item.sourceLayer)}`} aria-label={`查看：${item.label}`} className={`meaning-bubble system-evidence-bubble ${colorClassFor(item)} ${sizeClassFor(item)} ${item.isCrossChapter ? "cross-chapter-endpoint" : ""} ${item.relationIds.length ? "relation-bearing" : ""} ${selected?.id === item.id ? "selected" : ""} ${pickedElementIds.includes(item.id) ? "picked" : ""} ${referencedNodeIds.has(item.id) ? "reader-referenced" : ""} ${hovered && !comparable ? "muted" : ""} ${hovered && comparable && item.id !== hovered.id ? "hover-related" : ""} bubble-${(index % 6) + 1}`} style={{ left: `${showMap ? position[0] : 18 + index * 6}%`, top: `${showMap ? position[1] : 50}%` } as CSSProperties} onMouseEnter={() => setHoveredId(item.id)} onMouseLeave={() => setHoveredId("")} onClick={() => openItem(item)}><span>{canvasLabel(item.label)}</span><i aria-hidden="true" /></button>; })}
       {layout !== "reference" && readerNodesInChapter.slice(0, readerSlots.length).map((node, index) => { const id = `reader:${node.id}`; const position = referencePosition(id, readerSlots[index]); return <button key={node.id} className={`meaning-bubble reader-meaning-bubble ${selectedReader?.id === node.id ? "selected" : ""}`} style={{ left: `${position[0]}%`, top: `${position[1]}%` } as CSSProperties} aria-label={`查看我的解释：${node.label}`} onPointerDown={(event) => { if (layout === "reader") { draggedIdRef.current = ""; event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { id, moved: false }; } }} onClick={() => { if (draggedIdRef.current === id) { draggedIdRef.current = ""; return; } openReaderNode(node); }}><span>{node.label}</span><i aria-hidden="true" /></button>; })}
       {layout === "reader" && visiblePositionedElements.length === 0 && readerNodesInChapter.length === 0 && <div className="reader-map-empty"><b>我的探索还没有内容</b><span>先从系统线索选择“用于我的探索”，或在原文中选一句建立自己的紫色线索。</span></div>}
       </div>
@@ -464,22 +531,21 @@ function MeaningSpace({ pkg, chapter, session: rawSession, onEvidence, onPersist
     <div className="map-controls"><button className="map-toggle" onClick={() => { setShowMap((value) => !value); onPersist((s) => event(s, showMap ? "meaning_map_collapse" : "meaning_map_expand", chapter, "chapter")); }}>{showMap ? "收起探索地图" : "展开细节地图"}</button><button className="map-focus-button" onClick={() => { setMapFocus(true); onPersist((s) => event(s, "meaning_map_focus_open", chapter, "chapter")); }}>放大意义地图</button></div>
     {selected && <article className="meaning-detail">
       <div><p className="eyebrow">原文线索</p><h3>{selected.label}</h3></div>
-      <div className="element-meta"><span>{typeLabel(selected.kind)}</span><span>{elements.filter((item) => item.label === selected.label).length} 处出现</span><span>第 {[...new Set(elements.filter((item) => item.label === selected.label).flatMap((item) => item.evidenceIds.map((id) => find(pkg.evidence, id)?.span_ids.map((spanId) => find(pkg.text_spans, spanId)?.chapter_id)).flat().filter(Boolean)))].join("、")} 节</span></div>
+      <div className="element-meta"><span>{typeLabel(selected.kind)}</span><span>{sourceLayerLabel(selected.sourceLayer)}</span><span>{elements.filter((item) => item.label === selected.label).length} 处出现</span><span>第 {[...new Set(elements.filter((item) => item.label === selected.label).flatMap((item) => item.evidenceIds.map((id) => find(pkg.evidence, id)?.span_ids.map((spanId) => find(pkg.text_spans, spanId)?.chapter_id)).flat().filter(Boolean)))].join("、")} 节</span></div>
       <blockquote className="element-quote">{quote(pkg, selected.evidenceIds[0]).slice(0, 96)}{quote(pkg, selected.evidenceIds[0]).length > 96 ? "…" : ""}</blockquote>
       <details className="why-check-card"><summary>为什么值得检查？</summary><p>{selected.note}</p><small>系统只指出可回查的文本现象；是否形成更深联系由你判断。</small></details>
       <div className="meaning-actions"><button onClick={() => { onEvidence(selected.evidenceIds[0]); onPersist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...selected.evidenceIds])] }, "meaning_space_evidence_open", selected.id, "meaning_anchor")); }}>回到原文</button><button onClick={() => togglePicked(selected)}>{pickedElementIds.includes(selected.id) ? "移出比较" : "选择比较"}</button><button onClick={() => { setWholeFocus({ label: selected.label, evidenceIds: selected.evidenceIds, carrierIds: selected.carrierIds, relationIds: relatedRelations.map((relation) => relation.id), why: "沿着这条线索比较它在全文不同位置的语境；系统不会替你判断其意义。" }); onPersist((s) => event(s, "meaning_space_trajectory_open", selected.id, "meaning_anchor")); }}>追踪全文</button></div>
       {relatedRelations.length > 0 && <details className="system-reference-card"><summary>系统联系（{relatedRelations.length}）</summary><span>展开后检查两个端点和原文依据，再决定是否采用。</span>{relatedRelations.slice(0, 2).map((relation) => { const accepted = session.reference_reviews[relation.id]?.action === "accept"; const challenged = session.judgments[relation.id]?.judgment === "challenge"; return <details className="reference-review-actions" key={relation.id}><summary><strong>{relationEndpointLabel(relation.source_id)} <i>↔</i> {relationEndpointLabel(relation.target_id)}</strong>{(accepted || challenged) && <em className="relation-decision">{accepted ? "已保留" : "已质疑"}</em>}</summary>{relationSignalText(relation) && <small>原文中的修辞比较：{relationSignalText(relation)}</small>}<small>{relationText(relation)}；这只是值得比较的结构依据。</small><div><button onClick={() => { setWholeFocus({ label: `${relationEndpointLabel(relation.source_id)} ↔ ${relationEndpointLabel(relation.target_id)}`, evidenceIds: relation.evidence_ids, carrierIds: [relation.source_id, relation.target_id], relationIds: [relation.id], why: "查看这条系统参考联系的双方原文与出现语境。" }); onPersist((s) => event(s, "meaning_space_reference_inspect", relation.id, "reference_relation")); }}>查看双方原文</button><button className={accepted ? "active" : ""} onClick={() => reviewReference(relation, "accept")}>{accepted ? "已作为参考" : "作为参考"}</button><button className={challenged ? "active" : ""} onClick={() => reviewReference(relation, "challenge")}>{challenged ? "已质疑" : "质疑"}</button><button onClick={() => beginRelationRevision(relation)}>建立我的替代关系</button></div></details>; })}</details>}
       {showMap && nearbyElements.length > 0 && <details className="meaning-connections"><summary>可一起比较的文本（{nearbyElements.length}）</summary>{nearbyElements.map((item) => <button key={item.id} onClick={() => openItem(item)}><span>{item.label}</span><small>位于同一局部文本区域；是否构成联系由你判断。</small></button>)}</details>}
-      <div className="reader-adoption-actions"><button className="meaning-primary" onClick={() => toggleReferenceUse(selected)}>{referencedNodeIds.has(selected.id) ? "移出我的探索" : "用于我的探索"}</button><button onClick={() => onBeginInterpretation(selected.evidenceIds, relatedRelations[0]?.id ?? selected.id)}>形成暂时理解</button></div>
-      {referencedNodeIds.has(selected.id) && <details className="reader-build-options"><summary>在我的探索中继续</summary><p>只有在你已经检查证据后，才需要把它作为个人关系的一端。</p><button onClick={() => toggleRelationEndpoint(endpointForItem(selected))}>选择为关系端点</button></details>}
+      <div className="reader-adoption-actions"><button className="meaning-primary" onClick={() => toggleReferenceUse(selected)}>{referencedNodeIds.has(selected.id) ? "移出我的探索" : "用于我的探索"}</button><button onClick={() => startRelationFromReference(selected)}>建立我的关联</button><button onClick={() => onBeginInterpretation(selected.evidenceIds, relatedRelations[0]?.id ?? selected.id)}>形成暂时理解</button></div>
       <details className="meaning-provenance"><summary>查看来源说明</summary><p>它来自可逐字回到原文的证据，并由文本语境、修辞现象或可检查关系组织为探索入口。</p><small>这是来源说明，不是文学解释。</small></details>
     </article>}
     {selectedReader && <article className="meaning-detail reader-meaning-detail">
       <div><p className="eyebrow">我的线索</p><h3>{selectedReader.label}</h3></div>
-      <div className="element-meta"><span>读者创建</span><span>{readerTypeLabel(selectedReader.interpretation_type ?? selectedReader.type)}</span></div>
+      <div className="element-meta"><span>读者添加</span><span>{readerTypeLabel(selectedReader.interpretation_type ?? selectedReader.type)}</span>{selectedReader.reading_intent === "question" && <span>附带阅读问题</span>}</div>
       {selectedReader.note && <blockquote className="element-quote">{selectedReader.note}</blockquote>}
-      <p>这是你从原文中建立的线索；系统参考层不会因你的操作而改变。</p>
-      <div className="meaning-actions"><button onClick={() => { if (selectedReader.evidence_id) onEvidence(selectedReader.evidence_id); onPersist((s) => event(s, "meaning_space_reader_node_evidence_open", selectedReader.id, "reader_node")); }}>查看原文</button><button onClick={() => toggleRelationEndpoint({ id: selectedReader.id, label: selectedReader.label, evidenceIds: selectedReader.evidence_ids })}>建立关系</button><button className="meaning-primary" onClick={onOpenMyReading}>整理当前理解</button></div>
+      <p>它与系统参考圆圈使用同一种原文证据锚点；紫色只表示由你添加，系统参考层不会因此改变。</p>
+      <div className="meaning-actions"><button onClick={() => { if (selectedReader.evidence_id) onEvidence(selectedReader.evidence_id); onPersist((s) => event(s, "meaning_space_reader_node_evidence_open", selectedReader.id, "reader_node")); }}>查看原文</button><button onClick={() => { toggleRelationEndpoint({ id: selectedReader.id, label: selectedReader.label, evidenceIds: selectedReader.evidence_ids }); setLayout("compare"); }}>建立关系</button><button className="meaning-primary" onClick={onOpenMyReading}>整理当前理解</button></div>
     </article>}
     {wholeFocus && <WholeTextAssociations pkg={pkg} session={session} focus={wholeFocus} onEvidence={onEvidence} onClose={() => setWholeFocus(null)} onPersist={onPersist} />}
     {session.reader_nodes.length > 0 && <div className="personal-map-strip"><b>我的探索</b><span>{session.reader_nodes.slice(0, 3).map((node) => node.label).join(" · ")}{session.reader_nodes.length > 3 ? ` · 还有 ${session.reader_nodes.length - 3} 个` : ""}</span></div>}

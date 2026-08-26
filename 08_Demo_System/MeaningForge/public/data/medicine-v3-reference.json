@@ -28618,6 +28618,11 @@
             "signal-structural-9"
           ],
           "uncertainty": "undecidable",
+          "context_anchor_ids": [
+            "context-二-4",
+            "context-二-5"
+          ],
+          "relation_basis": "同一服药场景",
           "prompt": "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。",
           "provenance_id": "prov-medicine-protocol"
         }

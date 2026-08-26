@@ -488,7 +488,10 @@ export function buildWorkPackage(title: string, source: string, llm: { carriers?
     const candidate_explorations = protocol?.candidates.flatMap((candidate, index) => {
       const evidence_ids = evidenceForQuote(candidate.quote).map((item) => item.id);
       const signal_ids = figurative_signals.filter((signal) => signal.evidence_ids.some((id) => evidence_ids.includes(id))).map((signal) => signal.id);
-      return evidence_ids.length ? [{ id: `explore-${chapter}-${index + 1}`, label: candidate.label, type: "figurative_candidate", evidence_ids, signal_ids, uncertainty: candidate.uncertainty, prompt: candidate.prompt, provenance_id: "prov-medicine-protocol" }] : [];
+      const contextAnchorLabels: readonly string[] = "context_anchor_labels" in candidate ? candidate.context_anchor_labels : [];
+      const context_anchor_ids = anchors.filter((anchor) => contextAnchorLabels.includes(anchor.label)).map((anchor) => anchor.id);
+      const relation_basis = "relation_basis" in candidate ? candidate.relation_basis : undefined;
+      return evidence_ids.length ? [{ id: `explore-${chapter}-${index + 1}`, label: candidate.label, type: "figurative_candidate", evidence_ids, signal_ids, uncertainty: candidate.uncertainty, prompt: candidate.prompt, ...(context_anchor_ids.length ? { context_anchor_ids, relation_basis } : {}), provenance_id: "prov-medicine-protocol" }] : [];
     }) ?? [];
     const reference_relation_ids = structural_relations.filter((relation) => "review_status" in relation && relation.review_status === "researcher_checked" && relation.evidence_ids.some((id) => evidence.find((item) => item.id === id)?.span_ids.some((spanId) => text_spans.find((span) => span.id === spanId)?.chapter_id === chapter))).map((relation) => relation.id);
     return { chapter_id: chapter, context_anchors: [...anchors, ...fallbackAnchor], candidate_explorations, reference_relation_ids, reader_prompt: reference_relation_ids.length ? "先检查本节的语境锚点与参考关系，再决定哪些连接进入你的个人图层。" : "本节暂无严格参考关系；你可以从这些可回查语境锚点出发，选择文字创建自己的解释节点。", provenance_id: protocol ? "prov-medicine-protocol" : "prov-structure", status: protocol ? "researcher_checked" : "grounding_validated" };

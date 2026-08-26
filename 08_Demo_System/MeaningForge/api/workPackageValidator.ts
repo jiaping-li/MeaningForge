@@ -174,7 +174,11 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     const anchors = items(record.context_anchors);
     if (!anchors.length) issues.push({ path: `chapter_scaffolds[${index}].context_anchors`, message: "Every chapter scaffold needs at least one contextual anchor." });
     anchors.forEach((anchor, anchorIndex) => checkReferences(issues, `chapter_scaffolds[${index}].context_anchors[${anchorIndex}].evidence_ids`, ids(anchor.evidence_ids), evidenceIds));
-    items(record.candidate_explorations).forEach((candidate, candidateIndex) => checkReferences(issues, `chapter_scaffolds[${index}].candidate_explorations[${candidateIndex}].evidence_ids`, ids(candidate.evidence_ids), evidenceIds));
+    const localAnchorIds = new Set(anchors.map((anchor) => stringValue(anchor.id)).filter(Boolean));
+    items(record.candidate_explorations).forEach((candidate, candidateIndex) => {
+      checkReferences(issues, `chapter_scaffolds[${index}].candidate_explorations[${candidateIndex}].evidence_ids`, ids(candidate.evidence_ids), evidenceIds);
+      checkReferences(issues, `chapter_scaffolds[${index}].candidate_explorations[${candidateIndex}].context_anchor_ids`, ids(candidate.context_anchor_ids), localAnchorIds);
+    });
     checkReferences(issues, `chapter_scaffolds[${index}].reference_relation_ids`, ids(record.reference_relation_ids), structuralIds);
   });
   collections.probes.forEach((record, index) => {

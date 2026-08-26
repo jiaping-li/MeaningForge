@@ -87,7 +87,7 @@ export const medicineProtocolChapterAnchors = [
     { type: "action", label: "服药", quote: "‘吃下去罢，——病便好了。’" },
     { type: "object", label: "乌黑的圆东西", quote: "他的母亲端过一碟乌黑的圆东西，轻轻说：——" },
   ], candidates: [
-    { label: "“自己的性命一般”", quote: "小栓撮起这黑东西，看了一会，似乎拿着自己的性命一般，心里说不出的奇怪。", uncertainty: "undecidable", prompt: "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。" },
+    { label: "“自己的性命一般”", quote: "小栓撮起这黑东西，看了一会，似乎拿着自己的性命一般，心里说不出的奇怪。", uncertainty: "undecidable", context_anchor_labels: ["服药", "乌黑的圆东西"], relation_basis: "同一服药场景", prompt: "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。" },
   ] },
   { chapter: "三", anchors: [
     { type: "scene", label: "茶馆议论", quote: "店里坐着许多人，老栓也忙了，提着大铜壶，一趟" },

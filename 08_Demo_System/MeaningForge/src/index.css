@@ -269,3 +269,48 @@
 .evidence-selection-bar,.relation-selection-bar,.reader-relation-composer { font-size:11px; }
 @media (max-width:1400px) { .workspace { grid-template-columns:180px minmax(350px,1fr) minmax(570px,690px); }.reading-pane { padding:28px; } }
 @media (max-width:1250px) { .workspace { grid-template-columns:170px minmax(320px,1fr) minmax(500px,600px); }.reading-pane { padding:24px; }.canvas-settings .layout-choice button,.canvas-display-settings > summary,.canvas-settings .canvas-display-settings label,.canvas-settings .canvas-display-settings select { font-size:10px; } }
+
+/* Participant controls expose only encodings with a direct, explainable
+   source. Session diagnostics remain exclusive to ?view=research. */
+.system-evidence-bubble.color-uniform { color:#476c66 !important; background:#deece7; }
+.canvas-display-settings .encoding-boundary { flex:1 1 100%; margin-top:2px; color:#7e908a; font-size:9px; line-height:1.4; }
+.system-evidence-bubble.size-uniform span { max-width:43px; white-space:normal; }
+@media (max-width:1250px) { .canvas-display-settings .encoding-boundary { font-size:8px; } }
+
+/* Text selection enters the reader's scaffold through a reading intention,
+   rather than exposing internal ReaderNode type names. */
+.text-span-composer { display:grid; gap:10px; padding:13px 14px; }
+.text-span-composer .composer-header { display:flex; grid-template-columns:none; align-items:center; justify-content:space-between; gap:10px; }
+.text-span-composer .composer-header b { color:#5f437d; font-size:13px; }
+.text-span-composer .composer-header small { color:#8b7a9c; font-size:9px; }
+.text-span-composer blockquote { margin:0; border-left:3px solid #b999d7; background:#fff; padding:8px 10px; color:#4f4659; font-family:"Noto Serif SC",serif; font-size:12px; line-height:1.55; }
+.text-span-composer .composer-intents { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.text-span-composer .composer-intents button { display:grid; gap:2px; border:1px solid #d9cde6; border-radius:8px; background:#fff; padding:8px 9px; color:#674e7e; text-align:left; }
+.text-span-composer .composer-intents button b { font-size:10px; }
+.text-span-composer .composer-intents button small { color:#8b7d96; font-size:8px; font-weight:400; }
+.text-span-composer .composer-intents button.active { border-color:#8e6bb4; background:#f1e9f8; box-shadow:0 0 0 2px rgba(126,87,166,.08); }
+.text-span-composer .composer-fields { display:grid; grid-template-columns:1fr; gap:7px; }
+.text-span-composer .composer-fields label { display:grid; gap:4px; color:#766487; font-size:9px; }
+.text-span-composer .composer-fields input { margin:0; }
+
+/* System and reader evidence use the same canvas primitive. Purple encodes
+   authorship, not a different node scale or a separate note-taking surface. */
+.meaning-bubble.reader-meaning-bubble { width:52px; min-width:52px; height:52px; min-height:52px; padding:5px; }
+.meaning-bubble.reader-meaning-bubble span { display:-webkit-box; max-width:43px; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; font-size:10px; line-height:1.15; white-space:normal; }
+
+/* The canvas is a scaffold, not a bubble list. Strict projected relations,
+   undecided candidate paths, and reader-authored relations stay distinct. */
+.meaning-map .meaning-map-lines { display:block; z-index:1; pointer-events:none; }
+.meaning-map .meaning-map-lines line { stroke:#78968d; stroke-width:.82; stroke-dasharray:2.4 3; opacity:.54; vector-effect:non-scaling-stroke; transition:opacity .16s ease,stroke-width .16s ease,stroke .16s ease; }
+.meaning-map .meaning-map-lines line.active { stroke:#3f7668; stroke-width:1.45; stroke-dasharray:none; opacity:.92; }
+.meaning-map-candidate-lines { position:absolute; z-index:1; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.meaning-map-candidate-lines line { stroke:#bd9147; stroke-width:.76; stroke-dasharray:1.5 3.6; opacity:.48; vector-effect:non-scaling-stroke; transition:opacity .16s ease,stroke-width .16s ease; }
+.meaning-map-candidate-lines line.active { stroke:#9d6d24; stroke-width:1.35; stroke-dasharray:2 2.4; opacity:.9; }
+.meaning-bubble.system-evidence-bubble.color-type-candidate { background:#f8e6bd; color:#775a25; box-shadow:0 0 0 2px rgba(190,143,62,.16),0 3px 12px rgba(75,62,39,.12); }
+.meaning-bubble.system-evidence-bubble.color-type-candidate:hover,.meaning-bubble.system-evidence-bubble.color-type-candidate.selected { background:#fff0c9; box-shadow:0 0 0 4px rgba(190,143,62,.24),0 5px 16px rgba(75,62,39,.15); }
+.meaning-map .meaning-map-reader-lines { z-index:2; }
+.meaning-map .meaning-map-reader-lines line { stroke:#8057a8; stroke-width:1.55; opacity:.9; vector-effect:non-scaling-stroke; }
+.reference-relation-status { position:absolute; z-index:4; top:11px; right:13px; border-radius:999px; background:rgba(251,253,252,.88); padding:3px 7px; color:#6f837d; font-size:9px; line-height:1.2; pointer-events:none; }
+.reference-relation-status.no-relations { color:#8a7761; background:rgba(255,251,243,.9); }
+.system-evidence-bubble.cross-chapter-endpoint { border:1.5px dashed #76958c; box-shadow:0 0 0 3px rgba(105,143,132,.09); }
+.system-evidence-bubble.cross-chapter-endpoint::before { content:"跨章"; position:absolute; display:block; width:auto; height:auto; margin:0; top:-7px; right:-9px; border-radius:999px; background:#f7fbf9; padding:2px 4px; color:#6f8880; font-size:7px; font-weight:650; line-height:1; }
