@@ -66,6 +66,26 @@ export function validateWorkPackage(workPackage: Package, sourceText?: string): 
     if (!references.length) issues.push({ path: `evidence[${index}].span_ids`, message: "Evidence requires at least one TextSpan." });
     checkReferences(issues, `evidence[${index}].span_ids`, references, spanIds);
   });
+  if (workPackage.narrative_graph && typeof workPackage.narrative_graph === "object") {
+    const graph = workPackage.narrative_graph as Item;
+    const graphNodes = items(graph.nodes);
+    const graphEdges = items(graph.edges);
+    const graphNodeIds = new Set(graphNodes.map((record) => stringValue(record.id)));
+    graphNodes.forEach((record, index) => {
+      if (!stringValue(record.label) || !["character", "event", "object", "place", "scene", "cue"].includes(stringValue(record.kind))) issues.push({ path: `narrative_graph.nodes[${index}]`, message: "Narrative graph node requires a typed label." });
+      if (record.review_status !== "researcher_checked") issues.push({ path: `narrative_graph.nodes[${index}].review_status`, message: "Frozen narrative graph nodes require researcher review." });
+      const references = ids(record.evidence_ids);
+      if (!references.length) issues.push({ path: `narrative_graph.nodes[${index}].evidence_ids`, message: "Narrative graph node requires source evidence." });
+      checkReferences(issues, `narrative_graph.nodes[${index}].evidence_ids`, references, evidenceIds);
+    });
+    graphEdges.forEach((record, index) => {
+      if (!graphNodeIds.has(stringValue(record.source_id)) || !graphNodeIds.has(stringValue(record.target_id))) issues.push({ path: `narrative_graph.edges[${index}]`, message: "Narrative graph edge endpoints must resolve." });
+      if (record.review_status !== "researcher_checked") issues.push({ path: `narrative_graph.edges[${index}].review_status`, message: "Frozen narrative graph edges require researcher review." });
+      const references = ids(record.evidence_ids);
+      if (!references.length) issues.push({ path: `narrative_graph.edges[${index}].evidence_ids`, message: "Narrative graph edge requires source evidence." });
+      checkReferences(issues, `narrative_graph.edges[${index}].evidence_ids`, references, evidenceIds);
+    });
+  }
 
   const entityIds = new Set(collections.narrative_entities.map((record) => stringValue(record.id)));
   const entityMentions = items(workPackage.entity_mentions);

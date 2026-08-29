@@ -7,6 +7,34 @@ export interface Evidence { id: string; span_ids: string[]; type: string; note: 
 export interface NarrativeUnit { id: string; order: number; chapter_id?: string; span_ids: string[]; summary?: string; }
 export interface NarrativeEntity { id: string; type: string; label: string; canonical_label?: string; mention_ids?: string[]; evidence_ids: string[]; provenance_id?: string; }
 export interface NarrativeRelation { id: string; source_id: string; target_id: string; type: string; evidence_ids: string[]; provenance_id?: string; status?: string; }
+export type NarrativeGraphNodeKind = "character" | "event" | "object" | "place" | "scene" | "cue";
+export interface NarrativeGraphNode {
+  id: string;
+  label: string;
+  kind: NarrativeGraphNodeKind;
+  chapter_id: string;
+  order: number;
+  evidence_ids: string[];
+  description: string;
+  provenance_id: string;
+  review_status: "researcher_checked";
+}
+export interface NarrativeGraphEdge {
+  id: string;
+  source_id: string;
+  target_id: string;
+  type: "contains" | "participates_in" | "involves" | "uses" | "precedes" | "recurs_as" | "co_present";
+  label: string;
+  evidence_ids: string[];
+  provenance_id: string;
+  review_status: "researcher_checked";
+}
+export interface NarrativeGraph {
+  protocol_version: string;
+  nodes: NarrativeGraphNode[];
+  edges: NarrativeGraphEdge[];
+  lane_order: NarrativeGraphNodeKind[];
+}
 export interface MipRecord {
   lexical_unit: string;
   contextual_meaning: string;
@@ -49,6 +77,7 @@ export interface WorkPackage {
   narrative_units: NarrativeUnit[];
   narrative_entities: NarrativeEntity[];
   narrative_relations: NarrativeRelation[];
+  narrative_graph?: NarrativeGraph;
   figurative_features: FigurativeFeature[];
   carriers: Carrier[];
   threads: Thread[];
@@ -98,6 +127,12 @@ export interface ReaderSession {
   reader_relations: Array<{ id: string; session_id: string; source_id: string; target_id: string; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident"; uncertainty?: string; evidence_ids: string[]; rationale?: string; based_on_relation_id?: string; created_at: string; provenance: "reader-authored"; history: Array<{ at: string; action: "create" | "revise"; label: string; relation_type?: string; explanation?: string; confidence?: "tentative" | "developing" | "confident"; uncertainty?: string }> }>;
   claim: string;
   baseline_notes: string;
+  baseline_evidence_references: Array<{ id: string; evidence_id: string; text_span_id: string; start_char: number; end_char: number; quote: string; created_at: string }>;
+  study_phase: "reading" | "construction" | "final_response" | "complete";
+  phase_history: Array<{ phase: "reading" | "construction" | "final_response" | "complete"; started_at: string }>;
+  final_response: string;
+  final_response_evidence_ids: string[];
+  completed_at?: string;
   knowledge_cards: Array<{ id: string; word: string; text_span_id: string; objective_background?: string; historical_context?: string; source?: string; status: "available" | "filtered" | "unavailable"; safety_notice?: string; request_id?: string; model?: string; prompt_version?: string; context_window?: number; input_tokens?: number; output_tokens?: number; latency_ms?: number; source_status?: "model_unverified" | "not_provided"; created_at: string }>;
   reader_claims: Array<{ id: string; session_id: string; text: string; evidence_ids: string[]; node_ids: string[]; relation_ids: string[]; confidence: "tentative" | "developing" | "confident"; created_at: string; updated_at: string; provenance: "reader-authored"; history: Array<{ at: string; text: string; evidence_ids: string[]; node_ids: string[]; relation_ids: string[]; confidence: "tentative" | "developing" | "confident"; trigger: "initial" | "new_evidence" | "reconsidered_evidence" | "new_relation" | "contradictory_evidence" | "context_change" | "reader_uncertainty"; trigger_note?: string }> }>;
   interpretation_dimensions: Array<{ id: string; label: string; low_label: string; high_label: string; created_at: string; provenance: "reader-authored" }>;
@@ -108,5 +143,5 @@ export interface ReaderSession {
 }
 
 export const emptySession = (packageId: string): ReaderSession => ({
-  package_id: packageId, read_chapter_ids: [], read_span_ids: [], exposed_candidate_ids: [], selected_evidence_ids: [], judgments: {}, reference_reviews: {}, candidate_decisions: {}, counterevidence: [], probes: [], reader_evidence_references: [], reader_nodes: [], reader_relations: [], claim: "", baseline_notes: "", knowledge_cards: [], reader_claims: [], interpretation_dimensions: [], interpretation_ratings: {}, personal_event_order: [], events: [],
+  package_id: packageId, read_chapter_ids: [], read_span_ids: [], exposed_candidate_ids: [], selected_evidence_ids: [], judgments: {}, reference_reviews: {}, candidate_decisions: {}, counterevidence: [], probes: [], reader_evidence_references: [], reader_nodes: [], reader_relations: [], claim: "", baseline_notes: "", baseline_evidence_references: [], study_phase: "construction", phase_history: [], final_response: "", final_response_evidence_ids: [], knowledge_cards: [], reader_claims: [], interpretation_dimensions: [], interpretation_ratings: {}, personal_event_order: [], events: [],
 });

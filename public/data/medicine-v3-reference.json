@@ -15800,6 +15800,806 @@
       "status": "candidate"
     }
   ],
+  "narrative_graph": {
+    "protocol_version": "medicine-calibration-v3",
+    "nodes": [
+      {
+        "id": "scene-night-teahouse",
+        "label": "茶馆夜半",
+        "kind": "scene",
+        "chapter_id": "一",
+        "order": 1,
+        "evidence_ids": [
+          "ev-span-2"
+        ],
+        "description": "老栓从茶馆家中出发。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-depart",
+        "label": "老栓带钱出门",
+        "kind": "event",
+        "chapter_id": "一",
+        "order": 2,
+        "evidence_ids": [
+          "ev-span-5"
+        ],
+        "description": "华大妈交钱，老栓离家。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-laoshuan",
+        "label": "华老栓",
+        "kind": "character",
+        "chapter_id": "一",
+        "order": 3,
+        "evidence_ids": [
+          "ev-span-2",
+          "ev-span-14"
+        ],
+        "description": "为小栓寻找治病办法的茶馆主人。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-huadama",
+        "label": "华大妈",
+        "kind": "character",
+        "chapter_id": "一",
+        "order": 4,
+        "evidence_ids": [
+          "ev-span-5",
+          "ev-span-49"
+        ],
+        "description": "小栓的母亲。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-money",
+        "label": "一包洋钱",
+        "kind": "object",
+        "chapter_id": "一",
+        "order": 5,
+        "evidence_ids": [
+          "ev-span-5"
+        ],
+        "description": "刑场交易中交付的钱。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "scene-execution",
+        "label": "丁字街刑场",
+        "kind": "scene",
+        "chapter_id": "一",
+        "order": 6,
+        "evidence_ids": [
+          "ev-span-7",
+          "ev-span-10"
+        ],
+        "description": "围观与交易发生的地点。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-crowd",
+        "label": "人群聚集围观",
+        "kind": "event",
+        "chapter_id": "一",
+        "order": 7,
+        "evidence_ids": [
+          "ev-span-9"
+        ],
+        "description": "人群在丁字街口聚拢。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-transaction",
+        "label": "刑场交易",
+        "kind": "event",
+        "chapter_id": "一",
+        "order": 8,
+        "evidence_ids": [
+          "ev-span-11"
+        ],
+        "description": "黑衣人收钱并交出包裹。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-bloody-bun",
+        "label": "鲜红的馒头",
+        "kind": "object",
+        "chapter_id": "一",
+        "order": 9,
+        "evidence_ids": [
+          "ev-span-11",
+          "ev-span-30"
+        ],
+        "description": "在刑场取得、随后被用作治病的馒头。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "cue-crowd-neck",
+        "label": "伸长的颈项",
+        "kind": "cue",
+        "chapter_id": "一",
+        "order": 10,
+        "evidence_ids": [
+          "ev-span-10"
+        ],
+        "description": "刑场围观姿态的可检查描写。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "scene-medicine",
+        "label": "茶馆服药",
+        "kind": "scene",
+        "chapter_id": "二",
+        "order": 11,
+        "evidence_ids": [
+          "ev-span-14",
+          "ev-span-17"
+        ],
+        "description": "华家处理并让小栓吃下馒头。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-xiaoshuan",
+        "label": "小栓",
+        "kind": "character",
+        "chapter_id": "二",
+        "order": 12,
+        "evidence_ids": [
+          "ev-span-14",
+          "ev-span-19"
+        ],
+        "description": "患病并服下馒头的儿子。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-prepare-medicine",
+        "label": "烧烤并包裹馒头",
+        "kind": "event",
+        "chapter_id": "二",
+        "order": 13,
+        "evidence_ids": [
+          "ev-span-15"
+        ],
+        "description": "老栓夫妇处理带回的馒头。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-take-medicine",
+        "label": "小栓服下馒头",
+        "kind": "event",
+        "chapter_id": "二",
+        "order": 14,
+        "evidence_ids": [
+          "ev-span-19"
+        ],
+        "description": "小栓吃下处理后的馒头。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-black-round",
+        "label": "乌黑的圆东西",
+        "kind": "object",
+        "chapter_id": "二",
+        "order": 15,
+        "evidence_ids": [
+          "ev-span-17"
+        ],
+        "description": "处理后端给小栓的馒头。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "cue-life-in-hands",
+        "label": "拿着自己的性命",
+        "kind": "cue",
+        "chapter_id": "二",
+        "order": 16,
+        "evidence_ids": [
+          "ev-span-19"
+        ],
+        "description": "小栓拿起食物时的可检查比较。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "scene-teahouse-talk",
+        "label": "茶馆议论",
+        "kind": "scene",
+        "chapter_id": "三",
+        "order": 17,
+        "evidence_ids": [
+          "ev-span-22"
+        ],
+        "description": "茶客围绕治病与夏瑜议论。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-kang",
+        "label": "康大叔",
+        "kind": "character",
+        "chapter_id": "三",
+        "order": 18,
+        "evidence_ids": [
+          "ev-span-29",
+          "ev-span-31"
+        ],
+        "description": "参与取得人血馒头并讲述刑场消息的人。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-xiayu",
+        "label": "夏瑜",
+        "kind": "character",
+        "chapter_id": "三",
+        "order": 19,
+        "evidence_ids": [
+          "ev-span-33",
+          "ev-span-56"
+        ],
+        "description": "通过茶客叙述和坟地呼唤出现的人物。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-cure-claim",
+        "label": "反复宣称“包好”",
+        "kind": "event",
+        "chapter_id": "三",
+        "order": 20,
+        "evidence_ids": [
+          "ev-span-30",
+          "ev-span-46"
+        ],
+        "description": "康大叔多次宣称馒头能治病。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-xiayu-talk",
+        "label": "茶客议论夏瑜",
+        "kind": "event",
+        "chapter_id": "三",
+        "order": 21,
+        "evidence_ids": [
+          "ev-span-32",
+          "ev-span-37"
+        ],
+        "description": "茶客根据转述讨论夏瑜。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "cue-coughing",
+        "label": "小栓持续咳嗽",
+        "kind": "cue",
+        "chapter_id": "三",
+        "order": 22,
+        "evidence_ids": [
+          "ev-span-31",
+          "ev-span-45"
+        ],
+        "description": "与“包好”话语同时出现的身体状态。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "scene-cemetery",
+        "label": "清明坟地",
+        "kind": "scene",
+        "chapter_id": "四",
+        "order": 23,
+        "evidence_ids": [
+          "ev-span-48"
+        ],
+        "description": "两位母亲上坟并相遇的地点。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "character-xiusi",
+        "label": "夏四奶奶",
+        "kind": "character",
+        "chapter_id": "四",
+        "order": 24,
+        "evidence_ids": [
+          "ev-span-50",
+          "ev-span-56"
+        ],
+        "description": "夏瑜的母亲。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-mothers-meet",
+        "label": "两位母亲在坟地相遇",
+        "kind": "event",
+        "chapter_id": "四",
+        "order": 25,
+        "evidence_ids": [
+          "ev-span-51"
+        ],
+        "description": "华大妈与夏四奶奶隔着小路上坟。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-graves",
+        "label": "相邻的两座坟",
+        "kind": "object",
+        "chapter_id": "四",
+        "order": 26,
+        "evidence_ids": [
+          "ev-span-51"
+        ],
+        "description": "小栓与夏瑜的坟相邻。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-flowers",
+        "label": "红白的花",
+        "kind": "object",
+        "chapter_id": "四",
+        "order": 27,
+        "evidence_ids": [
+          "ev-span-54"
+        ],
+        "description": "夏瑜坟顶出现的一圈花。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "event-crow-call",
+        "label": "呼唤乌鸦作证",
+        "kind": "event",
+        "chapter_id": "四",
+        "order": 28,
+        "evidence_ids": [
+          "ev-span-56"
+        ],
+        "description": "夏四奶奶向乌鸦提出请求。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "object-crow",
+        "label": "乌鸦",
+        "kind": "object",
+        "chapter_id": "四",
+        "order": 29,
+        "evidence_ids": [
+          "ev-span-56",
+          "ev-span-61"
+        ],
+        "description": "坟地中被注视并最终飞走的乌鸦。",
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-depart-scene",
+        "source_id": "event-depart",
+        "target_id": "scene-night-teahouse",
+        "type": "participates_in",
+        "label": "发生于",
+        "evidence_ids": [
+          "ev-span-5"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-laoshuan-depart",
+        "source_id": "character-laoshuan",
+        "target_id": "event-depart",
+        "type": "participates_in",
+        "label": "行动",
+        "evidence_ids": [
+          "ev-span-5"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-money-depart",
+        "source_id": "object-money",
+        "target_id": "event-depart",
+        "type": "involves",
+        "label": "涉及",
+        "evidence_ids": [
+          "ev-span-5"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-depart-crowd",
+        "source_id": "event-depart",
+        "target_id": "event-crowd",
+        "type": "precedes",
+        "label": "随后",
+        "evidence_ids": [
+          "ev-span-6"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-crowd-transaction",
+        "source_id": "event-crowd",
+        "target_id": "event-transaction",
+        "type": "precedes",
+        "label": "随后",
+        "evidence_ids": [
+          "ev-span-10"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-transaction-scene",
+        "source_id": "event-transaction",
+        "target_id": "scene-execution",
+        "type": "participates_in",
+        "label": "发生于",
+        "evidence_ids": [
+          "ev-span-11"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-laoshuan-transaction",
+        "source_id": "character-laoshuan",
+        "target_id": "event-transaction",
+        "type": "participates_in",
+        "label": "参与",
+        "evidence_ids": [
+          "ev-span-12"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-bun-transaction",
+        "source_id": "object-bloody-bun",
+        "target_id": "event-transaction",
+        "type": "involves",
+        "label": "交易物",
+        "evidence_ids": [
+          "ev-span-11"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-crowd-cue",
+        "source_id": "cue-crowd-neck",
+        "target_id": "event-crowd",
+        "type": "co_present",
+        "label": "同时出现",
+        "evidence_ids": [
+          "ev-span-10"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-transaction-prepare",
+        "source_id": "event-transaction",
+        "target_id": "event-prepare-medicine",
+        "type": "precedes",
+        "label": "随后",
+        "evidence_ids": [
+          "ev-span-15"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-prepare-scene",
+        "source_id": "event-prepare-medicine",
+        "target_id": "scene-medicine",
+        "type": "participates_in",
+        "label": "发生于",
+        "evidence_ids": [
+          "ev-span-15"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-bun-prepare",
+        "source_id": "object-bloody-bun",
+        "target_id": "event-prepare-medicine",
+        "type": "involves",
+        "label": "被处理",
+        "evidence_ids": [
+          "ev-span-15"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-prepare-take",
+        "source_id": "event-prepare-medicine",
+        "target_id": "event-take-medicine",
+        "type": "precedes",
+        "label": "随后",
+        "evidence_ids": [
+          "ev-span-17"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-xiaoshuan-take",
+        "source_id": "character-xiaoshuan",
+        "target_id": "event-take-medicine",
+        "type": "participates_in",
+        "label": "服下",
+        "evidence_ids": [
+          "ev-span-19"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-black-take",
+        "source_id": "object-black-round",
+        "target_id": "event-take-medicine",
+        "type": "involves",
+        "label": "呈现为",
+        "evidence_ids": [
+          "ev-span-17"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-bun-black",
+        "source_id": "object-bloody-bun",
+        "target_id": "object-black-round",
+        "type": "recurs_as",
+        "label": "再次呈现",
+        "evidence_ids": [
+          "ev-span-19"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-life-take",
+        "source_id": "cue-life-in-hands",
+        "target_id": "event-take-medicine",
+        "type": "co_present",
+        "label": "同时出现",
+        "evidence_ids": [
+          "ev-span-19"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-take-talk",
+        "source_id": "event-take-medicine",
+        "target_id": "event-cure-claim",
+        "type": "precedes",
+        "label": "随后",
+        "evidence_ids": [
+          "ev-span-22"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-claim-scene",
+        "source_id": "event-cure-claim",
+        "target_id": "scene-teahouse-talk",
+        "type": "participates_in",
+        "label": "发生于",
+        "evidence_ids": [
+          "ev-span-30"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-kang-claim",
+        "source_id": "character-kang",
+        "target_id": "event-cure-claim",
+        "type": "participates_in",
+        "label": "反复宣称",
+        "evidence_ids": [
+          "ev-span-31"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-bun-claim",
+        "source_id": "object-bloody-bun",
+        "target_id": "event-cure-claim",
+        "type": "involves",
+        "label": "谈及",
+        "evidence_ids": [
+          "ev-span-30"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-claim-xiayu",
+        "source_id": "event-cure-claim",
+        "target_id": "event-xiayu-talk",
+        "type": "precedes",
+        "label": "话题转向",
+        "evidence_ids": [
+          "ev-span-32"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-xiayu-talk-person",
+        "source_id": "character-xiayu",
+        "target_id": "event-xiayu-talk",
+        "type": "involves",
+        "label": "被议论",
+        "evidence_ids": [
+          "ev-span-33"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-cough-claim",
+        "source_id": "cue-coughing",
+        "target_id": "event-cure-claim",
+        "type": "co_present",
+        "label": "同时出现",
+        "evidence_ids": [
+          "ev-span-31"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-talk-meet",
+        "source_id": "event-xiayu-talk",
+        "target_id": "event-mothers-meet",
+        "type": "precedes",
+        "label": "后来",
+        "evidence_ids": [
+          "ev-span-49"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-meet-scene",
+        "source_id": "event-mothers-meet",
+        "target_id": "scene-cemetery",
+        "type": "participates_in",
+        "label": "发生于",
+        "evidence_ids": [
+          "ev-span-51"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-huadama-meet",
+        "source_id": "character-huadama",
+        "target_id": "event-mothers-meet",
+        "type": "participates_in",
+        "label": "参与",
+        "evidence_ids": [
+          "ev-span-52"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-xiusi-meet",
+        "source_id": "character-xiusi",
+        "target_id": "event-mothers-meet",
+        "type": "participates_in",
+        "label": "参与",
+        "evidence_ids": [
+          "ev-span-50"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-graves-meet",
+        "source_id": "object-graves",
+        "target_id": "event-mothers-meet",
+        "type": "involves",
+        "label": "相邻",
+        "evidence_ids": [
+          "ev-span-51"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-flowers-graves",
+        "source_id": "object-flowers",
+        "target_id": "object-graves",
+        "type": "co_present",
+        "label": "出现于坟顶",
+        "evidence_ids": [
+          "ev-span-54"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-xiusi-call",
+        "source_id": "character-xiusi",
+        "target_id": "event-crow-call",
+        "type": "participates_in",
+        "label": "发出请求",
+        "evidence_ids": [
+          "ev-span-56"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-crow-call",
+        "source_id": "object-crow",
+        "target_id": "event-crow-call",
+        "type": "involves",
+        "label": "被呼唤",
+        "evidence_ids": [
+          "ev-span-56"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      },
+      {
+        "id": "edge-xiayu-call",
+        "source_id": "character-xiayu",
+        "target_id": "event-crow-call",
+        "type": "involves",
+        "label": "被呼唤",
+        "evidence_ids": [
+          "ev-span-56"
+        ],
+        "provenance_id": "prov-medicine-protocol",
+        "review_status": "researcher_checked"
+      }
+    ],
+    "lane_order": [
+      "scene",
+      "event",
+      "character",
+      "object",
+      "cue"
+    ]
+  },
   "mip_coverage": {
     "candidate_count": 21,
     "reviewed_count": 0,
@@ -20090,7 +20890,7 @@
       "candidate_carriers": 32,
       "candidate_relations": 37
     },
-    "construction_run_id": "run-1787313383045",
+    "construction_run_id": "run-1788008796557",
     "validation_run_ids": [
       "validation-span-1",
       "validation-span-2",
@@ -20616,7 +21416,7 @@
       "validation-projection-49",
       "validation-projection-50"
     ],
-    "created_at": "2026-08-21T11:56:23.046Z"
+    "created_at": "2026-08-29T13:06:36.559Z"
   },
   "validations": [
     {
@@ -20630,7 +21430,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-2",
@@ -20643,7 +21443,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-3",
@@ -20656,7 +21456,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-4",
@@ -20669,7 +21469,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-5",
@@ -20682,7 +21482,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-6",
@@ -20695,7 +21495,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-7",
@@ -20708,7 +21508,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-8",
@@ -20721,7 +21521,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-9",
@@ -20734,7 +21534,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.557Z"
     },
     {
       "id": "validation-span-10",
@@ -20747,7 +21547,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-11",
@@ -20760,7 +21560,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-12",
@@ -20773,7 +21573,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-13",
@@ -20786,7 +21586,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-14",
@@ -20799,7 +21599,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-15",
@@ -20812,7 +21612,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-16",
@@ -20825,7 +21625,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-17",
@@ -20838,7 +21638,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-18",
@@ -20851,7 +21651,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-19",
@@ -20864,7 +21664,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-20",
@@ -20877,7 +21677,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-21",
@@ -20890,7 +21690,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-22",
@@ -20903,7 +21703,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-23",
@@ -20916,7 +21716,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-24",
@@ -20929,7 +21729,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-25",
@@ -20942,7 +21742,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-26",
@@ -20955,7 +21755,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-27",
@@ -20968,7 +21768,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-28",
@@ -20981,7 +21781,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-29",
@@ -20994,7 +21794,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-30",
@@ -21007,7 +21807,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-31",
@@ -21020,7 +21820,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-32",
@@ -21033,7 +21833,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-33",
@@ -21046,7 +21846,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-34",
@@ -21059,7 +21859,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-35",
@@ -21072,7 +21872,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-36",
@@ -21085,7 +21885,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-37",
@@ -21098,7 +21898,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-38",
@@ -21111,7 +21911,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-39",
@@ -21124,7 +21924,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-40",
@@ -21137,7 +21937,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-41",
@@ -21150,7 +21950,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-42",
@@ -21163,7 +21963,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-43",
@@ -21176,7 +21976,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-44",
@@ -21189,7 +21989,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-45",
@@ -21202,7 +22002,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-46",
@@ -21215,7 +22015,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-47",
@@ -21228,7 +22028,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-48",
@@ -21241,7 +22041,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-49",
@@ -21254,7 +22054,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-50",
@@ -21267,7 +22067,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-51",
@@ -21280,7 +22080,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-52",
@@ -21293,7 +22093,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-53",
@@ -21306,7 +22106,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-54",
@@ -21319,7 +22119,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-55",
@@ -21332,7 +22132,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-56",
@@ -21345,7 +22145,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-57",
@@ -21358,7 +22158,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-58",
@@ -21371,7 +22171,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-59",
@@ -21384,7 +22184,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-60",
@@ -21397,7 +22197,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-61",
@@ -21410,7 +22210,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-62",
@@ -21423,7 +22223,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-63",
@@ -21436,7 +22236,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-64",
@@ -21449,7 +22249,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-span-65",
@@ -21462,7 +22262,7 @@
         "Exact source offset reconstructed."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-1",
@@ -21475,7 +22275,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-2",
@@ -21488,7 +22288,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-3",
@@ -21501,7 +22301,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-4",
@@ -21514,7 +22314,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-5",
@@ -21527,7 +22327,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-6",
@@ -21540,7 +22340,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-7",
@@ -21553,7 +22353,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-8",
@@ -21566,7 +22366,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-9",
@@ -21579,7 +22379,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-10",
@@ -21592,7 +22392,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-11",
@@ -21605,7 +22405,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-12",
@@ -21618,7 +22418,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-13",
@@ -21631,7 +22431,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-14",
@@ -21644,7 +22444,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-15",
@@ -21657,7 +22457,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-16",
@@ -21670,7 +22470,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-17",
@@ -21683,7 +22483,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-18",
@@ -21696,7 +22496,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-19",
@@ -21709,7 +22509,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-20",
@@ -21722,7 +22522,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-21",
@@ -21735,7 +22535,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-22",
@@ -21748,7 +22548,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-23",
@@ -21761,7 +22561,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-24",
@@ -21774,7 +22574,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-25",
@@ -21787,7 +22587,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-26",
@@ -21800,7 +22600,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-27",
@@ -21813,7 +22613,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-28",
@@ -21826,7 +22626,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-29",
@@ -21839,7 +22639,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-30",
@@ -21852,7 +22652,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-31",
@@ -21865,7 +22665,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-32",
@@ -21878,7 +22678,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-33",
@@ -21891,7 +22691,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-34",
@@ -21904,7 +22704,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-35",
@@ -21917,7 +22717,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-36",
@@ -21930,7 +22730,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-37",
@@ -21943,7 +22743,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-38",
@@ -21956,7 +22756,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-39",
@@ -21969,7 +22769,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-40",
@@ -21982,7 +22782,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-41",
@@ -21995,7 +22795,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-42",
@@ -22008,7 +22808,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-43",
@@ -22021,7 +22821,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-44",
@@ -22034,7 +22834,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-45",
@@ -22047,7 +22847,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-46",
@@ -22060,7 +22860,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-47",
@@ -22073,7 +22873,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-48",
@@ -22086,7 +22886,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-49",
@@ -22099,7 +22899,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-50",
@@ -22112,7 +22912,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-51",
@@ -22125,7 +22925,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-52",
@@ -22138,7 +22938,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-53",
@@ -22151,7 +22951,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-54",
@@ -22164,7 +22964,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-55",
@@ -22177,7 +22977,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-56",
@@ -22190,7 +22990,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-57",
@@ -22203,7 +23003,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-58",
@@ -22216,7 +23016,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-59",
@@ -22229,7 +23029,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-60",
@@ -22242,7 +23042,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-61",
@@ -22255,7 +23055,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-62",
@@ -22268,7 +23068,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-63",
@@ -22281,7 +23081,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-64",
@@ -22294,7 +23094,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-65",
@@ -22307,7 +23107,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-66",
@@ -22320,7 +23120,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-67",
@@ -22333,7 +23133,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-68",
@@ -22346,7 +23146,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-69",
@@ -22359,7 +23159,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-70",
@@ -22372,7 +23172,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-71",
@@ -22385,7 +23185,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-72",
@@ -22398,7 +23198,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-73",
@@ -22411,7 +23211,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-74",
@@ -22424,7 +23224,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-75",
@@ -22437,7 +23237,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-76",
@@ -22450,7 +23250,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-77",
@@ -22463,7 +23263,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-78",
@@ -22476,7 +23276,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-79",
@@ -22489,7 +23289,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-80",
@@ -22502,7 +23302,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-81",
@@ -22515,7 +23315,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-82",
@@ -22528,7 +23328,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-83",
@@ -22541,7 +23341,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-84",
@@ -22554,7 +23354,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-85",
@@ -22567,7 +23367,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-86",
@@ -22580,7 +23380,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-87",
@@ -22593,7 +23393,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-88",
@@ -22606,7 +23406,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-89",
@@ -22619,7 +23419,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-90",
@@ -22632,7 +23432,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-91",
@@ -22645,7 +23445,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-92",
@@ -22658,7 +23458,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-93",
@@ -22671,7 +23471,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-94",
@@ -22684,7 +23484,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-95",
@@ -22697,7 +23497,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-96",
@@ -22710,7 +23510,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-97",
@@ -22723,7 +23523,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-98",
@@ -22736,7 +23536,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-99",
@@ -22749,7 +23549,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-100",
@@ -22762,7 +23562,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-mention-101",
@@ -22775,7 +23575,7 @@
         "Mention has a canonical entity link; offsets are checked when supplied by the executor."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-1",
@@ -22788,7 +23588,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-2",
@@ -22801,7 +23601,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-3",
@@ -22814,7 +23614,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-4",
@@ -22827,7 +23627,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-5",
@@ -22840,7 +23640,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-6",
@@ -22853,7 +23653,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-7",
@@ -22866,7 +23666,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-8",
@@ -22879,7 +23679,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-9",
@@ -22892,7 +23692,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-10",
@@ -22905,7 +23705,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-11",
@@ -22918,7 +23718,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-12",
@@ -22931,7 +23731,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-13",
@@ -22944,7 +23744,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-14",
@@ -22957,7 +23757,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-15",
@@ -22970,7 +23770,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-16",
@@ -22983,7 +23783,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-17",
@@ -22996,7 +23796,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-18",
@@ -23009,7 +23809,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-19",
@@ -23022,7 +23822,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-20",
@@ -23035,7 +23835,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-21",
@@ -23048,7 +23848,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-22",
@@ -23061,7 +23861,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-23",
@@ -23074,7 +23874,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-24",
@@ -23087,7 +23887,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-25",
@@ -23100,7 +23900,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-26",
@@ -23113,7 +23913,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-27",
@@ -23126,7 +23926,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-28",
@@ -23139,7 +23939,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-29",
@@ -23152,7 +23952,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-30",
@@ -23165,7 +23965,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-31",
@@ -23178,7 +23978,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-32",
@@ -23191,7 +23991,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-33",
@@ -23204,7 +24004,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-34",
@@ -23217,7 +24017,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-35",
@@ -23230,7 +24030,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-36",
@@ -23243,7 +24043,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-37",
@@ -23256,7 +24056,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-38",
@@ -23269,7 +24069,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-39",
@@ -23282,7 +24082,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-40",
@@ -23295,7 +24095,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-41",
@@ -23308,7 +24108,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-42",
@@ -23321,7 +24121,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-43",
@@ -23334,7 +24134,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-44",
@@ -23347,7 +24147,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-45",
@@ -23360,7 +24160,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-46",
@@ -23373,7 +24173,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-47",
@@ -23386,7 +24186,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-48",
@@ -23399,7 +24199,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-49",
@@ -23412,7 +24212,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-50",
@@ -23425,7 +24225,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-51",
@@ -23438,7 +24238,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-52",
@@ -23451,7 +24251,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-53",
@@ -23464,7 +24264,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-54",
@@ -23477,7 +24277,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-55",
@@ -23490,7 +24290,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-56",
@@ -23503,7 +24303,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-57",
@@ -23516,7 +24316,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-58",
@@ -23529,7 +24329,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-59",
@@ -23542,7 +24342,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-60",
@@ -23555,7 +24355,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-61",
@@ -23568,7 +24368,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-62",
@@ -23581,7 +24381,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-63",
@@ -23594,7 +24394,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-64",
@@ -23607,7 +24407,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-65",
@@ -23620,7 +24420,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-66",
@@ -23633,7 +24433,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-67",
@@ -23646,7 +24446,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-68",
@@ -23659,7 +24459,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-69",
@@ -23672,7 +24472,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-70",
@@ -23685,7 +24485,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-71",
@@ -23698,7 +24498,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-72",
@@ -23711,7 +24511,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-73",
@@ -23724,7 +24524,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-74",
@@ -23737,7 +24537,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-75",
@@ -23750,7 +24550,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-76",
@@ -23763,7 +24563,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-77",
@@ -23776,7 +24576,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-78",
@@ -23789,7 +24589,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-79",
@@ -23802,7 +24602,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-80",
@@ -23815,7 +24615,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-81",
@@ -23828,7 +24628,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-82",
@@ -23841,7 +24641,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-83",
@@ -23854,7 +24654,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-84",
@@ -23867,7 +24667,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-85",
@@ -23880,7 +24680,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-86",
@@ -23893,7 +24693,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-87",
@@ -23906,7 +24706,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-88",
@@ -23919,7 +24719,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-89",
@@ -23932,7 +24732,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-90",
@@ -23945,7 +24745,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-91",
@@ -23958,7 +24758,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-92",
@@ -23971,7 +24771,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-93",
@@ -23984,7 +24784,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-94",
@@ -23997,7 +24797,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-95",
@@ -24010,7 +24810,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-96",
@@ -24023,7 +24823,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-97",
@@ -24036,7 +24836,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-98",
@@ -24049,7 +24849,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-99",
@@ -24062,7 +24862,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-100",
@@ -24075,7 +24875,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-101",
@@ -24088,7 +24888,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-102",
@@ -24101,7 +24901,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-103",
@@ -24114,7 +24914,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-104",
@@ -24127,7 +24927,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.045Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-105",
@@ -24140,7 +24940,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-106",
@@ -24153,7 +24953,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-107",
@@ -24166,7 +24966,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-108",
@@ -24179,7 +24979,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-109",
@@ -24192,7 +24992,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-110",
@@ -24205,7 +25005,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-111",
@@ -24218,7 +25018,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-112",
@@ -24231,7 +25031,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-113",
@@ -24244,7 +25044,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-114",
@@ -24257,7 +25057,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-115",
@@ -24270,7 +25070,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-116",
@@ -24283,7 +25083,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-117",
@@ -24296,7 +25096,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-118",
@@ -24309,7 +25109,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-119",
@@ -24322,7 +25122,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-120",
@@ -24335,7 +25135,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-121",
@@ -24348,7 +25148,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-122",
@@ -24361,7 +25161,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-123",
@@ -24374,7 +25174,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-124",
@@ -24387,7 +25187,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-125",
@@ -24400,7 +25200,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-126",
@@ -24413,7 +25213,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-127",
@@ -24426,7 +25226,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-128",
@@ -24439,7 +25239,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-129",
@@ -24452,7 +25252,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-130",
@@ -24465,7 +25265,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-131",
@@ -24478,7 +25278,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-132",
@@ -24491,7 +25291,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-133",
@@ -24504,7 +25304,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-134",
@@ -24517,7 +25317,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-135",
@@ -24530,7 +25330,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-136",
@@ -24543,7 +25343,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-137",
@@ -24556,7 +25356,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-138",
@@ -24569,7 +25369,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-139",
@@ -24582,7 +25382,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-140",
@@ -24595,7 +25395,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-141",
@@ -24608,7 +25408,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-142",
@@ -24621,7 +25421,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-143",
@@ -24634,7 +25434,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-144",
@@ -24647,7 +25447,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-145",
@@ -24660,7 +25460,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-146",
@@ -24673,7 +25473,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-147",
@@ -24686,7 +25486,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-148",
@@ -24699,7 +25499,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-149",
@@ -24712,7 +25512,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-150",
@@ -24725,7 +25525,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-151",
@@ -24738,7 +25538,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-152",
@@ -24751,7 +25551,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-153",
@@ -24764,7 +25564,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-154",
@@ -24777,7 +25577,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-155",
@@ -24790,7 +25590,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-156",
@@ -24803,7 +25603,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-157",
@@ -24816,7 +25616,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-158",
@@ -24829,7 +25629,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-159",
@@ -24842,7 +25642,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-160",
@@ -24855,7 +25655,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-161",
@@ -24868,7 +25668,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-162",
@@ -24881,7 +25681,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-163",
@@ -24894,7 +25694,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-164",
@@ -24907,7 +25707,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-165",
@@ -24920,7 +25720,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-166",
@@ -24933,7 +25733,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-167",
@@ -24946,7 +25746,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-168",
@@ -24959,7 +25759,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-169",
@@ -24972,7 +25772,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-170",
@@ -24985,7 +25785,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-171",
@@ -24998,7 +25798,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-172",
@@ -25011,7 +25811,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-173",
@@ -25024,7 +25824,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-174",
@@ -25037,7 +25837,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-175",
@@ -25050,7 +25850,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-176",
@@ -25063,7 +25863,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-177",
@@ -25076,7 +25876,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-event-178",
@@ -25089,7 +25889,7 @@
         "Event mention links to a canonical event and only known participant mentions."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-1",
@@ -25102,7 +25902,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-2",
@@ -25115,7 +25915,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-3",
@@ -25128,7 +25928,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-4",
@@ -25141,7 +25941,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-5",
@@ -25154,7 +25954,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-6",
@@ -25167,7 +25967,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-7",
@@ -25180,7 +25980,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-8",
@@ -25193,7 +25993,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-9",
@@ -25206,7 +26006,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-10",
@@ -25219,7 +26019,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.558Z"
     },
     {
       "id": "validation-signal-11",
@@ -25232,7 +26032,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-12",
@@ -25245,7 +26045,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-13",
@@ -25258,7 +26058,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-14",
@@ -25271,7 +26071,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-15",
@@ -25284,7 +26084,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-16",
@@ -25297,7 +26097,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-17",
@@ -25310,7 +26110,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-18",
@@ -25323,7 +26123,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-19",
@@ -25336,7 +26136,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-20",
@@ -25349,7 +26149,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-21",
@@ -25362,7 +26162,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-22",
@@ -25375,7 +26175,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-23",
@@ -25388,7 +26188,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-24",
@@ -25401,7 +26201,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-25",
@@ -25414,7 +26214,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-26",
@@ -25427,7 +26227,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-27",
@@ -25440,7 +26240,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-28",
@@ -25453,7 +26253,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-29",
@@ -25466,7 +26266,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-30",
@@ -25479,7 +26279,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-31",
@@ -25492,7 +26292,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-32",
@@ -25505,7 +26305,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-33",
@@ -25518,7 +26318,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-34",
@@ -25531,7 +26331,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-35",
@@ -25544,7 +26344,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-36",
@@ -25557,7 +26357,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-37",
@@ -25570,7 +26370,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-38",
@@ -25583,7 +26383,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-39",
@@ -25596,7 +26396,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-40",
@@ -25609,7 +26409,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-41",
@@ -25622,7 +26422,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-42",
@@ -25635,7 +26435,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-43",
@@ -25648,7 +26448,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-44",
@@ -25661,7 +26461,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-45",
@@ -25674,7 +26474,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-46",
@@ -25687,7 +26487,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-47",
@@ -25700,7 +26500,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-48",
@@ -25713,7 +26513,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-49",
@@ -25726,7 +26526,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-50",
@@ -25739,7 +26539,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-51",
@@ -25752,7 +26552,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-52",
@@ -25765,7 +26565,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-53",
@@ -25778,7 +26578,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-54",
@@ -25791,7 +26591,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-55",
@@ -25804,7 +26604,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-56",
@@ -25817,7 +26617,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-57",
@@ -25830,7 +26630,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-58",
@@ -25843,7 +26643,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-59",
@@ -25856,7 +26656,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-signal-60",
@@ -25869,7 +26669,7 @@
         "Signal retains exact-source evidence."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-1",
@@ -25882,7 +26682,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-2",
@@ -25895,7 +26695,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-3",
@@ -25908,7 +26708,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-4",
@@ -25921,7 +26721,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-5",
@@ -25934,7 +26734,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-6",
@@ -25947,7 +26747,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-7",
@@ -25960,7 +26760,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-8",
@@ -25973,7 +26773,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-9",
@@ -25986,7 +26786,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-10",
@@ -25999,7 +26799,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-11",
@@ -26012,7 +26812,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-12",
@@ -26025,7 +26825,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-13",
@@ -26038,7 +26838,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-14",
@@ -26051,7 +26851,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-15",
@@ -26064,7 +26864,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-16",
@@ -26077,7 +26877,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-17",
@@ -26090,7 +26890,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-18",
@@ -26103,7 +26903,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-19",
@@ -26116,7 +26916,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-20",
@@ -26129,7 +26929,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-21",
@@ -26142,7 +26942,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-22",
@@ -26155,7 +26955,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-23",
@@ -26168,7 +26968,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-24",
@@ -26181,7 +26981,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-25",
@@ -26194,7 +26994,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-26",
@@ -26207,7 +27007,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-27",
@@ -26220,7 +27020,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-28",
@@ -26233,7 +27033,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-29",
@@ -26246,7 +27046,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-30",
@@ -26259,7 +27059,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-31",
@@ -26272,7 +27072,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-carrier-32",
@@ -26285,7 +27085,7 @@
         "Candidate carrier retains signal, evidence, and narrative-context links."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-1",
@@ -26298,7 +27098,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-2",
@@ -26311,7 +27111,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-3",
@@ -26324,7 +27124,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-4",
@@ -26337,7 +27137,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-5",
@@ -26350,7 +27150,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-6",
@@ -26363,7 +27163,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-7",
@@ -26376,7 +27176,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-8",
@@ -26389,7 +27189,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-9",
@@ -26402,7 +27202,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-10",
@@ -26415,7 +27215,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-11",
@@ -26428,7 +27228,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-12",
@@ -26441,7 +27241,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-13",
@@ -26454,7 +27254,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-14",
@@ -26467,7 +27267,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-15",
@@ -26480,7 +27280,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-16",
@@ -26493,7 +27293,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-17",
@@ -26506,7 +27306,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-18",
@@ -26519,7 +27319,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-19",
@@ -26532,7 +27332,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-20",
@@ -26545,7 +27345,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-21",
@@ -26558,7 +27358,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-22",
@@ -26571,7 +27371,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-23",
@@ -26584,7 +27384,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-24",
@@ -26597,7 +27397,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-25",
@@ -26610,7 +27410,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-26",
@@ -26623,7 +27423,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-27",
@@ -26636,7 +27436,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-28",
@@ -26649,7 +27449,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-29",
@@ -26662,7 +27462,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-30",
@@ -26675,7 +27475,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-31",
@@ -26688,7 +27488,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-32",
@@ -26701,7 +27501,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-33",
@@ -26714,7 +27514,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-34",
@@ -26727,7 +27527,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-35",
@@ -26740,7 +27540,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-36",
@@ -26753,7 +27553,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-candidate-relation-37",
@@ -26766,7 +27566,7 @@
         "Candidate relation retains exact-source evidence and a typed signal route."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-1",
@@ -26779,7 +27579,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-2",
@@ -26792,7 +27592,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-3",
@@ -26805,7 +27605,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-4",
@@ -26818,7 +27618,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-5",
@@ -26831,7 +27631,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-6",
@@ -26844,7 +27644,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-7",
@@ -26857,7 +27657,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-8",
@@ -26870,7 +27670,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-9",
@@ -26883,7 +27683,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-10",
@@ -26896,7 +27696,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-11",
@@ -26909,7 +27709,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-12",
@@ -26922,7 +27722,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-13",
@@ -26935,7 +27735,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-14",
@@ -26948,7 +27748,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-15",
@@ -26961,7 +27761,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-16",
@@ -26974,7 +27774,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-17",
@@ -26987,7 +27787,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-18",
@@ -27000,7 +27800,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-19",
@@ -27013,7 +27813,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-20",
@@ -27026,7 +27826,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-21",
@@ -27039,7 +27839,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-22",
@@ -27052,7 +27852,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-23",
@@ -27065,7 +27865,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-24",
@@ -27078,7 +27878,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-25",
@@ -27091,7 +27891,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-26",
@@ -27104,7 +27904,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-27",
@@ -27117,7 +27917,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-28",
@@ -27130,7 +27930,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-29",
@@ -27143,7 +27943,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-30",
@@ -27156,7 +27956,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-31",
@@ -27169,7 +27969,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-32",
@@ -27182,7 +27982,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-33",
@@ -27195,7 +27995,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-34",
@@ -27208,7 +28008,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-35",
@@ -27221,7 +28021,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-36",
@@ -27234,7 +28034,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-37",
@@ -27247,7 +28047,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-38",
@@ -27260,7 +28060,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-39",
@@ -27273,7 +28073,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-40",
@@ -27286,7 +28086,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-41",
@@ -27299,7 +28099,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-42",
@@ -27312,7 +28112,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-43",
@@ -27325,7 +28125,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-44",
@@ -27338,7 +28138,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-45",
@@ -27351,7 +28151,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-46",
@@ -27364,7 +28164,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-47",
@@ -27377,7 +28177,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-48",
@@ -27390,7 +28190,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-49",
@@ -27403,7 +28203,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     },
     {
       "id": "validation-projection-50",
@@ -27416,7 +28216,7 @@
         "Projection state has fixed reasons and an inspectable rationale."
       ],
       "validator_version": "meaningforge-v3",
-      "created_at": "2026-08-21T11:56:23.046Z"
+      "created_at": "2026-08-29T13:06:36.559Z"
     }
   ],
   "projection_run": {
@@ -27476,7 +28276,7 @@
       "projection-excluded-23",
       "projection-excluded-24"
     ],
-    "created_at": "2026-08-21T11:56:23.046Z"
+    "created_at": "2026-08-29T13:06:36.559Z"
   },
   "figurative_features": [
     {
@@ -28535,7 +29335,91 @@
           "status": "researcher_checked"
         }
       ],
-      "candidate_explorations": [],
+      "candidate_explorations": [
+        {
+          "id": "explore-一-1",
+          "label": "乌蓝的天与青白的光",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-2"
+          ],
+          "signal_ids": [
+            "signal-1",
+            "signal-4",
+            "signal-7",
+            "signal-8",
+            "signal-24",
+            "signal-cross-span-1",
+            "signal-cross-span-2",
+            "signal-cross-span-3",
+            "signal-cross-span-4",
+            "signal-cross-span-5",
+            "signal-cross-span-6",
+            "signal-cross-span-7",
+            "signal-cross-span-8",
+            "signal-cross-span-9",
+            "signal-cross-span-10",
+            "signal-cross-span-11",
+            "signal-cross-span-12"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "开篇连续记录天色与室内灯光；你可以留意这些颜色和光线是否在阅读中形成可比较的变化。",
+          "context_anchor_ids": [
+            "context-一-1"
+          ],
+          "relation_basis": "同一出门场景的光线描写",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-一-2",
+          "label": "攫取的光",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-8"
+          ],
+          "signal_ids": [
+            "signal-1",
+            "signal-5",
+            "signal-11",
+            "signal-19",
+            "signal-20",
+            "signal-structural-2"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "这里用一个动作性词语描写眼光；是否值得和同场景的其他注视比较，由你判断。",
+          "context_anchor_ids": [
+            "context-一-2"
+          ],
+          "relation_basis": "刑场围观者的可见姿态",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-一-3",
+          "label": "新的生命",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-13"
+          ],
+          "signal_ids": [
+            "signal-1",
+            "signal-5",
+            "signal-11",
+            "signal-12",
+            "signal-18",
+            "signal-20",
+            "signal-21",
+            "signal-structural-6",
+            "signal-structural-13"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "老栓把包裹与“新的生命”放在一起；你可以在后文检查这种期待如何被继续、改变或打断。",
+          "context_anchor_ids": [
+            "context-一-4"
+          ],
+          "relation_basis": "老栓取得包裹后的想法",
+          "provenance_id": "prov-medicine-protocol"
+        }
+      ],
       "reference_relation_ids": [
         "srel-llm-3",
         "srel-llm-5"
@@ -28618,12 +29502,62 @@
             "signal-structural-9"
           ],
           "uncertainty": "undecidable",
+          "prompt": "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。",
           "context_anchor_ids": [
             "context-二-4",
             "context-二-5"
           ],
           "relation_basis": "同一服药场景",
-          "prompt": "这处比较尚未被系统作为确定隐喻；你可以检查它是否改变了你对“服药”场景的理解。",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-二-2",
+          "label": "奇怪的香味",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-15"
+          ],
+          "signal_ids": [
+            "signal-1",
+            "signal-2",
+            "signal-3",
+            "signal-12",
+            "signal-13",
+            "signal-22"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "处理馒头时出现了味觉线索；你可以决定它是否值得与物件外观或人物反应一起比较。",
+          "context_anchor_ids": [
+            "context-二-4"
+          ],
+          "relation_basis": "处理馒头的感官细节",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-二-3",
+          "label": "注进与取出",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-19"
+          ],
+          "signal_ids": [
+            "signal-3",
+            "signal-5",
+            "signal-7",
+            "signal-10",
+            "signal-11",
+            "signal-13",
+            "signal-18",
+            "signal-21",
+            "signal-structural-9"
+          ],
+          "uncertainty": "undecidable",
+          "prompt": "这处同时出现“注进”和“取出”两个动作；它们如何组织父母的注视，仍需回到原文判断。",
+          "context_anchor_ids": [
+            "context-二-3",
+            "context-二-4"
+          ],
+          "relation_basis": "服药后的家庭注视",
           "provenance_id": "prov-medicine-protocol"
         }
       ],
@@ -28666,7 +29600,72 @@
           "status": "researcher_checked"
         }
       ],
-      "candidate_explorations": [],
+      "candidate_explorations": [
+        {
+          "id": "explore-三-1",
+          "label": "“包好”的反复",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-46"
+          ],
+          "signal_ids": [
+            "signal-3"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "“包好”在茶馆议论中多次出现；你可以比较每次出现时说话对象和同时发生的事情。",
+          "context_anchor_ids": [
+            "context-三-2",
+            "context-三-3"
+          ],
+          "relation_basis": "同一话语在本节反复出现",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-三-2",
+          "label": "合伙咳嗽",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-31"
+          ],
+          "signal_ids": [
+            "signal-2",
+            "signal-3",
+            "signal-6",
+            "signal-10",
+            "signal-12",
+            "signal-21",
+            "signal-22",
+            "signal-structural-10"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "康大叔的嚷声和小栓的咳嗽被写在同一句中；这种并置是否重要，由你检查。",
+          "context_anchor_ids": [
+            "context-三-1",
+            "context-三-2"
+          ],
+          "relation_basis": "宣称疗效与身体反应同时出现",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-三-3",
+          "label": "眼光板滞与话语停顿",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-42"
+          ],
+          "signal_ids": [
+            "signal-3",
+            "signal-4"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "听众的眼光和谈话节奏同时变化；你可以留意话题前后发生了什么。",
+          "context_anchor_ids": [
+            "context-三-1"
+          ],
+          "relation_basis": "听众对话过程中的可见变化",
+          "provenance_id": "prov-medicine-protocol"
+        }
+      ],
       "reference_relation_ids": [
         "srel-llm-1",
         "srel-llm-5"
@@ -28719,7 +29718,70 @@
           "status": "researcher_checked"
         }
       ],
-      "candidate_explorations": [],
+      "candidate_explorations": [
+        {
+          "id": "explore-四-1",
+          "label": "坟冢与祝寿馒头",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-48"
+          ],
+          "signal_ids": [
+            "signal-13",
+            "signal-26",
+            "signal-structural-14"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "坟冢的形状被拿来和祝寿馒头比较；你可以回看前文“馒头”的不同语境。",
+          "context_anchor_ids": [
+            "context-四-1"
+          ],
+          "relation_basis": "坟地形状的明确比较",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-四-2",
+          "label": "中间只隔一条小路",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-51"
+          ],
+          "signal_ids": [
+            "signal-2",
+            "signal-3",
+            "signal-4",
+            "signal-9",
+            "signal-16",
+            "signal-19"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "文本明确交代两座坟的相邻位置；这条空间关系是否影响你的比较，由你决定。",
+          "context_anchor_ids": [
+            "context-四-1",
+            "context-四-2"
+          ],
+          "relation_basis": "两座坟的空间位置",
+          "provenance_id": "prov-medicine-protocol"
+        },
+        {
+          "id": "explore-四-3",
+          "label": "乌鸦的站立与飞走",
+          "type": "figurative_candidate",
+          "evidence_ids": [
+            "ev-span-61"
+          ],
+          "signal_ids": [
+            "signal-22"
+          ],
+          "uncertainty": "candidate",
+          "prompt": "乌鸦先被注视，后来飞走；你可以比较这两个精确位置，而不必预先确定它的象征意义。",
+          "context_anchor_ids": [
+            "context-四-4"
+          ],
+          "relation_basis": "同一物件在场景中的状态变化",
+          "provenance_id": "prov-medicine-protocol"
+        }
+      ],
       "reference_relation_ids": [
         "srel-llm-1",
         "srel-llm-2",
@@ -34562,7 +35624,7 @@
       "id": "prov-medicine-protocol",
       "method_basis": "MIP_MIPVU_INFORMED",
       "executor_type": "HUMAN",
-      "method_note": "Bounded medicine-calibration-v2 lexical/observable calibration records; exact source anchors and projection still run automatically."
+      "method_note": "Bounded medicine-calibration-v3 lexical/observable calibration records; exact source anchors and projection still run automatically."
     },
     {
       "id": "prov-structure",
@@ -35246,7 +36308,7 @@
       "reader_interpretive_layer": "skipped"
     },
     "validation_summary": "Typed UNR records, exact-text anchoring, referential integrity, and projection eligibility were checked. Frozen controlled-material package validated against sha256 source edition.",
-    "frozen_at": "2026-08-21T11:56:23.050Z"
+    "frozen_at": "2026-08-29T13:06:36.567Z"
   },
   "preparation": {
     "protocol": "MeaningForge substrate protocol v7.3",

@@ -1,0 +1,33 @@
+{
+  "schema_version": "meaningforge-study-materials-1.0",
+  "protocol_version": "meaningforge-study-v3",
+  "common_final_prompt": "请用100-200字写下你目前对本文的理解。请结合原文细节；可以保留不确定性或不同可能。",
+  "materials": [
+    {
+      "material_id": "medicine-v3-reference",
+      "title": "药",
+      "author": "鲁迅",
+      "package_url": "/data/medicine-v3-reference.json",
+      "source_url": "/books/luxun-medicine-zh.txt",
+      "source_checksum": "sha256:fb774c079ac5223895cf68bcc01db14fdcd99eda210e4817f72385b51efa1ae6",
+      "reading_character_count_without_whitespace": 4748,
+      "status": "ready",
+      "eligible_conditions": ["meaningforge", "baseline"],
+      "calibration": {
+        "narrative_graph": "researcher_checked",
+        "candidate_scaffolds": "researcher_checked",
+        "source_anchors": "validated"
+      }
+    },
+    {
+      "material_id": "aq-v2-development-20260813",
+      "title": "阿Q正传",
+      "author": "鲁迅",
+      "package_url": "/data/aq-substrate-v2-development.json",
+      "source_url": "/books/luxun-aq-zh.txt",
+      "status": "blocked",
+      "eligible_conditions": [],
+      "blocking_reason": "当前数据包仍为development，未完成与《药》相同等级的叙事图、候选和源文冻结校准。"
+    }
+  ]
+}

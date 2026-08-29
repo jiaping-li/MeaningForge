@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { BookOpen, ChartNoAxesCombined, Check, ChevronLeft, ChevronRight, Clock3, Download, Eye, FileUp, Flag, FlaskConical, GitCompareArrows, HeartHandshake, HelpCircle, Layers3, Lightbulb, Link2, ListTree, LoaderCircle, MapPin, Plus, Redo2, Search, ShieldQuestion, Undo2, X } from "lucide-react";
 import { AnchoredParagraph } from "@/components/reading/AnchoredParagraph";
-import { downloadSession, loadDevelopmentPackage, loadSession, preparedWorks, prepareTextDraft, requestKnowledgeCard, saveSession, sourceWorks, type PreparationDraft } from "@/services/workPackage";
+import { completeStudySession, downloadSession, loadDevelopmentPackage, loadSession, preparedWorks, prepareTextDraft, requestKnowledgeCard, saveSession, sourceWorks, type PreparationDraft } from "@/services/workPackage";
 import { emptySession, type ReaderSession, type Thread, type WorkPackage } from "@/types/workPackage";
 
 type Tab = "trace" | "compare" | "challenge" | "counter" | "probe";
@@ -82,7 +82,7 @@ export default function App() {
   const researchView = query.get("view") === "research";
   const participantId = query.get("participant")?.trim() || "local";
   const studySessionId = query.get("session")?.trim() || `${participantId}-${studyCondition}`;
-  const protocolVersion = query.get("protocol")?.trim() || "meaningforge-study-v2";
+  const protocolVersion = query.get("protocol")?.trim() || "meaningforge-study-v3";
   const roundId = query.get("round")?.trim() || "R1";
   const sessionScope = `${participantId}:${studySessionId}:${studyCondition}`;
   const startWithActiveGhosts = studyCondition === "meaningforge";
@@ -104,7 +104,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("trace");
   const [claim, setClaim] = useState("");
   const [inspectorTab, setInspectorTab] = useState<InspectorTab>("reading");
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1500);
   const [showImport, setShowImport] = useState(false);
   const [useMIPForDrafts, setUseMIPForDrafts] = useState(false);
   const [loadingSource, setLoadingSource] = useState("");
@@ -121,6 +121,8 @@ export default function App() {
   const [knowledgeBusy, setKnowledgeBusy] = useState(false);
   const [knowledgeMessage, setKnowledgeMessage] = useState("");
   const [studySync, setStudySync] = useState<{ status: "syncing" | "synced" | "error"; detail?: string } | null>(null);
+  const [studyCompleting, setStudyCompleting] = useState(false);
+  const [studyCompletionMessage, setStudyCompletionMessage] = useState("");
   const readingArticleRef = useRef<HTMLElement>(null);
   const visibleSpanIdsRef = useRef<Set<string>>(new Set());
   const undoStackRef = useRef<ReaderSession[]>([]);
@@ -133,12 +135,14 @@ export default function App() {
     const firstChapter = sourceChapterIds[0] ?? chapters(next)[0] ?? "1";
     const priorContext = loaded.study_context;
     const study_context = { protocol_version: protocolVersion, participant_id: participantId, condition: studyCondition, session_id: studySessionId, round_id: roundId, material_id: next.package_id, started_at: priorContext?.started_at ?? now };
-    const withContext = priorContext?.protocol_version && priorContext.round_id && priorContext.material_id ? { ...loaded, study_context } : event({ ...loaded, study_context }, "study_session_start", studySessionId, "study_session", undefined, { protocol_version: protocolVersion, participant_id: participantId, condition: studyCondition, round_id: roundId, material_id: next.package_id });
+    const initialPhase = participantId === "local" ? loaded.study_phase : loaded.phase_history.length ? loaded.study_phase : "reading";
+    const phased = { ...loaded, study_phase: initialPhase, phase_history: loaded.phase_history.length ? loaded.phase_history : [{ phase: initialPhase, started_at: now }] };
+    const withContext = priorContext?.protocol_version && priorContext.round_id && priorContext.material_id ? { ...phased, study_context } : event({ ...phased, study_context }, "study_session_start", studySessionId, "study_session", undefined, { protocol_version: protocolVersion, participant_id: participantId, condition: studyCondition, round_id: roundId, material_id: next.package_id, study_phase: initialPhase });
     const restored = withContext.read_chapter_ids.includes(firstChapter) ? withContext : event({ ...withContext, read_chapter_ids: [...withContext.read_chapter_ids, firstChapter] }, "chapter_read_enter", firstChapter, "chapter");
     saveSession(restored, sessionScope);
     undoStackRef.current = []; redoStackRef.current = [];
     setPkg(next); setSource(text); setSession(restored); setClaim(restored.claim); setChapter(firstChapter);
-    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(startWithActiveGhosts); setShowSignals(startWithActiveGhosts); setShowStructure(false); setMeaningView("narrative"); setInspectorTab("reading"); setInspectorOpen(true);
+    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(startWithActiveGhosts); setShowSignals(startWithActiveGhosts); setShowStructure(false); setMeaningView("narrative"); setInspectorTab("reading"); setInspectorOpen(window.innerWidth > 1500);
   };
   useEffect(() => { loadDevelopmentPackage().then(async (next) => activate(next, next.work.source_uri ? await fetch(next.work.source_uri).then((r) => r.text()) : "")).catch(() => undefined); }, []);
   useEffect(() => {
@@ -197,7 +201,6 @@ export default function App() {
   const readSpanIds = new Set(session.read_span_ids);
   const pendingGhostCount = (pkg.chapter_scaffolds?.find((item) => item.chapter_id === chapter)?.candidate_explorations ?? []).filter((candidate) => !session.candidate_decisions[candidate.id] && candidate.evidence_ids.every((id) => (find(pkg.evidence, id)?.span_ids ?? []).every((spanId) => readSpanIds.has(spanId)))).length;
   const spatialAvailable = (pkg.narrative_events?.length ?? 0) >= 2 || (pkg.scenes?.length ?? 0) >= 2;
-  const interpretationAvailable = session.reader_nodes.length + session.reader_relations.length + session.reader_claims.length >= 2;
   const browserSelection = () => {
     const selection = window.getSelection(); if (!selection || selection.rangeCount !== 1) return null;
     const range = selection.getRangeAt(0); const raw = range.toString(); const text = raw.trim(); if (text.length < 2) return null;
@@ -243,6 +246,25 @@ export default function App() {
     setInspectorTab("reading"); setInspectorOpen(true); setSkeletonExpanded(true);
     setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
   };
+  const addBaselineEvidenceReference = () => {
+    if (!selectedTextSpan) return;
+    const evidence = pkg.evidence.find((item) => item.span_ids.includes(selectedTextSpan.id)); if (!evidence) return;
+    const now = new Date().toISOString();
+    const reference = { id: `baseline-reference-${Date.now()}`, evidence_id: evidence.id, text_span_id: selectedTextSpan.id, start_char: selectedTextSpan.start, end_char: selectedTextSpan.end, quote: selectedTextSpan.text, created_at: now };
+    persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, evidence.id])], baseline_evidence_references: [...s.baseline_evidence_references, reference] }, "baseline_evidence_reference_add", reference.id, "baseline_evidence_reference", undefined, reference));
+    setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
+  };
+  const advanceStudyPhase = async () => {
+    const nextPhase = ({ reading: "construction", construction: "final_response", final_response: "complete", complete: "complete" } as const)[session.study_phase];
+    if (nextPhase === session.study_phase) return;
+    if (nextPhase === "complete" && (session.final_response.trim().length < 100 || session.final_response.trim().length > 200)) { setStudyCompletionMessage("最终作答需为 100-200 字，完成后才能结束本轮。"); return; }
+    const now = new Date().toISOString();
+    const suggestedEvidence = studyCondition === "baseline" ? session.baseline_evidence_references.map((item) => item.evidence_id) : [...session.selected_evidence_ids, ...session.reader_nodes.flatMap((item) => item.evidence_ids), ...session.reader_relations.flatMap((item) => item.evidence_ids), ...session.reader_claims.flatMap((item) => item.evidence_ids)];
+    const next = event({ ...session, study_phase: nextPhase, phase_history: [...session.phase_history, { phase: nextPhase, started_at: now }], final_response_evidence_ids: nextPhase === "final_response" && !session.final_response_evidence_ids.length ? [...new Set(suggestedEvidence)] : session.final_response_evidence_ids, ...(nextPhase === "complete" ? { completed_at: now } : {}) }, "study_phase_change", nextPhase, "study_phase", { phase: session.study_phase }, { phase: nextPhase });
+    setStudyCompletionMessage(""); setSession(next); saveSession(next, sessionScope);
+    if (nextPhase === "complete") { setStudyCompleting(true); try { await completeStudySession(next); setStudyCompletionMessage("本轮数据已完成校验并保存。请联系研究人员进入下一步。"); } catch (error) { setStudyCompletionMessage(error instanceof Error ? error.message : "最终数据保存失败，请勿关闭页面并联系研究人员。"); } finally { setStudyCompleting(false); } }
+  };
+  const toggleFinalEvidence = (evidenceId: string) => persist((s) => event({ ...s, final_response_evidence_ids: s.final_response_evidence_ids.includes(evidenceId) ? s.final_response_evidence_ids.filter((id) => id !== evidenceId) : [...s.final_response_evidence_ids, evidenceId] }, "final_response_evidence_toggle", evidenceId, "evidence", { selected: s.final_response_evidence_ids.includes(evidenceId) }, { selected: !s.final_response_evidence_ids.includes(evidenceId) }));
   const toggleInkDot = () => window.setTimeout(() => {
     const selected = browserSelection(); if (!selected) return;
     const existing = session.reader_nodes.find((node) => node.source_text_span_id === selected.id && node.source_start_char === selected.start && node.source_end_char === selected.end);
@@ -259,7 +281,7 @@ export default function App() {
     if (action === "accept") { setInspectorTab("reading"); setInspectorOpen(true); }
   };
 
-  if (studyCondition === "baseline") return <BaselineReader pkg={pkg} chapter={chapter} chapterIds={readerChapterIds} readingItems={readingItems} session={session} selectedTextSpan={selectedTextSpan} knowledgeBusy={knowledgeBusy} knowledgeMessage={knowledgeMessage} studySync={studySync} showStudyControls={showStudyControls} onSwitchCondition={switchCondition} onChapter={visitChapter} onSelect={captureTextSelection} onSpanVisibility={(id, phase) => persist((s) => phase === "exit" ? event(s, "text_span_view_exit", id, "text_span") : s.read_span_ids.includes(id) ? event(s, "text_span_revisit", id, "text_span") : event({ ...s, read_span_ids: [...s.read_span_ids, id] }, "text_span_first_exposure", id, "text_span"))} onKnowledge={lookupKnowledge} onCancelSelection={() => setSelectedTextSpan(null)} onNotes={(notes) => persist((s) => ({ ...s, baseline_notes: notes }))} onNotesCommit={() => persist((s) => event(s, "baseline_notes_revision", undefined, "baseline_notes", undefined, { character_count: session.baseline_notes.length }))} onExport={() => void downloadSession(session)} />;
+  if (studyCondition === "baseline") return <BaselineReader pkg={pkg} chapter={chapter} chapterIds={readerChapterIds} readingItems={readingItems} session={session} selectedTextSpan={selectedTextSpan} knowledgeBusy={knowledgeBusy} knowledgeMessage={knowledgeMessage} studySync={studySync} showStudyControls={showStudyControls} studyCompleting={studyCompleting} studyCompletionMessage={studyCompletionMessage} onSwitchCondition={switchCondition} onChapter={visitChapter} onSelect={captureTextSelection} onSpanVisibility={(id, phase) => persist((s) => phase === "exit" ? event(s, "text_span_view_exit", id, "text_span") : s.read_span_ids.includes(id) ? event(s, "text_span_revisit", id, "text_span") : event({ ...s, read_span_ids: [...s.read_span_ids, id] }, "text_span_first_exposure", id, "text_span"))} onKnowledge={lookupKnowledge} onAddEvidenceReference={addBaselineEvidenceReference} onCancelSelection={() => setSelectedTextSpan(null)} onNotes={(notes) => persist((s) => ({ ...s, baseline_notes: notes }))} onNotesCommit={() => persist((s) => event(s, "baseline_notes_revision", undefined, "baseline_notes", undefined, { character_count: session.baseline_notes.length }))} onFinalResponse={(value) => persist((s) => ({ ...s, final_response: value }))} onFinalResponseCommit={() => persist((s) => event(s, "final_response_revision", undefined, "final_response", undefined, { character_count: session.final_response.length }))} onToggleFinalEvidence={toggleFinalEvidence} onAdvancePhase={() => void advanceStudyPhase()} onExport={() => void downloadSession(session)} />;
 
   return <main className="app-shell">
     <header className="topbar">
@@ -293,6 +315,7 @@ export default function App() {
 <span><b>可质疑支架</b> 这里只整理值得检查的文本细节，不给出标准答案。</span>
 <span className="horizon-status">阅读地平线 {session.read_span_ids.length} / {pkg.text_spans.length} 个 TextSpan</span>
 </div>
+    <StudyFlowBar pkg={pkg} session={session} completing={studyCompleting} message={studyCompletionMessage} onFinalResponse={(value) => persist((s) => ({ ...s, final_response: value }))} onFinalResponseCommit={() => persist((s) => event(s, "final_response_revision", undefined, "final_response", undefined, { character_count: session.final_response.length }))} onToggleEvidence={toggleFinalEvidence} onAdvance={() => void advanceStudyPhase()} />
     {showHelp && <aside className="scaffold-help"><button onClick={() => setShowHelp(false)} title="关闭"><X size={15} /></button><b>支架如何工作</b><p>“线索”显示可拒绝的机器候选；“结构”显示经校准、仍可质疑的参考关系。紫色内容由你创建。所有对象都必须回到已读原文，系统不会给出主题或标准解释。</p></aside>}
     <div className="workspace">
       <aside className="left-rail">
@@ -351,7 +374,7 @@ export default function App() {
 <button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起工作区" : "打开工作区"}<ChevronRight size={14} />
 </button>
 </div>
-<MeaningViewTabs active={meaningView} spatialAvailable={spatialAvailable} interpretationAvailable={interpretationAvailable} onChange={changeMeaningView} />
+<MeaningViewTabs active={meaningView} spatialAvailable={spatialAvailable} onChange={changeMeaningView} />
 {skeletonExpanded && <>
 <div className="meaning-layer-legend" aria-label="可视化图例">
 <span className="candidate"><i />候选线索</span><span className="reference"><i />系统参考</span><span className="reader"><i />我的组织</span><small>所有节点均可回到原文</small>
@@ -418,7 +441,24 @@ function StudyConditionSwitch({ condition, eventCount, onChange }: { condition: 
 </div>;
 }
 
-function BaselineReader({ pkg, chapter, chapterIds, readingItems, session, selectedTextSpan, knowledgeBusy, knowledgeMessage, studySync, showStudyControls, onSwitchCondition, onChapter, onSelect, onSpanVisibility, onKnowledge, onCancelSelection, onNotes, onNotesCommit, onExport }: { pkg: WorkPackage; chapter: string; chapterIds: string[]; readingItems: Array<{ text: string; span?: WorkPackage["text_spans"][number] }>; session: ReaderSession; selectedTextSpan: { id: string; text: string } | null; knowledgeBusy: boolean; knowledgeMessage: string; studySync: { status: "syncing" | "synced" | "error"; detail?: string } | null; showStudyControls: boolean; onSwitchCondition: (condition: "meaningforge" | "baseline") => void; onChapter: (id: string) => void; onSelect: () => void; onSpanVisibility: (id: string, phase: "enter" | "exit") => void; onKnowledge: () => void; onCancelSelection: () => void; onNotes: (notes: string) => void; onNotesCommit: () => void; onExport: () => void }) {
+function StudyFlowBar({ pkg, session, completing, message, onFinalResponse, onFinalResponseCommit, onToggleEvidence, onAdvance }: { pkg: WorkPackage; session: ReaderSession; completing: boolean; message: string; onFinalResponse: (value: string) => void; onFinalResponseCommit: () => void; onToggleEvidence: (id: string) => void; onAdvance: () => void }) {
+  const phases = [{ id: "reading", label: "阅读全文" }, { id: "construction", label: "组织意义" }, { id: "final_response", label: "最终作答" }, { id: "complete", label: "本轮完成" }] as const;
+  const phaseIndex = phases.findIndex((item) => item.id === session.study_phase);
+  const contentChapterIds = new Set(chapters(pkg));
+  const requiredReadSpanIds = pkg.text_spans.filter((span) => contentChapterIds.has(span.chapter_id)).map((span) => span.id);
+  const readCount = requiredReadSpanIds.filter((id) => session.read_span_ids.includes(id)).length;
+  const readingComplete = readCount === requiredReadSpanIds.length;
+  const availableEvidenceIds = [...new Set(session.study_context?.condition === "baseline" ? session.baseline_evidence_references.map((item) => item.evidence_id) : [...session.selected_evidence_ids, ...session.reader_nodes.flatMap((item) => item.evidence_ids), ...session.reader_relations.flatMap((item) => item.evidence_ids), ...session.reader_claims.flatMap((item) => item.evidence_ids)])];
+  const actionLabel = session.study_phase === "reading" ? "完成全文阅读" : session.study_phase === "construction" ? "进入最终作答" : session.study_phase === "final_response" ? "完成本轮" : "已完成";
+  return <section className={`study-flow-bar phase-${session.study_phase}`}>
+    <div className="study-phase-track">{phases.map((phase, index) => <span key={phase.id} className={index <= phaseIndex ? "active" : ""}><i>{index + 1}</i>{phase.label}</span>)}</div>
+    {session.study_phase === "final_response" && <div className="final-response-editor"><header><div><b>请用 100-200 字写下你目前对本文的理解</b><small>两种条件使用完全相同的题目与计分口径</small></div><span className={session.final_response.trim().length >= 100 && session.final_response.trim().length <= 200 ? "valid" : ""}>{session.final_response.trim().length} / 200 字</span></header><textarea value={session.final_response} maxLength={200} onChange={(e) => onFinalResponse(e.target.value)} onBlur={onFinalResponseCommit} placeholder="请结合原文细节，写下你目前形成的理解；可以保留不确定性或不同可能。" /><div className="final-evidence-picker"><b>本次作答引用的原文证据</b><small>点击切换；只计算你明确勾选的证据</small>{availableEvidenceIds.length ? <div>{availableEvidenceIds.map((id) => <button key={id} className={session.final_response_evidence_ids.includes(id) ? "active" : ""} onClick={() => onToggleEvidence(id)}>{quote(pkg, id).replace(/\s+/g, " ").slice(0, 26)}{quote(pkg, id).length > 26 ? "…" : ""}</button>)}</div> : <p>尚未保存可引用证据。仍可完成作答，但证据锚定数将记录为 0。</p>}</div></div>}
+    <div className="study-phase-action"><div><b>{phases[Math.max(0, phaseIndex)]?.label}</b><small>{session.study_phase === "reading" ? `按自然顺序阅读完整材料；正文已读 ${readCount} / ${requiredReadSpanIds.length} 个 TextSpan。` : session.study_phase === "construction" ? "整理笔记、原文证据与暂时理解。" : session.study_phase === "final_response" ? "提交时会校验字数、证据 ID、事件序列与原文选区。" : "最终快照、事件日志、质量报告与派生指标已在本地服务端归档。"}</small></div><button disabled={session.study_phase === "complete" || completing || session.study_phase === "reading" && !readingComplete} title={session.study_phase === "reading" && !readingComplete ? "读完全部正文后可进入意义组织" : actionLabel} onClick={onAdvance}>{completing ? <LoaderCircle className="spin" size={14} /> : <Flag size={14} />}{actionLabel}</button></div>
+    {message && <p className="study-flow-message">{message}</p>}
+  </section>;
+}
+
+function BaselineReader({ pkg, chapter, chapterIds, readingItems, session, selectedTextSpan, knowledgeBusy, knowledgeMessage, studySync, showStudyControls, studyCompleting, studyCompletionMessage, onSwitchCondition, onChapter, onSelect, onSpanVisibility, onKnowledge, onAddEvidenceReference, onCancelSelection, onNotes, onNotesCommit, onFinalResponse, onFinalResponseCommit, onToggleFinalEvidence, onAdvancePhase, onExport }: { pkg: WorkPackage; chapter: string; chapterIds: string[]; readingItems: Array<{ text: string; span?: WorkPackage["text_spans"][number] }>; session: ReaderSession; selectedTextSpan: { id: string; text: string; start: number; end: number } | null; knowledgeBusy: boolean; knowledgeMessage: string; studySync: { status: "syncing" | "synced" | "error"; detail?: string } | null; showStudyControls: boolean; studyCompleting: boolean; studyCompletionMessage: string; onSwitchCondition: (condition: "meaningforge" | "baseline") => void; onChapter: (id: string) => void; onSelect: () => void; onSpanVisibility: (id: string, phase: "enter" | "exit") => void; onKnowledge: () => void; onAddEvidenceReference: () => void; onCancelSelection: () => void; onNotes: (notes: string) => void; onNotesCommit: () => void; onFinalResponse: (value: string) => void; onFinalResponseCommit: () => void; onToggleFinalEvidence: (id: string) => void; onAdvancePhase: () => void; onExport: () => void }) {
   const articleRef = useRef<HTMLElement>(null);
   const visibleRef = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -437,15 +477,16 @@ function BaselineReader({ pkg, chapter, chapterIds, readingItems, session, selec
   }, [chapter]);
   return <main className="baseline-shell">
 <header className="baseline-topbar"><div><b>阅读与笔记</b><small>强化基线条件{session.study_context?.participant_id !== "local" && ` · ${studySync?.status === "error" ? "记录保存失败" : studySync?.status === "synced" ? "记录已保存" : "正在建立记录"}`}</small></div><div className="baseline-top-actions">{showStudyControls && <StudyConditionSwitch condition="baseline" eventCount={session.events.length} onChange={onSwitchCondition} />}<button onClick={onExport} title="导出本次阅读记录"><Download size={16} />导出记录</button></div></header>
+<StudyFlowBar pkg={pkg} session={session} completing={studyCompleting} message={studyCompletionMessage} onFinalResponse={onFinalResponse} onFinalResponseCommit={onFinalResponseCommit} onToggleEvidence={onToggleFinalEvidence} onAdvance={onAdvancePhase} />
 <div className="baseline-workspace">
 <section className="baseline-reading">
 <header><p className="eyebrow">原文</p><h1>{pkg.work.title}</h1></header>
 <ReadingNavigator chapter={chapter} chapterIds={chapterIds} onChange={onChapter} />
 <p className="reading-hint">选中词或短语后可以查询客观背景资料。</p>
 <article ref={articleRef} onMouseUp={onSelect}>{readingItems.map((item, index) => <p key={item.span?.id ?? index} data-span-id={item.span?.id}>{item.text}</p>)}</article>
-{selectedTextSpan && <aside className="baseline-query"><blockquote>{selectedTextSpan.text}</blockquote><div><button onClick={onCancelSelection}>取消</button><button className="primary" onClick={onKnowledge} disabled={knowledgeBusy}>{knowledgeBusy ? <LoaderCircle className="spin" size={14} /> : <Search size={14} />}查询背景</button></div></aside>}
+{selectedTextSpan && <aside className="baseline-query"><blockquote>{selectedTextSpan.text}</blockquote><div><button onClick={onCancelSelection}>取消</button><button onClick={onAddEvidenceReference}><Plus size={14} />引用到笔记</button><button className="primary" onClick={onKnowledge} disabled={knowledgeBusy}>{knowledgeBusy ? <LoaderCircle className="spin" size={14} /> : <Search size={14} />}查询背景</button></div></aside>}
 </section>
-<aside className="baseline-notes"><header><div><b>我的阅读笔记</b><small>自由记录并在末尾完成 100-200 字总结</small></div></header><textarea value={session.baseline_notes} onChange={(event) => onNotes(event.target.value)} onBlur={onNotesCommit} placeholder="在这里记录你的观察、关联与总结……" /><footer><span>{session.baseline_notes.length} 字</span></footer><KnowledgeHistory cards={session.knowledge_cards} message={knowledgeMessage} /></aside>
+<aside className="baseline-notes"><header><div><b>我的阅读笔记</b><small>自由记录；最终作答将在独立阶段完成</small></div></header><textarea value={session.baseline_notes} onChange={(event) => onNotes(event.target.value)} onBlur={onNotesCommit} placeholder="在这里记录你的观察与关联……" /><footer><span>{session.baseline_notes.length} 字</span></footer>{session.baseline_evidence_references.length > 0 && <details className="baseline-evidence-list" open><summary>已引用原文（{session.baseline_evidence_references.length}）</summary>{session.baseline_evidence_references.map((reference) => <blockquote key={reference.id}>{reference.quote}</blockquote>)}</details>}<KnowledgeHistory cards={session.knowledge_cards} message={knowledgeMessage} /></aside>
 </div>
 </main>;
 }
@@ -504,11 +545,11 @@ function MapReadingPreview({ pkg, chapter, evidenceIds, onEvidence }: { pkg: Wor
   return <aside className="map-reading-preview"><header><b>原文</b><small>第 {chapter} 节</small></header>{spans.map((span) => <button key={span.id} className={selectedSpanIds.has(span.id) ? "marked" : ""} onClick={() => { const evidence = pkg.evidence.find((item) => item.span_ids.includes(span.id)); if (evidence) onEvidence(evidence.id); }}>{span.text}</button>)}</aside>;
 }
 
-function MeaningViewTabs({ active, spatialAvailable, interpretationAvailable, onChange }: { active: MeaningView; spatialAvailable: boolean; interpretationAvailable: boolean; onChange: (view: MeaningView) => void }) {
+function MeaningViewTabs({ active, spatialAvailable, onChange }: { active: MeaningView; spatialAvailable: boolean; onChange: (view: MeaningView) => void }) {
   const views: Array<{ id: MeaningView; label: string; icon: typeof ListTree; enabled: boolean; reason?: string }> = [
     { id: "narrative", label: "叙事图谱", icon: ListTree, enabled: true },
     { id: "spatial", label: "时空轨迹", icon: Clock3, enabled: spatialAvailable, reason: "当前材料还没有足够的事件或场景记录" },
-    { id: "interpretation", label: "解读空间", icon: ChartNoAxesCombined, enabled: interpretationAvailable, reason: "建立至少两个自己的线索、关系或理解后开启" },
+    { id: "interpretation", label: "解读空间", icon: ChartNoAxesCombined, enabled: true },
   ];
   return <nav className="meaning-view-tabs" aria-label="协调视图">{views.map(({ id, label, icon: Icon, enabled, reason }) => <button key={id} className={active === id ? "active" : ""} disabled={!enabled} title={enabled ? `打开${label}` : reason} onClick={() => enabled && onChange(id)}><Icon size={14} />{label}{!enabled && <small>待开启</small>}</button>)}</nav>;
 }
@@ -554,7 +595,14 @@ function InterpretationSpaceView({ session, onEvidence, onOpenMyReading, onPersi
   const [yDimension, setYDimension] = useState("evidence");
   const [newDimension, setNewDimension] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
-  const items = [...session.reader_claims.map((item) => ({ id: item.id, label: item.text, confidence: item.confidence, evidenceIds: item.evidence_ids, revisions: item.history.length, kind: "理解", history: item.history })), ...session.reader_relations.map((item) => ({ id: item.id, label: item.label, confidence: item.confidence ?? "tentative", evidenceIds: item.evidence_ids, revisions: item.history.length, kind: "关系", history: item.history }))];
+  const items = [...session.reader_nodes.map((item) => ({ id: item.id, label: item.label, confidence: "tentative" as const, evidenceIds: item.evidence_ids, revisions: item.history.length, kind: item.reading_intent === "question" ? "问题" : "线索", history: item.history })), ...session.reader_claims.map((item) => ({ id: item.id, label: item.text, confidence: item.confidence, evidenceIds: item.evidence_ids, revisions: item.history.length, kind: "理解", history: item.history })), ...session.reader_relations.map((item) => ({ id: item.id, label: item.label, confidence: item.confidence ?? "tentative", evidenceIds: item.evidence_ids, revisions: item.history.length, kind: "关系", history: item.history }))];
+  const traceStats = [
+    { id: "read", label: "已读原文", value: session.read_span_ids.length },
+    { id: "selected", label: "保存证据", value: session.selected_evidence_ids.length },
+    { id: "knowledge", label: "背景查询", value: session.knowledge_cards.length },
+    { id: "candidate", label: "处理候选", value: Object.keys(session.candidate_decisions).length },
+    { id: "revisit", label: "证据回看", value: session.events.filter((entry) => entry.action === "evidence_jump").length },
+  ];
   const dimensions = [{ id: "confidence", label: "把握程度", low: "暂定", high: "较有把握", authored: false }, { id: "evidence", label: "证据数量", low: "较少", high: "较多", authored: false }, { id: "revision", label: "修订次数", low: "较少", high: "较多", authored: false }, ...session.interpretation_dimensions.map((item) => ({ id: item.id, label: item.label, low: item.low_label, high: item.high_label, authored: true }))];
   const score = (item: typeof items[number], dimensionId: string) => dimensionId === "confidence" ? item.confidence === "confident" ? 84 : item.confidence === "developing" ? 52 : 18 : dimensionId === "evidence" ? Math.min(88, 14 + item.evidenceIds.length * 14) : dimensionId === "revision" ? Math.min(88, 14 + item.revisions * 12) : session.interpretation_ratings[item.id]?.[dimensionId] ?? 50;
   const xAxis = dimensions.find((item) => item.id === xDimension) ?? dimensions[0]; const yAxis = dimensions.find((item) => item.id === yDimension) ?? dimensions[1];
@@ -562,7 +610,7 @@ function InterpretationSpaceView({ session, onEvidence, onOpenMyReading, onPersi
   const createDimension = () => { const label = newDimension.trim(); if (!label) return; const now = new Date().toISOString(); const id = `reader-dimension-${Date.now()}`; onPersist((s) => event({ ...s, interpretation_dimensions: [...s.interpretation_dimensions, { id, label, low_label: "较少", high_label: "较多", created_at: now, provenance: "reader-authored" }] }, "interpretation_dimension_create", id, "interpretation_dimension", undefined, { label })); setYDimension(id); setNewDimension(""); };
   const rate = (itemId: string, dimensionId: string, value: number) => onPersist((s) => event({ ...s, interpretation_ratings: { ...s.interpretation_ratings, [itemId]: { ...(s.interpretation_ratings[itemId] ?? {}), [dimensionId]: value } } }, "interpretation_dimension_rate", itemId, "interpretation_item", undefined, { dimension_id: dimensionId, value }));
   const switchAxis = (axis: "x" | "y", value: string) => { if (axis === "x") setXDimension(value); else setYDimension(value); onPersist((s) => event(s, "interpretation_dimension_change", value, "interpretation_dimension", undefined, { axis })); };
-  return <section className="interpretation-space-view"><header><div><p className="view-kicker"><ChartNoAxesCombined size={13} />Interpretation field</p><b>我的多种读法</b><small>系统只提供证据、修订等可计算轴；解释性维度由你命名</small></div><div><button className={mode === "1d" ? "active" : ""} onClick={() => setMode("1d")}>一维</button><button className={mode === "2d" ? "active" : ""} onClick={() => setMode("2d")}>二维</button></div></header><div className="dimension-toolbar"><label>X 轴<select value={xDimension} onChange={(event) => switchAxis("x", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>{mode === "2d" && <label>Y 轴<select value={yDimension} onChange={(event) => switchAxis("y", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>}<label className="new-dimension"><input value={newDimension} onChange={(event) => setNewDimension(event.target.value)} placeholder="添加我的维度" /><button onClick={createDimension} disabled={!newDimension.trim()} title="添加读者自定义维度"><Plus size={13} /></button></label></div>{items.length ? <><div className="interpretation-summary"><span><b>{items.length}</b> 个解释对象</span><span><b>{items.reduce((sum, item) => sum + item.evidenceIds.length, 0)}</b> 处证据锚定</span><span><b>{items.reduce((sum, item) => sum + Math.max(0, item.revisions - 1), 0)}</b> 次修订</span></div><div className={`interpretation-plane mode-${mode}`}><span className="axis-y">{mode === "2d" ? `${yAxis.high} · ${yAxis.label}` : ""}</span><span className="axis-x">{xAxis.low}　← {xAxis.label} →　{xAxis.high}</span>{items.slice(0, 16).map((item) => <button className={selectedItemId === item.id ? "selected" : ""} key={item.id} style={{ left: `${score(item, xDimension)}%`, top: `${mode === "2d" ? 100 - score(item, yDimension) : 50}%` } as CSSProperties} onClick={() => { setSelectedItemId(item.id); onPersist((s) => event(s, "interpretation_space_item_open", item.id, item.kind)); }}><span>{item.kind}</span><b>{item.label.slice(0, 20)}{item.label.length > 20 ? "…" : ""}</b><small>{item.evidenceIds.length} 处证据 · {item.revisions} 个版本</small></button>)}</div>{selected && <aside className="interpretation-inspector"><header><div><small>{selected.kind}</small><b>{selected.label || "尚未写下文字理解"}</b></div><button onClick={() => setSelectedItemId("")} title="关闭"><X size={14} /></button></header><div><button onClick={() => selected.evidenceIds[0] && onEvidence(selected.evidenceIds[0])}><Eye size={13} />查看原文证据</button><button onClick={onOpenMyReading}>打开我的阅读</button></div>{[xAxis, ...(mode === "2d" ? [yAxis] : [])].filter((axis) => axis.authored).map((axis) => <label key={axis.id}><span>{axis.low}</span><input type="range" min="0" max="100" value={score(selected, axis.id)} onChange={(event) => rate(selected.id, axis.id, Number(event.target.value))} /><span>{axis.high}</span><small>{axis.label}</small></label>)}<details><summary>版本记录（{selected.history.length}）</summary>{selected.history.slice().reverse().slice(0, 5).map((entry, index) => <p key={`${entry.at}-${index}`}><time>{new Date(entry.at).toLocaleString()}</time>{"text" in entry ? entry.text : entry.label}</p>)}</details></aside>}</> : <div className="interpretation-empty"><i><Plus size={20} /></i><b>从第一处原文证据开始</b><p>创建紫色线索、建立关系或写下暂时理解后，它们会在这里并存，而不会被系统排序成标准答案。</p><button onClick={onOpenMyReading}><Plus size={14} />打开“我的阅读”</button></div>}</section>;
+  return <section className="interpretation-space-view"><header><div><p className="view-kicker"><ChartNoAxesCombined size={13} />Interpretation field</p><b>我的多种读法</b><small>阅读痕迹提供回看入口；只有你写下的线索、关系与理解进入解释平面</small></div><div><button className={mode === "1d" ? "active" : ""} onClick={() => setMode("1d")}>一维</button><button className={mode === "2d" ? "active" : ""} onClick={() => setMode("2d")}>二维</button></div></header><div className="reading-trace-field"><header><b>阅读痕迹</b><small>这些记录不等同于解释结论</small></header><div>{traceStats.map((trace) => <span key={trace.id} className={trace.value ? "active" : ""}><b>{trace.value}</b><small>{trace.label}</small></span>)}</div></div><div className="dimension-toolbar"><label>X 轴<select value={xDimension} onChange={(event) => switchAxis("x", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>{mode === "2d" && <label>Y 轴<select value={yDimension} onChange={(event) => switchAxis("y", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>}<label className="new-dimension"><input value={newDimension} onChange={(event) => setNewDimension(event.target.value)} placeholder="添加我的维度" /><button onClick={createDimension} disabled={!newDimension.trim()} title="添加读者自定义维度"><Plus size={13} /></button></label></div>{items.length ? <><div className="interpretation-summary"><span><b>{items.length}</b> 个读者对象</span><span><b>{items.reduce((sum, item) => sum + item.evidenceIds.length, 0)}</b> 处证据锚定</span><span><b>{items.reduce((sum, item) => sum + Math.max(0, item.revisions - 1), 0)}</b> 次修订</span></div><div className={`interpretation-plane mode-${mode}`}><span className="axis-y">{mode === "2d" ? `${yAxis.high} · ${yAxis.label}` : ""}</span><span className="axis-x">{xAxis.low}　← {xAxis.label} →　{xAxis.high}</span>{items.slice(0, 16).map((item) => <button className={selectedItemId === item.id ? "selected" : ""} key={item.id} style={{ left: `${score(item, xDimension)}%`, top: `${mode === "2d" ? 100 - score(item, yDimension) : 50}%` } as CSSProperties} onClick={() => { setSelectedItemId(item.id); onPersist((s) => event(s, "interpretation_space_item_open", item.id, item.kind)); }}><span>{item.kind}</span><b>{item.label.slice(0, 20)}{item.label.length > 20 ? "…" : ""}</b><small>{item.evidenceIds.length} 处证据 · {item.revisions} 个版本</small></button>)}</div>{selected && <aside className="interpretation-inspector"><header><div><small>{selected.kind}</small><b>{selected.label || "尚未写下文字理解"}</b></div><button onClick={() => setSelectedItemId("")} title="关闭"><X size={14} /></button></header><div><button onClick={() => selected.evidenceIds[0] && onEvidence(selected.evidenceIds[0])}><Eye size={13} />查看原文证据</button><button onClick={onOpenMyReading}>打开我的阅读</button></div>{[xAxis, ...(mode === "2d" ? [yAxis] : [])].filter((axis) => axis.authored).map((axis) => <label key={axis.id}><span>{axis.low}</span><input type="range" min="0" max="100" value={score(selected, axis.id)} onChange={(event) => rate(selected.id, axis.id, Number(event.target.value))} /><span>{axis.high}</span><small>{axis.label}</small></label>)}<details><summary>版本记录（{selected.history.length}）</summary>{selected.history.slice().reverse().slice(0, 5).map((entry, index) => <p key={`${entry.at}-${index}`}><time>{new Date(entry.at).toLocaleString()}</time>{"text" in entry ? entry.text : entry.label}</p>)}</details></aside>}</> : <div className="interpretation-empty trace-ready"><i><Plus size={20} /></i><b>解读空间已经开启</b><p>上方痕迹会随阅读累积。选中原文建立第一条紫色线索后，它会进入可比较平面；点击和查询不会被冒充为解释。</p><button onClick={onOpenMyReading}><Plus size={14} />打开“我的阅读”</button></div>}</section>;
 }
 
 function EvidenceRail({ pkg, activeEvidenceId, activeSpanId, visibleSpanIds, onLinkedSpan, onEvidence }: { pkg: WorkPackage; activeEvidenceId: string; activeSpanId: string; visibleSpanIds: string[]; onLinkedSpan: (spanId: string) => void; onEvidence: (id: string) => void }) {
@@ -654,7 +702,12 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
     };
   });
   const candidateItems = showSignals ? (scaffold?.candidate_explorations ?? []).filter((candidate) => !session.candidate_decisions[candidate.id]).slice(0, 5).map((candidate) => ({ id: `candidate:${candidate.id}`, label: candidate.label, kind: "candidate", sourceLayer: "candidate" as const, evidenceIds: candidate.evidence_ids.filter(evidenceInsideHorizon), note: candidate.prompt, carrierIds: [] as string[], relationIds: [] as string[], isCrossChapter: false })) : [];
-  const projectedItems = [...anchorItems, ...carrierItems, ...candidateItems].filter((item, index, all) => item.evidenceIds.length > 0 && item.evidenceIds.every(evidenceInsideHorizon) && all.findIndex((other) => other.label === item.label && other.evidenceIds[0] === item.evidenceIds[0]) === index);
+  const graphItems = (pkg.narrative_graph?.nodes ?? []).flatMap((node) => {
+    const evidenceIds = node.evidence_ids.filter(evidenceInsideHorizon);
+    const relationIds = (pkg.narrative_graph?.edges ?? []).filter((edge) => edge.source_id === node.id || edge.target_id === node.id).map((edge) => edge.id);
+    return evidenceIds.length ? [{ id: `narrative:${node.id}`, label: node.label, kind: node.kind, sourceLayer: "narrative_graph" as const, evidenceIds, note: node.description, carrierIds: [node.id], relationIds, isCrossChapter: node.chapter_id !== chapter }] : [];
+  });
+  const projectedItems = (graphItems.length ? graphItems : [...anchorItems, ...carrierItems, ...candidateItems]).filter((item, index, all) => item.evidenceIds.length > 0 && all.findIndex((other) => other.label === item.label && other.evidenceIds[0] === item.evidenceIds[0]) === index);
   // Frozen reference packages created before Evidence Unit Projection remain
   // usable: derive the same neutral clause-level units on the reader side.
   const classifyCue = (text: string) => {
@@ -674,11 +727,14 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
   });
   const items = (projectedItems.length ? projectedItems : frozenEvidenceItems).filter((item, index, list) => item.evidenceIds.length && list.findIndex((other) => other.label === item.label && other.evidenceIds[0] === item.evidenceIds[0]) === index);
   const sourceOrderForEvidence = (evidenceId: string) => Math.min(...(find(pkg.evidence, evidenceId)?.span_ids.map((spanId) => find(pkg.text_spans, spanId)?.order ?? Number.MAX_SAFE_INTEGER) ?? [Number.MAX_SAFE_INTEGER]));
-  const elements = items.flatMap((item) => {
+  type CanvasItem = typeof items[number];
+  type CanvasElement = CanvasItem & { id: string; evidenceIds: string[]; occurrence: number; sourceOrder: number };
+  const elements: CanvasElement[] = items.flatMap<CanvasElement>((item) => {
     const localEvidenceIds = item.evidenceIds.filter((id) => find(pkg.evidence, id)?.span_ids.some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapter));
     const evidenceIds = (localEvidenceIds.length ? localEvidenceIds : item.evidenceIds).slice(0, item.isCrossChapter ? 1 : 2);
+    if (item.sourceLayer === "narrative_graph") return [{ ...item, id: `element:${item.id}`, evidenceIds: item.evidenceIds, occurrence: 0, sourceOrder: Math.min(...item.evidenceIds.map(sourceOrderForEvidence)) }];
     return evidenceIds.map((evidenceId, occurrence) => ({ ...item, id: `element:${item.id}:${evidenceId}`, evidenceIds: [evidenceId], occurrence, sourceOrder: sourceOrderForEvidence(evidenceId) }));
-  }).sort((a, b) => a.sourceOrder - b.sourceOrder || a.label.localeCompare(b.label, "zh-CN")).slice(0, 30);
+  }).sort((a, b) => a.sourceOrder - b.sourceOrder || a.label.localeCompare(b.label, "zh-CN")).slice(0, pkg.narrative_graph ? 40 : 30);
   const routeCountFor = (item: typeof elements[number]) => new Set([...item.relationIds, ...item.carrierIds]).size;
   const routeRankFor = (item: typeof elements[number]) => {
     const routes = routeCountFor(item);
@@ -702,14 +758,27 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
   const compactTypeSlots: Record<string, Array<[number, number]>> = { people: [[18, 24], [31, 37], [18, 48]], actions: [[18, 69], [34, 81], [42, 63]], objects: [[62, 23], [82, 37], [64, 45]], context: [[61, 68], [83, 80], [88, 58]] };
   const compactRouteSlots: Record<string, Array<[number, number]>> = { "routes-3": [[50, 42], [63, 63]], "routes-2": [[24, 24], [76, 25], [25, 67], [76, 71], [49, 77]], "routes-1": [[13, 48], [89, 49], [45, 17], [53, 90]] };
   const clusterUse = new Map<string, number>();
-  const positionedElements = elements.slice(0, canvasLimit).map((item, sourceIndex) => { const cluster = clusterFor(item); const index = clusterUse.get(cluster) ?? 0; clusterUse.set(cluster, index + 1); const sparsePosition = clusterBy === "source" ? compactSlots[sourceIndex % compactSlots.length] : clusterBy === "type" ? compactTypeSlots[cluster][index % compactTypeSlots[cluster].length] : compactRouteSlots[cluster][index % compactRouteSlots[cluster].length]; return { ...item, cluster, position: elements.length <= 10 ? sparsePosition : clusterBy === "source" ? sourceSlots[sourceIndex % sourceSlots.length] : clusterSlots[cluster][index % clusterSlots[cluster].length] }; });
+  const graphChapterIds = [...new Set((pkg.narrative_graph?.nodes ?? []).map((node) => node.chapter_id))];
+  const graphPosition = (item: typeof elements[number]): [number, number] => {
+    const node = pkg.narrative_graph?.nodes.find((entry) => item.carrierIds.includes(entry.id));
+    if (!node) return [50, 50];
+    const chapterIndex = Math.max(0, graphChapterIds.indexOf(node.chapter_id));
+    const bandWidth = 88 / Math.max(1, graphChapterIds.length);
+    const peers = (pkg.narrative_graph?.nodes ?? []).filter((entry) => entry.chapter_id === node.chapter_id && entry.kind === node.kind).sort((a, b) => a.order - b.order);
+    const peerIndex = Math.max(0, peers.findIndex((entry) => entry.id === node.id));
+    const grid = peers.length <= 1 ? [[0, 0]] : peers.length === 2 ? [[-6.2, 0], [6.2, 0]] : peers.length === 3 ? [[0, -5], [-6.2, 4], [6.2, 4]] : [[-6.2, -4], [6.2, -4], [-6.2, 5], [6.2, 5]];
+    const [offsetX, offsetY] = grid[peerIndex % grid.length];
+    const y = ({ scene: 14, event: 36, character: 57, object: 76, place: 76, cue: 91 } as Record<string, number>)[node.kind] ?? 50;
+    return [6 + bandWidth * (chapterIndex + .5) + offsetX, y + offsetY];
+  };
+  const positionedElements = elements.slice(0, pkg.narrative_graph ? elements.length : canvasLimit).map((item, sourceIndex) => { const cluster = clusterFor(item); const index = clusterUse.get(cluster) ?? 0; clusterUse.set(cluster, index + 1); const sparsePosition = clusterBy === "source" ? compactSlots[sourceIndex % compactSlots.length] : clusterBy === "type" ? compactTypeSlots[cluster][index % compactTypeSlots[cluster].length] : compactRouteSlots[cluster][index % compactRouteSlots[cluster].length]; const position = item.sourceLayer === "narrative_graph" ? graphPosition(item) : elements.length <= 10 ? sparsePosition : clusterBy === "source" ? sourceSlots[sourceIndex % sourceSlots.length] : clusterSlots[cluster][index % clusterSlots[cluster].length]; return { ...item, cluster, position }; });
   const attentionFor = (item: typeof elements[number]) => session.events.filter((entry) => entry.action === "meaning_space_bubble_open" && entry.target_id === item.id).length;
   const colorClassFor = (item: typeof elements[number]) => colorBy === "type" ? `color-type-${item.kind}` : colorBy === "uniform" ? "color-uniform" : colorBy === "routes" ? `color-frequency-${routeRankFor(item)}` : `color-attention-${Math.min(3, attentionFor(item) + 1)}`;
   const sizeClassFor = (item: typeof elements[number]) => sizeBy === "uniform" ? "size-uniform" : sizeBy === "routes" ? `size-${routeRankFor(item)}` : `size-${Math.min(3, attentionFor(item) + 1)}`;
   const normalizeReferenceNodeId = (id: string) => id.replace(/:part-\d+(?=:)/, "");
   const referencedNodeIds = new Set(session.reader_evidence_references.flatMap((reference) => [reference.reference_node_id, normalizeReferenceNodeId(reference.reference_node_id)]));
   const visiblePositionedElements = layout === "reader" ? positionedElements.filter((item) => referencedNodeIds.has(item.id)) : positionedElements;
-  const exactCarrierEndpoint = (carrierId: string) => visiblePositionedElements.find((item) => item.carrierIds.length === 1 && item.carrierIds[0] === carrierId && ["mip_carrier", "structural_carrier", "cross_chapter_carrier"].includes(item.sourceLayer))
+  const exactCarrierEndpoint = (carrierId: string) => visiblePositionedElements.find((item) => item.carrierIds.length === 1 && item.carrierIds[0] === carrierId && ["mip_carrier", "structural_carrier", "cross_chapter_carrier", "narrative_graph"].includes(item.sourceLayer))
     ?? visiblePositionedElements.find((item) => item.carrierIds.includes(carrierId));
   const weakRelationCandidates = referenceRelations.flatMap((relation) => {
     // The relation must terminate at its actual projected carriers. A context
@@ -719,10 +788,15 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
     const target = exactCarrierEndpoint(relation.target_id);
     return source && target && source.id !== target.id ? [{ id: relation.id, source, target }] : [];
   });
-  const weakRelations = weakRelationCandidates.filter((relation, index, relations) => {
+  const structuralLines = weakRelationCandidates.filter((relation, index, relations) => {
     const key = [relation.source.carrierIds[0], relation.target.carrierIds[0]].sort().join("::");
     return relations.findIndex((candidate) => [candidate.source.carrierIds[0], candidate.target.carrierIds[0]].sort().join("::") === key) === index;
   }).slice(0, 8);
+  const narrativeLines = (pkg.narrative_graph?.edges ?? []).filter((edge) => (showStructure || edge.type === "precedes") && edge.evidence_ids.some(evidenceInsideHorizon)).flatMap((edge) => {
+    const source = exactCarrierEndpoint(edge.source_id); const target = exactCarrierEndpoint(edge.target_id);
+    return source && target && source.id !== target.id ? [{ id: edge.id, source, target, type: edge.type }] : [];
+  });
+  const weakRelations = [...narrativeLines, ...structuralLines];
   // Candidate paths are not ReferenceRelations. They only show which neutral
   // chapter anchors a still-undecided figurative cue is grounded beside.
   // Keeping them visually separate prevents an empty strict layer from
@@ -751,7 +825,7 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
   const relationEndpointLabel = (id: string) => find(pkg.carriers, id)?.label ?? find(pkg.narrative_entities, id)?.label ?? find(pkg.narrative_events ?? [], id)?.label ?? "原文线索";
   const relationSignalText = (relation: WorkPackage["structural_relations"][number]) => [relation.source_id, relation.target_id].flatMap((id) => { const parts = carrierParts(id); return parts.length > 1 ? [`${parts[0]}与${parts.slice(1).join("、")}`] : []; }).join("；");
   const typeLabel = (type: string) => ({ passage: "原文片段", dialogue: "对话片段", character: "人物", object: "物件／意象", event: "事件", action: "行动", scene: "场景", image: "修辞线索", recurrence: "重复线索", pattern: "结构线索", candidate: "待探索线索" } as Record<string, string>)[type] ?? "文本线索";
-  const sourceLayerLabel = (sourceLayer: string) => ({ context_anchor: "叙事语境锚点", mip_carrier: researchView ? "MIP 词汇比较载体" : "修辞比较线索", structural_carrier: "全文结构线索", cross_chapter_carrier: "跨章关系端点", candidate: "待检查候选", compatibility_fallback: researchView ? "旧数据兼容线索" : "文本线索" } as Record<string, string>)[sourceLayer] ?? "可追溯线索";
+  const sourceLayerLabel = (sourceLayer: string) => ({ narrative_graph: "人工校准叙事索引", context_anchor: "叙事语境锚点", mip_carrier: researchView ? "MIP 词汇比较载体" : "修辞比较线索", structural_carrier: "全文结构线索", cross_chapter_carrier: "跨章关系端点", candidate: "待检查候选", compatibility_fallback: researchView ? "旧数据兼容线索" : "文本线索" } as Record<string, string>)[sourceLayer] ?? "可追溯线索";
   const readerTypeLabel = (type: string) => ({ reader_evidence: "我添加的原文线索", evidence_cue: "我添加的原文线索", question: "我的阅读问题", counterevidence: "针对关系的反证", interpretive_candidate: "暂定概念", image_relation: "意象关系", reader_exploration: "我添加的原文线索" } as Record<string, string>)[type] ?? "我的线索";
   const canvasLabel = (label: string) => {
     const cue = label.split(/[，。；：:、]/)[0].trim();
@@ -871,13 +945,17 @@ function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSig
           {!researchView && <small className="encoding-boundary">“可检查连接数”只表示可打开的证据/关系入口数量，不表示线索更重要。</small>}
         </details>
       </div>
-      <div ref={mapRef} className={`meaning-map ${visiblePositionedElements.length <= 10 ? "sparse-map" : ""} ${showMap ? "map-open" : ""} ${layout === "reader" ? "reader-arranging" : "reference-arrangement"}`} aria-label="本节意义探索图" onPointerMove={updateDrag} onPointerUp={() => { const drag = dragRef.current; dragRef.current = null; if (drag?.moved) saveLayout(drag.id); }} onPointerCancel={() => { dragRef.current = null; }}>
+      <div ref={mapRef} className={`meaning-map ${pkg.narrative_graph ? "structured-story-map" : ""} ${visiblePositionedElements.length <= 10 ? "sparse-map" : ""} ${showMap ? "map-open" : ""} ${layout === "reader" ? "reader-arranging" : "reference-arrangement"}`} aria-label="本节意义探索图" onPointerMove={updateDrag} onPointerUp={() => { const drag = dragRef.current; dragRef.current = null; if (drag?.moved) saveLayout(drag.id); }} onPointerCancel={() => { dragRef.current = null; }}>
+      {pkg.narrative_graph && layout !== "reader" && <div className="story-structure-backdrop" aria-hidden="true">
+        {graphChapterIds.map((chapterId, index) => <div key={chapterId} className={`story-chapter-band ${session.read_chapter_ids.includes(chapterId) || chapterId === chapter ? "read" : "unread"}`} style={{ left: `${6 + index * 88 / Math.max(1, graphChapterIds.length)}%`, width: `${88 / Math.max(1, graphChapterIds.length)}%` }}><span>第 {chapterId} 节</span></div>)}
+        <span className="story-lane-label lane-event">事件</span><span className="story-lane-label lane-character">人物</span><span className="story-lane-label lane-object">物件</span><span className="story-lane-label lane-cue">线索</span>
+      </div>}
       <div className="map-arrangement-note"><b>{layout === "reference" ? "系统参考" : layout === "reader" ? "我的探索" : "两层对照"}</b><span>{layout === "reference" ? (clusterBy === "source" ? "按原文先后位置排列" : "按所选证据属性排列") : layout === "reader" ? "引用证据与紫色结构属于你的阅读过程" : "同时查看系统起点与自己的构建"}</span></div>
-      {layout !== "reader" && <div className={`reference-relation-status ${referenceRelations.length ? "has-relations" : "no-relations"}`}>{referenceRelations.length ? `${referenceRelations.length} 条严格参考关系` : `暂无严格参考关系${candidatePaths.length ? ` · ${candidateItems.length} 个候选路径` : ""}`}</div>}
-      {layout !== "reader" && weakRelations.length > 0 && <svg className="meaning-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="系统严格参考关系">{weakRelations.map((relation) => { const highlighted = [selectedId, hoveredId].filter(Boolean).some((id) => id === relation.source.id || id === relation.target.id); return <line className={highlighted ? "active" : ""} key={relation.id} x1={relation.source.position[0]} y1={relation.source.position[1]} x2={relation.target.position[0]} y2={relation.target.position[1]} />; })}</svg>}
+      {layout !== "reader" && <div className={`reference-relation-status ${showStructure && weakRelations.length ? "has-relations" : "no-relations"}`}>{pkg.narrative_graph ? showStructure ? `${narrativeLines.length} 条叙事关系` : "事件主轴已显示 · 结构按需展开" : referenceRelations.length ? `${referenceRelations.length} 条严格参考关系` : `暂无严格参考关系${candidatePaths.length ? ` · ${candidateItems.length} 个候选路径` : ""}`}</div>}
+      {layout !== "reader" && weakRelations.length > 0 && <svg className="meaning-map-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="系统叙事关系">{weakRelations.map((relation) => { const highlighted = [selectedId, hoveredId].filter(Boolean).some((id) => id === relation.source.id || id === relation.target.id); return <line className={`${highlighted ? "active" : ""} ${"type" in relation ? `edge-${relation.type}` : ""}`} key={relation.id} x1={relation.source.position[0]} y1={relation.source.position[1]} x2={relation.target.position[0]} y2={relation.target.position[1]} />; })}</svg>}
       {layout !== "reader" && candidatePaths.length > 0 && <svg className="meaning-map-candidate-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="待检查候选路径">{candidatePaths.map((path) => { const highlighted = [selectedId, hoveredId].filter(Boolean).some((id) => id === path.source.id || id === path.target.id); return <line className={highlighted ? "active" : ""} key={path.id} x1={path.source.position[0]} y1={path.source.position[1]} x2={path.target.position[0]} y2={path.target.position[1]}><title>{path.basis} · 尚未验证</title></line>; })}</svg>}
       {readerMapRelations.length > 0 && <svg className="meaning-map-reader-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="我的关系">{readerMapRelations.map((relation) => <line key={relation.id} x1={relation.source[0]} y1={relation.source[1]} x2={relation.target[0]} y2={relation.target[1]} />)}</svg>}
-      {visiblePositionedElements.map((item, index) => { const hovered = visiblePositionedElements.find((entry) => entry.id === hoveredId); const position = referencePosition(item.id, item.position); const itemSpanId = find(pkg.evidence, item.evidenceIds[0])?.span_ids[0] ?? ""; const spanOrder = (entry: typeof item) => find(pkg.text_spans, find(pkg.evidence, entry.evidenceIds[0])?.span_ids[0] ?? "")?.order ?? -99; const itemChapter = find(pkg.text_spans, itemSpanId)?.chapter_id ?? chapter; const comparable = !hovered || item.id === hovered.id || Math.abs(spanOrder(item) - spanOrder(hovered)) <= 1 || item.relationIds.some((id) => hovered.relationIds.includes(id)); const endpoint = endpointForItem(item); return <button draggable={layout === "compare"} key={item.id} title={`${item.label}${item.occurrence ? ` · 出现 ${item.occurrence + 1}` : ""}`} data-bubble-info={`${item.label} · ${typeLabel(item.kind)} · 第 ${itemChapter} 节 · ${sourceLayerLabel(item.sourceLayer)}`} aria-label={`查看：${item.label}`} className={`meaning-bubble system-evidence-bubble ${colorClassFor(item)} ${sizeClassFor(item)} ${item.isCrossChapter ? "cross-chapter-endpoint" : ""} ${item.relationIds.length ? "relation-bearing" : ""} ${selected?.id === item.id ? "selected" : ""} ${activeSpanId && itemSpanId === activeSpanId ? "linked-active" : ""} ${pickedElementIds.includes(item.id) ? "picked" : ""} ${referencedNodeIds.has(item.id) ? "reader-referenced" : ""} ${hovered && !comparable ? "muted" : ""} ${hovered && comparable && item.id !== hovered.id ? "hover-related" : ""} bubble-${(index % 6) + 1}`} style={{ left: `${showMap ? position[0] : 18 + index * 6}%`, top: `${showMap ? position[1] : 50}%` } as CSSProperties} onDragStart={(event) => beginRelationDrag(endpoint, event)} onDragOver={(event) => { if (layout === "compare") event.preventDefault(); }} onDrop={() => completeRelationDrag(endpoint)} onMouseEnter={() => { setHoveredId(item.id); if (itemSpanId) onLinkedSpan(itemSpanId); }} onMouseLeave={() => setHoveredId("")} onClick={() => openItem(item)}><span>{canvasLabel(item.label)}</span><i aria-hidden="true" /></button>; })}
+      {visiblePositionedElements.map((item, index) => { const hovered = visiblePositionedElements.find((entry) => entry.id === hoveredId); const position = referencePosition(item.id, item.position); const itemSpanId = find(pkg.evidence, item.evidenceIds[0])?.span_ids[0] ?? ""; const spanOrder = (entry: typeof item) => find(pkg.text_spans, find(pkg.evidence, entry.evidenceIds[0])?.span_ids[0] ?? "")?.order ?? -99; const itemChapter = find(pkg.text_spans, itemSpanId)?.chapter_id ?? chapter; const comparable = !hovered || item.id === hovered.id || Math.abs(spanOrder(item) - spanOrder(hovered)) <= 1 || item.relationIds.some((id) => hovered.relationIds.includes(id)); const endpoint = endpointForItem(item); return <button draggable={layout === "compare"} key={item.id} title={`${item.label}${item.occurrence ? ` · 出现 ${item.occurrence + 1}` : ""}`} data-bubble-info={`${item.label} · ${typeLabel(item.kind)} · 第 ${itemChapter} 节 · ${sourceLayerLabel(item.sourceLayer)}`} aria-label={`查看：${item.label}`} className={`meaning-bubble system-evidence-bubble narrative-kind-${item.kind} ${colorClassFor(item)} ${sizeClassFor(item)} ${item.isCrossChapter ? "cross-chapter-endpoint" : ""} ${item.relationIds.length ? "relation-bearing" : ""} ${selected?.id === item.id ? "selected" : ""} ${activeSpanId && itemSpanId === activeSpanId ? "linked-active" : ""} ${pickedElementIds.includes(item.id) ? "picked" : ""} ${referencedNodeIds.has(item.id) ? "reader-referenced" : ""} ${hovered && !comparable ? "muted" : ""} ${hovered && comparable && item.id !== hovered.id ? "hover-related" : ""} bubble-${(index % 6) + 1}`} style={{ left: `${showMap ? position[0] : 18 + index * 6}%`, top: `${showMap ? position[1] : 50}%` } as CSSProperties} onDragStart={(event) => beginRelationDrag(endpoint, event)} onDragOver={(event) => { if (layout === "compare") event.preventDefault(); }} onDrop={() => completeRelationDrag(endpoint)} onMouseEnter={() => { setHoveredId(item.id); if (itemSpanId) onLinkedSpan(itemSpanId); }} onMouseLeave={() => setHoveredId("")} onClick={() => openItem(item)}><span>{canvasLabel(item.label)}</span><i aria-hidden="true" /></button>; })}
       {layout !== "reference" && readerNodesInChapter.slice(0, readerSlots.length).map((node, index) => { const id = `reader:${node.id}`; const position = referencePosition(id, readerSlots[index]); const endpoint = { id: node.id, label: node.label, evidenceIds: node.evidence_ids }; return <button draggable={layout === "compare"} key={node.id} className={`meaning-bubble reader-meaning-bubble ${selectedReader?.id === node.id ? "selected" : ""}`} style={{ left: `${position[0]}%`, top: `${position[1]}%` } as CSSProperties} aria-label={`查看我的解释：${node.label}`} onDragStart={(event) => beginRelationDrag(endpoint, event)} onDragOver={(event) => { if (layout === "compare") event.preventDefault(); }} onDrop={() => completeRelationDrag(endpoint)} onPointerDown={(event) => { if (layout === "reader") { draggedIdRef.current = ""; event.currentTarget.setPointerCapture(event.pointerId); dragRef.current = { id, moved: false }; } }} onClick={() => { if (draggedIdRef.current === id) { draggedIdRef.current = ""; return; } openReaderNode(node); }}><span>{node.label}</span><i aria-hidden="true" /></button>; })}
       {layout === "reader" && visiblePositionedElements.length === 0 && readerNodesInChapter.length === 0 && <div className="reader-map-empty"><b>我的探索还没有内容</b><span>先从系统线索选择“用于我的探索”，或在原文中选一句建立自己的紫色线索。</span></div>}
       </div>

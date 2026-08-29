@@ -93,6 +93,11 @@ function loadManifest(context: StudyContext): StudyManifest | undefined {
 export function registerStudySession(input: Record<string, unknown>) {
   const context = parseContext(input.study_context);
   const packageId = requireIdentifier(input.package_id, "数据包编号");
+  if (context.material_id !== packageId) throw new Error("实验材料编号必须与冻结数据包编号一致。");
+  const pkg = loadPackage(packageId);
+  if (pkg.package_status !== "reference_ready") throw new Error("正式实验只能注册通过冻结校验的reference_ready材料。");
+  const sourceDocument = object(pkg.source_document) ? pkg.source_document : undefined;
+  if (!sourceDocument || typeof sourceDocument.text !== "string" || !/^sha256:[a-f0-9]{64}$/.test(String(sourceDocument.checksum ?? ""))) throw new Error("正式实验材料缺少全文或源文校验和。");
   const filename = manifestFile(context);
   const existing = loadManifest(context);
   if (existing) {
@@ -183,6 +188,16 @@ function validateSnapshot(snapshot: Record<string, unknown>, context: StudyConte
   claims.forEach((claim) => knownEvidence(strings(claim.evidence_ids), `读者理解${String(claim.id)}`));
   const cards = Array.isArray(snapshot.knowledge_cards) ? snapshot.knowledge_cards.filter(object) : [];
   cards.forEach((card) => { if (typeof card.text_span_id !== "string" || !readSpans.has(card.text_span_id)) errors.push(`背景知识卡${String(card.id)}不在已读范围。`); });
+  const baselineReferences = Array.isArray(snapshot.baseline_evidence_references) ? snapshot.baseline_evidence_references.filter(object) : [];
+  baselineReferences.forEach((reference) => {
+    const evidenceId = typeof reference.evidence_id === "string" ? reference.evidence_id : "";
+    const spanId = typeof reference.text_span_id === "string" ? reference.text_span_id : "";
+    knownEvidence(evidenceId ? [evidenceId] : [], `基线引文${String(reference.id)}`);
+    const span = index.spans.get(spanId);
+    if (!span || !readSpans.has(spanId)) { errors.push(`基线引文${String(reference.id)}不在已读TextSpan。`); return; }
+    if (typeof reference.start_char !== "number" || typeof reference.end_char !== "number" || typeof reference.quote !== "string" || typeof span.text !== "string" || span.text.slice(reference.start_char, reference.end_char) !== reference.quote) errors.push(`基线引文${String(reference.id)}的精确选区与原文不一致。`);
+  });
+  knownEvidence(strings(snapshot.final_response_evidence_ids), "最终作答");
 
   const chronologicalRead = new Set<string>(); const exposed = new Set<string>();
   events.forEach((studyEvent) => {
@@ -214,8 +229,8 @@ function metrics(snapshot: Record<string, unknown>, events: StudyEvent[]) {
   const decisions = object(snapshot.candidate_decisions) ? Object.values(snapshot.candidate_decisions).filter(object) : [];
   const accepted = decisions.filter((item) => item.action === "accept").length;
   const exposed = new Set(strings(snapshot.exposed_candidate_ids));
-  const finalTextCharacterCount = typeof snapshot.baseline_notes === "string" && snapshot.baseline_notes.trim() ? snapshot.baseline_notes.trim().length : claims.reduce((sum, item) => sum + (typeof item.text === "string" ? item.text.trim().length : 0), 0);
-  const claimEvidenceLinkCount = claims.reduce((sum, item) => sum + new Set(strings(item.evidence_ids)).size, 0);
+  const finalTextCharacterCount = typeof snapshot.final_response === "string" ? snapshot.final_response.trim().length : 0;
+  const claimEvidenceLinkCount = new Set(strings(snapshot.final_response_evidence_ids)).size;
   const activeExposures = new Map<string, number>(); let visibleDurationMs = 0; let completedExposureCount = 0;
   events.forEach((item) => {
     if (!item.target_id) return;
@@ -247,6 +262,9 @@ function metrics(snapshot: Record<string, unknown>, events: StudyEvent[]) {
     visible_duration_ms: visibleDurationMs,
     unclosed_span_exposure_count: activeExposures.size,
     final_text_character_count: finalTextCharacterCount,
+    final_response_evidence_count: claimEvidenceLinkCount,
+    baseline_quote_anchor_count: Array.isArray(snapshot.baseline_evidence_references) ? snapshot.baseline_evidence_references.filter(object).length : 0,
+    study_phase: typeof snapshot.study_phase === "string" ? snapshot.study_phase : null,
   };
 }
 
@@ -260,6 +278,22 @@ export function syncStudySession(input: Record<string, unknown>) {
   if (!object(input.snapshot)) throw new Error("同步请求缺少完整会话快照。");
   const events = normalizeEvents(input.events);
   const quality = validateSnapshot(input.snapshot, context, packageId, events);
+  if (input.final === true) {
+    const finalResponse = typeof input.snapshot.final_response === "string" ? input.snapshot.final_response.trim() : "";
+    const pkg = loadPackage(packageId);
+    const spans = (Array.isArray(pkg.text_spans) ? pkg.text_spans : []).filter(object);
+    const chapterIds = [...new Set(spans.map((span) => String(span.chapter_id ?? "")))];
+    const contentChapters = chapterIds.some((id) => /[一二三四五六七八九十]/.test(id)) ? new Set(chapterIds.filter((id) => !/^\d+$/.test(id))) : new Set(chapterIds);
+    const requiredSpanIds = spans.filter((span) => contentChapters.has(String(span.chapter_id ?? ""))).map((span) => String(span.id));
+    const readSpanIds = new Set(strings(input.snapshot.read_span_ids));
+    const phaseIds = (Array.isArray(input.snapshot.phase_history) ? input.snapshot.phase_history.filter(object) : []).map((entry) => entry.phase);
+    if (input.snapshot.study_phase !== "complete") quality.errors.push("完成会话前必须进入complete阶段。");
+    if (finalResponse.length < 100 || finalResponse.length > 200) quality.errors.push("正式实验最终作答必须为100-200字。");
+    if (!iso(input.snapshot.completed_at)) quality.errors.push("完成会话缺少有效完成时间。");
+    if (requiredSpanIds.some((id) => !readSpanIds.has(id))) quality.errors.push("正式实验完成前必须阅读全部正文TextSpan。");
+    if (!["reading", "construction", "final_response", "complete"].every((phase) => phaseIds.includes(phase))) quality.errors.push("正式实验缺少完整的阅读、组织、最终作答和完成阶段历史。");
+    quality.valid = quality.errors.length === 0;
+  }
   const directory = sessionDirectory(context);
   if (!quality.valid) {
     const rejectedAt = new Date().toISOString();
