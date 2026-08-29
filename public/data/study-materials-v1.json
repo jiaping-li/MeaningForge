@@ -20,14 +20,12 @@
       }
     },
     {
-      "material_id": "aq-v2-development-20260813",
-      "title": "阿Q正传",
-      "author": "鲁迅",
-      "package_url": "/data/aq-substrate-v2-development.json",
-      "source_url": "/books/luxun-aq-zh.txt",
+      "material_id": "in-a-grove-zh-planned",
+      "title": "竹林中",
+      "author": "芥川龙之介",
       "status": "blocked",
       "eligible_conditions": [],
-      "blocking_reason": "当前数据包仍为development，未完成与《药》相同等级的叙事图、候选和源文冻结校准。"
+      "blocking_reason": "尚未取得并校对实验使用的中文授权版本，也未完成与《药》同等级的TextSpan、叙事图、候选、checksum和试点时长校准。"
     }
   ]
 }

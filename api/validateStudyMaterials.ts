@@ -7,10 +7,10 @@ import { validateWorkPackage } from "./workPackageValidator.ts";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "public/data/study-materials-v1.json"), "utf8")) as { materials: Array<Record<string, unknown>> };
 const report = manifest.materials.map((material) => {
+  if (material.status !== "ready") return { material_id: material.material_id, status: material.status, eligible: false, reason: material.blocking_reason };
   const packagePath = path.join(root, "public", String(material.package_url).replace(/^\//, ""));
   const sourcePath = path.join(root, "public", String(material.source_url).replace(/^\//, ""));
   const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8")) as Record<string, unknown>;
-  if (material.status !== "ready") return { material_id: material.material_id, status: material.status, eligible: false, reason: material.blocking_reason };
   const source = fs.readFileSync(sourcePath, "utf8");
   const clean = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n").map((line) => line.trim()).join("\n").trim();
   const checksum = `sha256:${createHash("sha256").update(clean).digest("hex")}`;
