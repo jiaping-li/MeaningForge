@@ -1,5 +1,6 @@
 node_modules/
 dist/
+study-data/
 .env
 .env.*
 api/.env
