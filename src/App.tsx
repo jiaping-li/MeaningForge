@@ -5,7 +5,8 @@ import { downloadSession, loadDevelopmentPackage, loadSession, preparedWorks, pr
 import { emptySession, type ReaderSession, type Thread, type WorkPackage } from "@/types/workPackage";
 
 type Tab = "trace" | "compare" | "challenge" | "counter" | "probe";
-type MeaningView = "narrative" | "spatial" | "interpretation" | "linked";
+type MeaningView = "narrative" | "spatial" | "interpretation";
+type InspectorTab = "evidence" | "background" | "reading";
 const find = <T extends { id: string }>(xs: T[], id: string) => xs.find((x) => x.id === id);
 const quote = (pkg: WorkPackage, id: string) => find(pkg.evidence, id)?.span_ids.map((s) => find(pkg.text_spans, s)?.text).filter(Boolean).join("\n") ?? "";
 // Some frozen source packages retain a numeric front-matter span (for source
@@ -102,7 +103,8 @@ export default function App() {
   const [evidenceId, setEvidenceId] = useState("");
   const [tab, setTab] = useState<Tab>("trace");
   const [claim, setClaim] = useState("");
-  const [readerWorkspaceOpen, setReaderWorkspaceOpen] = useState(false);
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("reading");
+  const [inspectorOpen, setInspectorOpen] = useState(true);
   const [showImport, setShowImport] = useState(false);
   const [useMIPForDrafts, setUseMIPForDrafts] = useState(false);
   const [loadingSource, setLoadingSource] = useState("");
@@ -119,8 +121,6 @@ export default function App() {
   const [knowledgeBusy, setKnowledgeBusy] = useState(false);
   const [knowledgeMessage, setKnowledgeMessage] = useState("");
   const [studySync, setStudySync] = useState<{ status: "syncing" | "synced" | "error"; detail?: string } | null>(null);
-  const rightPaneRef = useRef<HTMLElement>(null);
-  const overviewRef = useRef<HTMLElement>(null);
   const readingArticleRef = useRef<HTMLElement>(null);
   const visibleSpanIdsRef = useRef<Set<string>>(new Set());
   const undoStackRef = useRef<ReaderSession[]>([]);
@@ -138,7 +138,7 @@ export default function App() {
     saveSession(restored, sessionScope);
     undoStackRef.current = []; redoStackRef.current = [];
     setPkg(next); setSource(text); setSession(restored); setClaim(restored.claim); setChapter(firstChapter);
-    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(startWithActiveGhosts); setShowSignals(startWithActiveGhosts); setShowStructure(false); setMeaningView("narrative"); setReaderWorkspaceOpen(false);
+    setThreadId(""); setRelationId(""); setEvidenceId(""); setTab("trace"); setSkeletonExpanded(startWithActiveGhosts); setShowSignals(startWithActiveGhosts); setShowStructure(false); setMeaningView("narrative"); setInspectorTab("reading"); setInspectorOpen(true);
   };
   useEffect(() => { loadDevelopmentPackage().then(async (next) => activate(next, next.work.source_uri ? await fetch(next.work.source_uri).then((r) => r.text()) : "")).catch(() => undefined); }, []);
   useEffect(() => {
@@ -171,7 +171,7 @@ export default function App() {
   const undo = () => setSession((old) => { if (!old) return old; const previous = undoStackRef.current.pop(); if (!previous) return old; redoStackRef.current = [...redoStackRef.current.slice(-79), old]; const next = event(restoreUndoableReaderState(old, previous), "session_undo", undefined, "reader_session"); saveSession(next, sessionScope); return next; });
   const redo = () => setSession((old) => { if (!old) return old; const following = redoStackRef.current.pop(); if (!following) return old; undoStackRef.current = [...undoStackRef.current.slice(-79), old]; const next = event(restoreUndoableReaderState(old, following), "session_redo", undefined, "reader_session"); saveSession(next, sessionScope); return next; });
   const visitChapter = (id: string) => { setChapter(id); setEvidenceId(""); setSelectedTextSpan(null); persist((s) => s.read_chapter_ids.includes(id) ? event(s, "chapter_revisit", id, "chapter") : event({ ...s, read_chapter_ids: [...s.read_chapter_ids, id] }, "chapter_read_enter", id, "chapter")); };
-  const openEvidence = (id: string) => { if (!pkg) return; const span = find(pkg.text_spans, find(pkg.evidence, id)?.span_ids[0] ?? ""); if (span && (session?.read_chapter_ids.includes(span.chapter_id) || span.chapter_id === chapter)) setChapter(chapters(pkg).includes(span.chapter_id) ? span.chapter_id : chapters(pkg)[0] ?? span.chapter_id); if (span) setLinkedSpanId(span.id); setEvidenceId(id); persist((s) => event(s, "evidence_open", id, "evidence")); };
+  const openEvidence = (id: string) => { if (!pkg) return; const span = find(pkg.text_spans, find(pkg.evidence, id)?.span_ids[0] ?? ""); if (span && (session?.read_chapter_ids.includes(span.chapter_id) || span.chapter_id === chapter)) setChapter(chapters(pkg).includes(span.chapter_id) ? span.chapter_id : chapters(pkg)[0] ?? span.chapter_id); if (span) setLinkedSpanId(span.id); setEvidenceId(id); setInspectorTab("evidence"); setInspectorOpen(true); persist((s) => event(s, "evidence_jump", id, "evidence", undefined, { text_span_id: span?.id ?? "", chapter_id: span?.chapter_id ?? chapter })); };
   const currentThread = pkg && find(pkg.threads, threadId);
   const openThread = (id: string) => { setThreadId(id); setRelationId(""); setTab("trace"); if (pkg) { const t = find(pkg.threads, id); if (t?.evidence_ids[0]) openEvidence(t.evidence_ids[0]); } persist((s) => event(s, "thread_open", id, "thread")); };
   const openRelation = (id: string) => { if (!pkg) return; const relation = find(pkg.structural_relations, id); if (!relation) return; const thread = pkg.threads.find((item) => item.structural_relation_ids.includes(id)); setRelationId(id); if (thread) setThreadId(thread.id); setTab("trace"); if (relation.evidence_ids[0]) openEvidence(relation.evidence_ids[0]); persist((s) => event(s, "relation_open", id, "structural_relation")); };
@@ -183,7 +183,6 @@ export default function App() {
   };
   const revealOverview = () => {
     setSkeletonExpanded(true); setOverviewFlash(true);
-    window.setTimeout(() => { rightPaneRef.current?.scrollTo({ top: Math.max(0, (overviewRef.current?.offsetTop ?? 0) - 12), behavior: "smooth" }); }, 0);
     window.setTimeout(() => setOverviewFlash(false), 900);
   };
   if (!pkg || !session) return <main className="loading">正在准备 MeaningForge…</main>;
@@ -197,6 +196,8 @@ export default function App() {
   const chapterProgress = Math.max(1, readerChapterIds.indexOf(chapter) + 1);
   const readSpanIds = new Set(session.read_span_ids);
   const pendingGhostCount = (pkg.chapter_scaffolds?.find((item) => item.chapter_id === chapter)?.candidate_explorations ?? []).filter((candidate) => !session.candidate_decisions[candidate.id] && candidate.evidence_ids.every((id) => (find(pkg.evidence, id)?.span_ids ?? []).every((spanId) => readSpanIds.has(spanId)))).length;
+  const spatialAvailable = (pkg.narrative_events?.length ?? 0) >= 2 || (pkg.scenes?.length ?? 0) >= 2;
+  const interpretationAvailable = session.reader_nodes.length + session.reader_relations.length + session.reader_claims.length >= 2;
   const browserSelection = () => {
     const selection = window.getSelection(); if (!selection || selection.rangeCount !== 1) return null;
     const range = selection.getRangeAt(0); const raw = range.toString(); const text = raw.trim(); if (text.length < 2) return null;
@@ -211,10 +212,12 @@ export default function App() {
     const selected = browserSelection(); if (!selected) return;
     setSelectedTextSpan(selected); setLinkedSpanId(selected.id);
     const evidence = pkg.evidence.find((item) => item.span_ids.includes(selected.id)); if (evidence) setEvidenceId(evidence.id);
+    persist((s) => event(s, "text_selection_open", selected.id, "text_selection", undefined, { quote: selected.text, start_char: selected.start, end_char: selected.end }));
   };
   const lookupKnowledge = async () => {
     if (!selectedTextSpan) return;
-    setKnowledgeBusy(true); setKnowledgeMessage("");
+    setKnowledgeBusy(true); setKnowledgeMessage(""); setInspectorTab("background"); setInspectorOpen(true); setSkeletonExpanded(true);
+    persist((s) => event(s, "knowledge_query_open", selectedTextSpan.id, "text_selection", undefined, { word: selectedTextSpan.text, start_char: selectedTextSpan.start, end_char: selectedTextSpan.end }));
     const effectiveReadSpanIds = session.read_span_ids.includes(selectedTextSpan.id) ? session.read_span_ids : [...session.read_span_ids, selectedTextSpan.id];
     if (!session.read_span_ids.includes(selectedTextSpan.id)) persist((s) => event({ ...s, read_span_ids: [...s.read_span_ids, selectedTextSpan.id] }, "text_span_first_exposure", selectedTextSpan.id, "text_span"));
     const selectedSpan = sectionSpans.find((item) => item.id === selectedTextSpan.id);
@@ -224,34 +227,36 @@ export default function App() {
       const response = await requestKnowledgeCard({ word: selectedTextSpan.text, textSpanId: selectedTextSpan.id, contextBefore, contextAfter, userReadSpans: effectiveReadSpanIds, sessionId: studySessionId, session: { ...session, read_span_ids: effectiveReadSpanIds } });
       const now = new Date().toISOString();
       const card = { id: `knowledge-${Date.now()}`, word: response.data.word, text_span_id: selectedTextSpan.id, objective_background: response.data.objectiveBackground, historical_context: response.data.historicalContext, source: response.data.source, status: response.data.status, safety_notice: response.data.safetyNotice, request_id: response.data.requestId, model: response.data.model, prompt_version: response.data.promptVersion, context_window: response.data.contextWindow, input_tokens: response.data.inputTokens, output_tokens: response.data.outputTokens, latency_ms: response.data.latencyMs, source_status: response.data.sourceStatus, created_at: now };
-      persist((s) => event({ ...s, read_span_ids: effectiveReadSpanIds, knowledge_cards: [...s.knowledge_cards, card] }, "llm_knowledge_request", card.id, "knowledge_card", undefined, { word: card.word, text_span_id: card.text_span_id, response_status: card.status, model: card.model ?? "unknown", request_id: card.request_id ?? "unknown", condition: studyCondition }));
+      persist((s) => { const requested = event({ ...s, read_span_ids: effectiveReadSpanIds, knowledge_cards: [...s.knowledge_cards, card] }, "llm_knowledge_request", card.id, "knowledge_card", undefined, { word: card.word, text_span_id: card.text_span_id, model: card.model ?? "unknown", request_id: card.request_id ?? "unknown", condition: studyCondition }); return event(requested, "llm_knowledge_result", card.id, "knowledge_card", undefined, { response_status: card.status, input_tokens: card.input_tokens ?? 0, output_tokens: card.output_tokens ?? 0, latency_ms: card.latency_ms ?? 0 }); });
       setKnowledgeMessage(response.data.fallbackMessage ?? "");
-    } catch (error) { setKnowledgeMessage(error instanceof Error ? error.message : "背景资料查询失败。"); }
+    } catch (error) { const message = error instanceof Error ? error.message : "背景资料查询失败。"; setKnowledgeMessage(message); persist((s) => event(s, "knowledge_query_error", selectedTextSpan.id, "text_selection", undefined, { word: selectedTextSpan.text, message })); }
     finally { setKnowledgeBusy(false); }
   };
   const addReaderNodeFromSelection = (selection: NonNullable<typeof selectedTextSpan>, label: string, readingIntent: "keep" | "question", note: string) => {
     const evidence = pkg.evidence.find((item) => item.span_ids.includes(selection.id)); if (!evidence || !label.trim()) return;
     const now = new Date().toISOString(); const id = `reader-node-${Date.now()}`;
-    persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, evidence.id])], meaning_map: { layout: "reader", positions: s.meaning_map?.positions ?? {} }, reader_nodes: [...s.reader_nodes, { id, session_id: sessionIdentity(s), label: label.trim(), type: "reader_evidence", interpretation_type: "reader_exploration", reading_intent: readingIntent, source_text_span_id: selection.id, source_start_char: selection.start, source_end_char: selection.end, source_quote: selection.text, evidence_id: evidence.id, evidence_ids: [evidence.id], note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: "reader_evidence", note: note.trim() || undefined }] }] }, "reader_ink_create", id, "reader_node", undefined, { evidence_id: evidence.id, text_span_id: selection.id, start_char: selection.start, end_char: selection.end, reading_intent: readingIntent }));
+    persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, evidence.id])], meaning_map: { layout: "reader", positions: s.meaning_map?.positions ?? {} }, reader_nodes: [...s.reader_nodes, { id, session_id: sessionIdentity(s), label: label.trim(), type: "reader_evidence", interpretation_type: "reader_exploration", reading_intent: readingIntent, source_text_span_id: selection.id, source_start_char: selection.start, source_end_char: selection.end, source_quote: selection.text, evidence_id: evidence.id, evidence_ids: [evidence.id], note: note.trim() || undefined, created_at: now, provenance: "reader-authored", history: [{ at: now, action: "create", label: label.trim(), type: "reader_evidence", note: note.trim() || undefined }] }] }, "reader_node_create", id, "reader_node", undefined, { evidence_id: evidence.id, text_span_id: selection.id, start_char: selection.start, end_char: selection.end, reading_intent: readingIntent }));
   };
   const createReaderNodeFromText = (label: string, readingIntent: "keep" | "question", note: string) => {
     if (!selectedTextSpan) return;
     addReaderNodeFromSelection(selectedTextSpan, label, readingIntent, note);
+    setInspectorTab("reading"); setInspectorOpen(true); setSkeletonExpanded(true);
     setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
   };
   const toggleInkDot = () => window.setTimeout(() => {
     const selected = browserSelection(); if (!selected) return;
     const existing = session.reader_nodes.find((node) => node.source_text_span_id === selected.id && node.source_start_char === selected.start && node.source_end_char === selected.end);
-    if (existing) persist((s) => { const removedRelationIds = s.reader_relations.filter((relation) => relation.source_id === existing.id || relation.target_id === existing.id).map((relation) => relation.id); return event({ ...s, reader_nodes: s.reader_nodes.filter((node) => node.id !== existing.id), reader_relations: s.reader_relations.filter((relation) => !removedRelationIds.includes(relation.id)), reader_claims: s.reader_claims.map((readerClaim) => ({ ...readerClaim, node_ids: readerClaim.node_ids.filter((id) => id !== existing.id), relation_ids: readerClaim.relation_ids.filter((id) => !removedRelationIds.includes(id)) })) }, "reader_ink_delete", existing.id, "reader_node", existing, { removed_relation_ids: removedRelationIds }); });
+    if (existing) persist((s) => { const removedRelationIds = s.reader_relations.filter((relation) => relation.source_id === existing.id || relation.target_id === existing.id).map((relation) => relation.id); return event({ ...s, reader_nodes: s.reader_nodes.filter((node) => node.id !== existing.id), reader_relations: s.reader_relations.filter((relation) => !removedRelationIds.includes(relation.id)), reader_claims: s.reader_claims.map((readerClaim) => ({ ...readerClaim, node_ids: readerClaim.node_ids.filter((id) => id !== existing.id), relation_ids: readerClaim.relation_ids.filter((id) => !removedRelationIds.includes(id)) })) }, "reader_node_delete", existing.id, "reader_node", existing, { removed_relation_ids: removedRelationIds, trigger: "double_click" }); });
     else addReaderNodeFromSelection(selected, selected.text, "keep", "");
     setSelectedTextSpan(null); window.getSelection()?.removeAllRanges();
   }, 0);
-  const toggleSignals = () => { const next = !showSignals; setShowSignals(next); setSkeletonExpanded(next || showStructure); persist((s) => event(s, next ? "signal_layer_show" : "signal_layer_hide", chapter, "chapter")); };
-  const toggleStructure = () => { const next = !showStructure; setShowStructure(next); setSkeletonExpanded(next || showSignals); setMeaningView("narrative"); persist((s) => event(s, next ? "structure_layer_show" : "structure_layer_hide", chapter, "chapter")); };
-  const changeMeaningView = (view: MeaningView) => { setMeaningView(view); setSkeletonExpanded(true); persist((s) => event(s, "coordinated_view_change", view, "meaning_view", undefined, { chapter })); };
+  const toggleSignals = () => { const next = !showSignals; setShowSignals(next); setSkeletonExpanded(next || showStructure); persist((s) => event(s, "signals_toggle", chapter, "chapter", { visible: showSignals }, { visible: next })); };
+  const toggleStructure = () => { const next = !showStructure; setShowStructure(next); setSkeletonExpanded(next || showSignals); setMeaningView("narrative"); persist((s) => event(s, "structure_toggle", chapter, "chapter", { visible: showStructure }, { visible: next })); };
+  const changeMeaningView = (view: MeaningView) => { const previous = meaningView; setMeaningView(view); setSkeletonExpanded(true); persist((s) => event(s, "meaning_view_change", view, "meaning_view", { view: previous }, { view, chapter })); };
   const decideGhost = (candidate: NonNullable<WorkPackage["chapter_scaffolds"]>[number]["candidate_explorations"][number], action: "accept" | "reject") => {
     const now = new Date().toISOString(); const readerNodeId = action === "accept" ? `reader-node-${Date.now()}` : undefined;
     persist((s) => { const decision = { action, created_at: now, provenance: "reader-authored" as const, ...(readerNodeId ? { reader_node_id: readerNodeId } : {}) }; const reader_nodes = readerNodeId ? [...s.reader_nodes, { id: readerNodeId, session_id: sessionIdentity(s), label: candidate.label, type: "candidate_exploration", interpretation_type: "reader_exploration", source_candidate_id: candidate.id, evidence_id: candidate.evidence_ids[0], evidence_ids: candidate.evidence_ids, note: candidate.prompt, created_at: now, provenance: "reader-authored" as const, history: [{ at: now, action: "create" as const, label: candidate.label, type: "candidate_exploration", note: candidate.prompt }] }] : s.reader_nodes; return event({ ...s, candidate_decisions: { ...s.candidate_decisions, [candidate.id]: decision }, reader_nodes, selected_evidence_ids: action === "accept" ? [...new Set([...s.selected_evidence_ids, ...candidate.evidence_ids])] : s.selected_evidence_ids }, `ghost_${action}`, candidate.id, "candidate_exploration", s.candidate_decisions[candidate.id], decision); });
+    if (action === "accept") { setInspectorTab("reading"); setInspectorOpen(true); }
   };
 
   if (studyCondition === "baseline") return <BaselineReader pkg={pkg} chapter={chapter} chapterIds={readerChapterIds} readingItems={readingItems} session={session} selectedTextSpan={selectedTextSpan} knowledgeBusy={knowledgeBusy} knowledgeMessage={knowledgeMessage} studySync={studySync} showStudyControls={showStudyControls} onSwitchCondition={switchCondition} onChapter={visitChapter} onSelect={captureTextSelection} onSpanVisibility={(id, phase) => persist((s) => phase === "exit" ? event(s, "text_span_view_exit", id, "text_span") : s.read_span_ids.includes(id) ? event(s, "text_span_revisit", id, "text_span") : event({ ...s, read_span_ids: [...s.read_span_ids, id] }, "text_span_first_exposure", id, "text_span"))} onKnowledge={lookupKnowledge} onCancelSelection={() => setSelectedTextSpan(null)} onNotes={(notes) => persist((s) => ({ ...s, baseline_notes: notes }))} onNotesCommit={() => persist((s) => event(s, "baseline_notes_revision", undefined, "baseline_notes", undefined, { character_count: session.baseline_notes.length }))} onExport={() => void downloadSession(session)} />;
@@ -336,31 +341,44 @@ export default function App() {
 <div className="chapter-progress" aria-label={`当前阅读到第 ${chapterProgress} 节，共 ${readerChapterIds.length} 节`}><i style={{ width: `${Math.max(6, chapterProgress / Math.max(1, readerChapterIds.length) * 100)}%` }} /></div>
 <div className="reading-hint">选中一句或一段文字，可把它保留为自己的原文线索；是否进一步解释由你决定。</div>
 <article ref={readingArticleRef} className={readingLayout === "double" ? "two-columns" : "one-column"} onMouseLeave={() => setLinkedSpanId("")}>{readingItems.length ? readingItems.map((item, index) => <AnchoredParagraph key={item.span?.id ?? index} text={item.text} spanId={item.span?.id} nodes={session.reader_nodes} focused={Boolean(focusedQuote && item.text.includes(focusedQuote))} linked={Boolean(item.span?.id && linkedSpanId === item.span.id)} onSelect={captureTextSelection} onToggleInk={toggleInkDot} onLink={setLinkedSpanId} />) : <p>{source || "该材料的全文尚未载入。"}</p>}</article>{selectedTextSpan && <TextSpanComposer key={`${selectedTextSpan.id}:${selectedTextSpan.start}:${selectedTextSpan.end}`} text={selectedTextSpan.text} onCreate={createReaderNodeFromText} onKnowledge={lookupKnowledge} knowledgeBusy={knowledgeBusy} onCancel={() => setSelectedTextSpan(null)} />}</section>
-      <aside className="right-pane" ref={rightPaneRef}>
-        <section id="overview" ref={overviewRef} className={`overview ${skeletonExpanded ? "expanded" : "collapsed"} ${overviewFlash ? "spotlight" : ""}`}>
+      <aside className="right-pane">
+        <section id="overview" className={`overview ${skeletonExpanded ? "expanded" : "collapsed"} ${overviewFlash ? "spotlight" : ""}`}>
 <div className="section-heading">
 <div>
 <p className="eyebrow">Meaning Space</p>
-<h2>{({ narrative: "叙事图谱", spatial: "时空轨迹", interpretation: "解读空间", linked: "原文联动" } as Record<MeaningView, string>)[meaningView]}</h2>
+<h2>{({ narrative: "叙事图谱", spatial: "时空轨迹", interpretation: "解读空间" } as Record<MeaningView, string>)[meaningView]}</h2>
 </div>
 <button className="skeleton-toggle" onClick={() => setSkeletonExpanded((value) => !value)}>{skeletonExpanded ? "收起工作区" : "打开工作区"}<ChevronRight size={14} />
 </button>
 </div>
-<MeaningViewTabs active={meaningView} onChange={changeMeaningView} />
+<MeaningViewTabs active={meaningView} spatialAvailable={spatialAvailable} interpretationAvailable={interpretationAvailable} onChange={changeMeaningView} />
 {skeletonExpanded && <>
 <div className="meaning-layer-legend" aria-label="可视化图例">
 <span className="candidate"><i />候选线索</span><span className="reference"><i />系统参考</span><span className="reader"><i />我的组织</span><small>所有节点均可回到原文</small>
 </div>
+<div className={`meaning-workspace-frame ${inspectorOpen ? "with-inspector" : "inspector-closed"}`}>
+<div className="canvas-column">
 {showSignals && <GhostCueTray pkg={pkg} chapter={chapter} session={session} readSpanIds={session.read_span_ids} onEvidence={openEvidence} onDecide={decideGhost} onExpose={(candidateIds) => setSession((old) => { if (!old) return old; const fresh = candidateIds.filter((id) => !old.exposed_candidate_ids.includes(id)); if (!fresh.length) return old; const next = fresh.reduce((current, id) => event({ ...current, exposed_candidate_ids: [...current.exposed_candidate_ids, id] }, "ghost_exposed", id, "candidate_exploration", undefined, { chapter }), old); saveSession(next, sessionScope); return next; })} />}
-{meaningView === "narrative" && <MeaningSpace pkg={pkg} chapter={chapter} session={session} researchView={researchView} showSignals={showSignals} showStructure={showStructure} visibleSpanIds={session.read_span_ids} activeSpanId={linkedSpanId} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} onPersist={persist} onOpenMyReading={() => { setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "meaning_space_interpretation_begin", relationId, "meaning_anchor", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); window.setTimeout(() => rightPaneRef.current?.scrollTo({ top: rightPaneRef.current.scrollHeight, behavior: "smooth" }), 0); }} />}
+<div className="canvas-with-evidence-rail">
+<EvidenceRail pkg={pkg} activeEvidenceId={evidenceId} activeSpanId={linkedSpanId} visibleSpanIds={session.read_span_ids} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} />
+<div className="active-view-canvas">
+{meaningView === "narrative" && <MeaningSpace pkg={pkg} chapter={chapter} session={session} researchView={researchView} showSignals={showSignals} showStructure={showStructure} visibleSpanIds={session.read_span_ids} activeSpanId={linkedSpanId} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} onPersist={persist} onOpenMyReading={() => { setInspectorTab("reading"); setInspectorOpen(true); }} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "meaning_space_interpretation_begin", relationId, "meaning_anchor", undefined, { evidence_ids: evidenceIds })); setInspectorTab("reading"); setInspectorOpen(true); }} />}
 {meaningView === "spatial" && <SpatialTemporalView pkg={pkg} session={session} visibleChapterIds={session.read_chapter_ids} visibleSpanIds={session.read_span_ids} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} onPersist={persist} />}
-{meaningView === "interpretation" && <InterpretationSpaceView session={session} onEvidence={openEvidence} onOpenMyReading={() => setReaderWorkspaceOpen(true)} onPersist={persist} />}
-{meaningView === "linked" && <LinkedEvidenceView pkg={pkg} chapter={chapter} activeEvidenceId={evidenceId} activeSpanId={linkedSpanId} visibleSpanIds={session.read_span_ids} session={session} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} onPersist={persist} />}
-{researchView && <details className="research-graph"><summary>研究视图：查看完整参考图与图上编辑</summary><SkeletonTree pkg={pkg} chapter={chapter} session={session} activeThread={threadId} onThread={openThread} onRelation={openRelation} onEvidence={openEvidence} onPersist={persist} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "relationship_interpretation_begin", relationId, "structural_relation", undefined, { evidence_ids: evidenceIds })); setReaderWorkspaceOpen(true); }} /></details>}
+{meaningView === "interpretation" && <InterpretationSpaceView session={session} onEvidence={openEvidence} onOpenMyReading={() => { setInspectorTab("reading"); setInspectorOpen(true); }} onPersist={persist} />}
+{researchView && <details className="research-graph"><summary>研究视图：查看完整参考图与图上编辑</summary><SkeletonTree pkg={pkg} chapter={chapter} session={session} activeThread={threadId} onThread={openThread} onRelation={openRelation} onEvidence={openEvidence} onPersist={persist} onBeginInterpretation={(evidenceIds, relationId) => { persist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, ...evidenceIds])] }, "relationship_interpretation_begin", relationId, "structural_relation", undefined, { evidence_ids: evidenceIds })); setInspectorTab("reading"); setInspectorOpen(true); }} /></details>}
+</div>
+</div>
+</div>
+{inspectorOpen ? <aside className="context-inspector">
+<header><nav aria-label="上下文检查器"><button className={inspectorTab === "evidence" ? "active" : ""} onClick={() => setInspectorTab("evidence")}>证据</button><button className={inspectorTab === "background" ? "active" : ""} onClick={() => setInspectorTab("background")}>背景</button><button className={inspectorTab === "reading" ? "active" : ""} onClick={() => setInspectorTab("reading")}>我的阅读</button></nav><button className="inspector-close" onClick={() => setInspectorOpen(false)} title="关闭检查器"><X size={14} /></button></header>
+<div className="inspector-scroll">
+{inspectorTab === "evidence" && <>{currentThread && <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} activeRelationId={relationId} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => { setThreadId(""); setRelationId(""); }} />}<LinkedEvidenceView pkg={pkg} chapter={chapter} activeEvidenceId={evidenceId} activeSpanId={linkedSpanId} visibleSpanIds={session.read_span_ids} session={session} onLinkedSpan={setLinkedSpanId} onEvidence={openEvidence} onPersist={persist} /></>}
+{inspectorTab === "background" && <KnowledgeHistory cards={session.knowledge_cards} message={knowledgeMessage} busy={knowledgeBusy} activeWord={selectedTextSpan?.text ?? ""} />}
+{inspectorTab === "reading" && <MyReading pkg={pkg} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} />}
+</div>
+</aside> : <button className="inspector-reopen" onClick={() => setInspectorOpen(true)}>打开检查器<ChevronLeft size={14} /></button>}
+</div>
 </>}</section>
-        {currentThread && <ThreadWorkspace pkg={pkg} session={session} thread={currentThread} activeRelationId={relationId} tab={tab} setTab={setTab} evidenceId={evidenceId} onEvidence={openEvidence} onPersist={persist} onClose={() => { setThreadId(""); setRelationId(""); }} />}
-        <details className="reader-workspace" open={readerWorkspaceOpen} onToggle={(event) => setReaderWorkspaceOpen(event.currentTarget.open)}><summary>我的阅读</summary><MyReading pkg={pkg} session={session} claim={claim} setClaim={setClaim} onEvidence={openEvidence} onPersist={persist} /></details>
-        <KnowledgeHistory cards={session.knowledge_cards} message={knowledgeMessage} />
       </aside>
     </div>
     <footer className="session-statusbar">
@@ -368,25 +386,26 @@ export default function App() {
       <span><Eye size={13} />已读 {session.read_span_ids.length} / {pkg.text_spans.length} 段</span>
       <span className="status-reader"><i />我的节点 {session.reader_nodes.length}</span>
       <span className="status-relation"><i />我的关系 {session.reader_relations.length}</span>
-      <span className="status-candidate"><i />待检查 {showSignals ? Math.min(5, pendingGhostCount) : 0}</span>
-      <span className="status-view"><Layers3 size={13} />当前：{({ narrative: "叙事图谱", spatial: "时空轨迹", interpretation: "解读空间", linked: "原文联动" } as Record<MeaningView, string>)[meaningView]}</span>
+      <span className="status-candidate"><i />待检查 {Math.min(5, pendingGhostCount)}</span>
+      <span className="status-view"><Layers3 size={13} />当前：{({ narrative: "叙事图谱", spatial: "时空轨迹", interpretation: "解读空间" } as Record<MeaningView, string>)[meaningView]}</span>
       {participantId !== "local" && <span title={studySync?.detail}>{studySync?.status === "error" ? "实验记录保存失败" : studySync?.status === "synced" ? "实验记录已保存" : "正在建立实验记录"}</span>}
     </footer>
   </main>;
 }
 
-function KnowledgeHistory({ cards, message }: { cards: ReaderSession["knowledge_cards"]; message: string }) {
+function KnowledgeHistory({ cards, message, busy = false, activeWord = "" }: { cards: ReaderSession["knowledge_cards"]; message: string; busy?: boolean; activeWord?: string }) {
   const seen = new Set<string>();
   const visibleCards = [...cards].reverse().filter((card) => card.prompt_version === "meaningforge-objective-knowledge-v6").filter((card) => { const key = `${card.text_span_id}:${card.word}`; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, 4);
-  if (!visibleCards.length && !message) return null;
+  if (!visibleCards.length && !message && !busy) return <section className="knowledge-history knowledge-empty"><header><Search size={15} /><div><b>背景资料</b><small>选中原文词语后，可按需查询客观背景。</small></div></header></section>;
   const renderCard = (card: ReaderSession["knowledge_cards"][number]) => <article key={card.id}>
 <b>{card.word}</b>
 {card.status === "available" ? <><small className="knowledge-kind">直接含义与用法</small><p>{card.objective_background}</p>{card.historical_context ? <><small className="knowledge-kind">按需补充的相关背景</small><p>{card.historical_context}</p></> : <small>没有发现需要额外补充的直接相关背景。</small>}{card.safety_notice && <small>已省略无关、低置信或解释性内容。</small>}</> : <p>{card.status === "filtered" ? "内容因包含文学解读、作品归因或无关信息而被拦截。" : "本次没有可保留的客观背景候选。"}</p>}
 </article>;
   return <section className="knowledge-history">
-<header><Search size={15} /><div><b>背景资料</b><small>仅提供词义、历史与文化事实草稿</small></div></header>
+<header><Search size={15} /><div><b>背景资料草稿</b><small>未外部核验 · 仅提供直接相关事实</small></div></header>
+{busy && <article className="knowledge-loading"><LoaderCircle className="spin" size={16} /><div><b>{activeWord || "当前选区"}</b><p>正在核对词义与相关背景…</p></div></article>}
 {message && <p className="knowledge-message">{message}</p>}
-{visibleCards[0] && renderCard(visibleCards[0])}
+{!busy && visibleCards[0] && renderCard(visibleCards[0])}
 {visibleCards.length > 1 && <details className="knowledge-archive"><summary>以往查询（{visibleCards.length - 1}）</summary>{visibleCards.slice(1).map(renderCard)}</details>}
 </section>;
 }
@@ -446,23 +465,21 @@ function ImportCard({ onReady }: { onReady: (draft: PreparationDraft) => void })
 
 function TextSpanComposer({ text, onCreate, onKnowledge, knowledgeBusy, onCancel }: { text: string; onCreate: (label: string, readingIntent: "keep" | "question", note: string) => void; onKnowledge: () => void; knowledgeBusy: boolean; onCancel: () => void }) {
   const initialLabel = text.replace(/[‘’“”"'，。！？；：]/g, "").trim().slice(0, 10);
-  const [label, setLabel] = useState(initialLabel); const [intent, setIntent] = useState<"keep" | "question">("keep"); const [note, setNote] = useState("");
+  const [label, setLabel] = useState(initialLabel); const [mode, setMode] = useState<"keep" | "question" | null>(null); const [note, setNote] = useState("");
   return <aside className="text-span-composer">
-<header className="composer-header"><b>添加紫色圆圈</b><small>与系统圆圈一样，可回到原文</small></header>
+<header className="composer-header"><div><b>已选择</b><small>这三个动作彼此独立</small></div><button onClick={onCancel} title="关闭"><X size={14} /></button></header>
 <blockquote>{text.length > 72 ? `${text.slice(0, 72)}…` : text}</blockquote>
-<div className="composer-intents" role="group" aria-label="是否给这个圆圈附加阅读问题">
-<button type="button" aria-pressed={intent === "keep"} className={intent === "keep" ? "active" : ""} onClick={() => setIntent("keep")}><b>直接添加</b><small>稍后比较或建立关联</small></button>
-<button type="button" aria-pressed={intent === "question"} className={intent === "question" ? "active" : ""} onClick={() => setIntent("question")}><b>附带一个问题</b><small>圆圈不变，只记录疑问</small></button>
+<div className="composer-primary-actions" role="group" aria-label="选区操作">
+<button type="button" className={mode === "keep" ? "active" : ""} onClick={() => setMode("keep")}><Plus size={14} />添加到我的探索</button>
+<button type="button" className={mode === "question" ? "active" : ""} onClick={() => setMode("question")}><ShieldQuestion size={14} />记下疑问</button>
+<button type="button" onClick={onKnowledge} disabled={knowledgeBusy}>{knowledgeBusy ? <LoaderCircle className="spin" size={14} /> : <Search size={14} />}查背景</button>
 </div>
-<div className="composer-fields">
+{mode && <div className="composer-fields">
 <label><span>我的线索名称</span><input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="用一个简短名称标记这处原文" /></label>
-<label><span>{intent === "question" ? "我想追问" : "为什么想继续留意？（可选）"}</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder={intent === "question" ? "例如：这里的‘动摇’只是动作，还是也改变了群体状态？" : "例如：这个动作在后文可能再次出现"} /></label>
-</div>
-<footer>
-<button onClick={onCancel}>取消</button>
-<button onClick={onKnowledge} disabled={knowledgeBusy}>{knowledgeBusy ? <LoaderCircle className="spin" size={14} /> : <Search size={14} />}查背景</button>
-<button className="primary" disabled={!label.trim() || intent === "question" && !note.trim()} onClick={() => onCreate(label, intent, note)}>添加到我的探索</button>
-</footer>
+<label><span>{mode === "question" ? "我想追问" : "为什么想继续留意？（可选）"}</span><input value={note} onChange={(event) => setNote(event.target.value)} placeholder={mode === "question" ? "写下此刻仍想追问的问题" : "例如：这个动作在后文可能再次出现"} /></label>
+<footer><button onClick={() => setMode(null)}>返回</button><button className="primary" disabled={!label.trim() || mode === "question" && !note.trim()} onClick={() => onCreate(label, mode, note)}>{mode === "question" ? "保存疑问" : "确认添加"}</button></footer>
+</div>}
+{!mode && <footer className="composer-footnote"><small>查背景只打开事实资料，不会自动加入“我的探索”。</small></footer>}
 </aside>;
 }
 
@@ -487,9 +504,13 @@ function MapReadingPreview({ pkg, chapter, evidenceIds, onEvidence }: { pkg: Wor
   return <aside className="map-reading-preview"><header><b>原文</b><small>第 {chapter} 节</small></header>{spans.map((span) => <button key={span.id} className={selectedSpanIds.has(span.id) ? "marked" : ""} onClick={() => { const evidence = pkg.evidence.find((item) => item.span_ids.includes(span.id)); if (evidence) onEvidence(evidence.id); }}>{span.text}</button>)}</aside>;
 }
 
-function MeaningViewTabs({ active, onChange }: { active: MeaningView; onChange: (view: MeaningView) => void }) {
-  const views: Array<[MeaningView, string, typeof ListTree]> = [["narrative", "叙事图谱", ListTree], ["spatial", "时空轨迹", Clock3], ["interpretation", "解读空间", ChartNoAxesCombined], ["linked", "原文联动", Link2]];
-  return <nav className="meaning-view-tabs" aria-label="协调视图">{views.map(([id, label, Icon]) => <button key={id} className={active === id ? "active" : ""} onClick={() => onChange(id)}><Icon size={14} />{label}</button>)}</nav>;
+function MeaningViewTabs({ active, spatialAvailable, interpretationAvailable, onChange }: { active: MeaningView; spatialAvailable: boolean; interpretationAvailable: boolean; onChange: (view: MeaningView) => void }) {
+  const views: Array<{ id: MeaningView; label: string; icon: typeof ListTree; enabled: boolean; reason?: string }> = [
+    { id: "narrative", label: "叙事图谱", icon: ListTree, enabled: true },
+    { id: "spatial", label: "时空轨迹", icon: Clock3, enabled: spatialAvailable, reason: "当前材料还没有足够的事件或场景记录" },
+    { id: "interpretation", label: "解读空间", icon: ChartNoAxesCombined, enabled: interpretationAvailable, reason: "建立至少两个自己的线索、关系或理解后开启" },
+  ];
+  return <nav className="meaning-view-tabs" aria-label="协调视图">{views.map(({ id, label, icon: Icon, enabled, reason }) => <button key={id} className={active === id ? "active" : ""} disabled={!enabled} title={enabled ? `打开${label}` : reason} onClick={() => enabled && onChange(id)}><Icon size={14} />{label}{!enabled && <small>待开启</small>}</button>)}</nav>;
 }
 
 function GhostCueTray({ pkg, chapter, session, readSpanIds, onEvidence, onDecide, onExpose }: { pkg: WorkPackage; chapter: string; session: ReaderSession; readSpanIds: string[]; onEvidence: (id: string) => void; onDecide: (candidate: NonNullable<WorkPackage["chapter_scaffolds"]>[number]["candidate_explorations"][number], action: "accept" | "reject") => void; onExpose: (candidateIds: string[]) => void }) {
@@ -516,7 +537,7 @@ function SpatialTemporalView({ pkg, session, visibleChapterIds, visibleSpanIds, 
   const scenes = (pkg.scenes ?? []).filter((scene) => scene.span_ids.some((spanId) => visibleSpans.has(spanId)));
   const chapterDensity = visibleChapterIds.map((chapterId) => ({ chapterId, count: events.filter((item) => item.evidenceIds.some((id) => (find(pkg.evidence, id)?.span_ids ?? []).some((spanId) => find(pkg.text_spans, spanId)?.chapter_id === chapterId))).length }));
   const maxDensity = Math.max(1, ...chapterDensity.map((item) => item.count));
-  const open = (id: string, kind: string) => { onEvidence(id); onPersist((s) => event(s, "spatial_temporal_evidence_open", id, kind)); };
+  const open = (id: string, kind: string) => { onEvidence(id); onPersist((s) => event(s, "meaning_object_open", id, kind, undefined, { view: "spatial" })); };
   const reorder = (targetId: string) => {
     if (!draggedEventId || draggedEventId === targetId) return;
     const order = events.map((item) => item.id); const from = order.indexOf(draggedEventId); const to = order.indexOf(targetId);
@@ -524,7 +545,7 @@ function SpatialTemporalView({ pkg, session, visibleChapterIds, visibleSpanIds, 
     onPersist((s) => event({ ...s, personal_event_order: order }, "personal_timeline_reorder", draggedEventId, "narrative_event", events.map((item) => item.id), order));
     setDraggedEventId("");
   };
-  return <section className="spatial-temporal-view"><header><div><p className="view-kicker"><Clock3 size={13} />Narrative flow</p><b>事件如何穿过已读章节</b><small>拖拽只改变你的个人事件排列，原著顺序保持不变</small></div><span>{filteredEvents.length} / {events.length} 个事件</span></header><div className="timeline-filter"><label>时间范围 <b>{rangeStart}%–{rangeEnd}%</b></label><div><input aria-label="时间范围起点" type="range" min="0" max="95" value={rangeStart} onChange={(event) => setRangeStart(Math.min(Number(event.target.value), rangeEnd - 5))} onPointerUp={() => onPersist((s) => event(s, "timeline_filter_change", undefined, "timeline_filter", undefined, { start: rangeStart, end: rangeEnd }))} /><input aria-label="时间范围终点" type="range" min="5" max="100" value={rangeEnd} onChange={(event) => setRangeEnd(Math.max(Number(event.target.value), rangeStart + 5))} onPointerUp={() => onPersist((s) => event(s, "timeline_filter_change", undefined, "timeline_filter", undefined, { start: rangeStart, end: rangeEnd }))} /></div></div><div className="narrative-density" aria-label="各章节事件密度"><div><b>叙事密度</b><small>事件记录数，不代表情感强度</small></div><div>{chapterDensity.map((item) => <span key={item.chapterId}><i style={{ height: `${Math.max(12, item.count / maxDensity * 100)}%` }} /><small>第 {item.chapterId} 节</small></span>)}</div></div><div className="timeline-track">{filteredEvents.slice(0, 18).map((item, index) => { const spanId = find(pkg.evidence, item.evidenceIds[0])?.span_ids[0] ?? ""; return <button draggable key={item.id} onDragStart={() => setDraggedEventId(item.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => reorder(item.id)} onMouseEnter={() => spanId && onLinkedSpan(spanId)} onClick={() => item.evidenceIds[0] && open(item.evidenceIds[0], "narrative_event")}><i>{startIndex + index + 1}</i><span>{item.label}</span><small>{item.evidenceIds.length} 处证据</small></button>; })}</div><div className="scene-lanes"><header><b><MapPin size={13} />场景轨迹</b><small>点击场景返回原文证据</small></header>{scenes.length ? scenes.map((scene) => <button key={scene.id} onMouseEnter={() => scene.span_ids[0] && onLinkedSpan(scene.span_ids[0])} onClick={() => scene.evidence_ids[0] && open(scene.evidence_ids[0], "scene")}><span>第 {scene.chapter_id} 节</span><b>{scene.label}</b><i>{scene.evidence_ids.length}</i><small>处证据</small></button>) : <p>当前已读范围没有经过校准的场景记录。</p>}</div><p className="data-boundary-note"><ShieldQuestion size={14} />当前材料没有经过校准的情感、地点和人物共指记录，因此不绘制会误导读者的情感曲线或人物移动。</p></section>;
+  return <section className="spatial-temporal-view"><header><div><p className="view-kicker"><Clock3 size={13} />Narrative flow</p><b>事件如何穿过已读章节</b><small>拖拽只改变你的个人事件排列，原著顺序保持不变</small></div><span>{filteredEvents.length} / {events.length} 个事件</span></header><div className="timeline-filter"><label>时间范围 <b>{rangeStart}%–{rangeEnd}%</b></label><div><input aria-label="时间范围起点" type="range" min="0" max="95" value={rangeStart} onChange={(event) => setRangeStart(Math.min(Number(event.target.value), rangeEnd - 5))} onPointerUp={() => onPersist((s) => event(s, "time_filter_change", undefined, "timeline_filter", undefined, { start: rangeStart, end: rangeEnd }))} /><input aria-label="时间范围终点" type="range" min="5" max="100" value={rangeEnd} onChange={(event) => setRangeEnd(Math.max(Number(event.target.value), rangeStart + 5))} onPointerUp={() => onPersist((s) => event(s, "time_filter_change", undefined, "timeline_filter", undefined, { start: rangeStart, end: rangeEnd }))} /></div></div><div className="narrative-density" aria-label="各章节事件密度"><div><b>叙事密度</b><small>事件记录数，不代表情感强度</small></div><div>{chapterDensity.map((item) => <span key={item.chapterId}><i style={{ height: `${Math.max(12, item.count / maxDensity * 100)}%` }} /><small>第 {item.chapterId} 节</small></span>)}</div></div><div className="timeline-track">{filteredEvents.slice(0, 18).map((item, index) => { const spanId = find(pkg.evidence, item.evidenceIds[0])?.span_ids[0] ?? ""; return <button draggable key={item.id} onDragStart={() => setDraggedEventId(item.id)} onDragOver={(event) => event.preventDefault()} onDrop={() => reorder(item.id)} onMouseEnter={() => spanId && onLinkedSpan(spanId)} onClick={() => item.evidenceIds[0] && open(item.evidenceIds[0], "narrative_event")}><i>{startIndex + index + 1}</i><span>{item.label}</span><small>{item.evidenceIds.length} 处证据</small></button>; })}</div><div className="scene-lanes"><header><b><MapPin size={13} />场景轨迹</b><small>点击场景返回原文证据</small></header>{scenes.length ? scenes.map((scene) => <button key={scene.id} onMouseEnter={() => scene.span_ids[0] && onLinkedSpan(scene.span_ids[0])} onClick={() => scene.evidence_ids[0] && open(scene.evidence_ids[0], "scene")}><span>第 {scene.chapter_id} 节</span><b>{scene.label}</b><i>{scene.evidence_ids.length}</i><small>处证据</small></button>) : <p>当前已读范围没有经过校准的场景记录。</p>}</div><p className="data-boundary-note"><ShieldQuestion size={14} />当前材料没有经过校准的情感、地点和人物共指记录，因此不绘制会误导读者的情感曲线或人物移动。</p></section>;
 }
 
 function InterpretationSpaceView({ session, onEvidence, onOpenMyReading, onPersist }: { session: ReaderSession; onEvidence: (id: string) => void; onOpenMyReading: () => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
@@ -544,6 +565,14 @@ function InterpretationSpaceView({ session, onEvidence, onOpenMyReading, onPersi
   return <section className="interpretation-space-view"><header><div><p className="view-kicker"><ChartNoAxesCombined size={13} />Interpretation field</p><b>我的多种读法</b><small>系统只提供证据、修订等可计算轴；解释性维度由你命名</small></div><div><button className={mode === "1d" ? "active" : ""} onClick={() => setMode("1d")}>一维</button><button className={mode === "2d" ? "active" : ""} onClick={() => setMode("2d")}>二维</button></div></header><div className="dimension-toolbar"><label>X 轴<select value={xDimension} onChange={(event) => switchAxis("x", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>{mode === "2d" && <label>Y 轴<select value={yDimension} onChange={(event) => switchAxis("y", event.target.value)}>{dimensions.map((item) => <option key={item.id} value={item.id}>{item.label}{item.authored ? " · 我的" : ""}</option>)}</select></label>}<label className="new-dimension"><input value={newDimension} onChange={(event) => setNewDimension(event.target.value)} placeholder="添加我的维度" /><button onClick={createDimension} disabled={!newDimension.trim()} title="添加读者自定义维度"><Plus size={13} /></button></label></div>{items.length ? <><div className="interpretation-summary"><span><b>{items.length}</b> 个解释对象</span><span><b>{items.reduce((sum, item) => sum + item.evidenceIds.length, 0)}</b> 处证据锚定</span><span><b>{items.reduce((sum, item) => sum + Math.max(0, item.revisions - 1), 0)}</b> 次修订</span></div><div className={`interpretation-plane mode-${mode}`}><span className="axis-y">{mode === "2d" ? `${yAxis.high} · ${yAxis.label}` : ""}</span><span className="axis-x">{xAxis.low}　← {xAxis.label} →　{xAxis.high}</span>{items.slice(0, 16).map((item) => <button className={selectedItemId === item.id ? "selected" : ""} key={item.id} style={{ left: `${score(item, xDimension)}%`, top: `${mode === "2d" ? 100 - score(item, yDimension) : 50}%` } as CSSProperties} onClick={() => { setSelectedItemId(item.id); onPersist((s) => event(s, "interpretation_space_item_open", item.id, item.kind)); }}><span>{item.kind}</span><b>{item.label.slice(0, 20)}{item.label.length > 20 ? "…" : ""}</b><small>{item.evidenceIds.length} 处证据 · {item.revisions} 个版本</small></button>)}</div>{selected && <aside className="interpretation-inspector"><header><div><small>{selected.kind}</small><b>{selected.label || "尚未写下文字理解"}</b></div><button onClick={() => setSelectedItemId("")} title="关闭"><X size={14} /></button></header><div><button onClick={() => selected.evidenceIds[0] && onEvidence(selected.evidenceIds[0])}><Eye size={13} />查看原文证据</button><button onClick={onOpenMyReading}>打开我的阅读</button></div>{[xAxis, ...(mode === "2d" ? [yAxis] : [])].filter((axis) => axis.authored).map((axis) => <label key={axis.id}><span>{axis.low}</span><input type="range" min="0" max="100" value={score(selected, axis.id)} onChange={(event) => rate(selected.id, axis.id, Number(event.target.value))} /><span>{axis.high}</span><small>{axis.label}</small></label>)}<details><summary>版本记录（{selected.history.length}）</summary>{selected.history.slice().reverse().slice(0, 5).map((entry, index) => <p key={`${entry.at}-${index}`}><time>{new Date(entry.at).toLocaleString()}</time>{"text" in entry ? entry.text : entry.label}</p>)}</details></aside>}</> : <div className="interpretation-empty"><i><Plus size={20} /></i><b>从第一处原文证据开始</b><p>创建紫色线索、建立关系或写下暂时理解后，它们会在这里并存，而不会被系统排序成标准答案。</p><button onClick={onOpenMyReading}><Plus size={14} />打开“我的阅读”</button></div>}</section>;
 }
 
+function EvidenceRail({ pkg, activeEvidenceId, activeSpanId, visibleSpanIds, onLinkedSpan, onEvidence }: { pkg: WorkPackage; activeEvidenceId: string; activeSpanId: string; visibleSpanIds: string[]; onLinkedSpan: (spanId: string) => void; onEvidence: (id: string) => void }) {
+  const visible = new Set(visibleSpanIds);
+  const evidence = pkg.evidence.filter((item) => item.span_ids.some((spanId) => visible.has(spanId)));
+  const spanEvidenceId = evidence.find((item) => item.span_ids.includes(activeSpanId))?.id;
+  const activeId = spanEvidenceId ?? (activeEvidenceId && evidence.some((item) => item.id === activeEvidenceId) ? activeEvidenceId : evidence[0]?.id ?? "");
+  return <nav className="global-evidence-rail" aria-label="已读证据缩略导航">{evidence.map((item, index) => <button title={`证据 ${index + 1}：${item.note || "回到原文"}`} aria-label={`定位证据 ${index + 1}`} key={item.id} className={activeId === item.id ? "active" : ""} style={{ top: `${6 + index / Math.max(1, evidence.length - 1) * 88}%` }} onMouseEnter={() => item.span_ids[0] && onLinkedSpan(item.span_ids[0])} onMouseLeave={() => onLinkedSpan("")} onClick={() => onEvidence(item.id)} />)}</nav>;
+}
+
 function LinkedEvidenceView({ pkg, chapter, activeEvidenceId, activeSpanId, visibleSpanIds, session, onLinkedSpan, onEvidence, onPersist }: { pkg: WorkPackage; chapter: string; activeEvidenceId: string; activeSpanId: string; visibleSpanIds: string[]; session: ReaderSession; onLinkedSpan: (spanId: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void }) {
   const visible = new Set(visibleSpanIds);
   const evidence = pkg.evidence.filter((item) => item.span_ids.some((spanId) => visible.has(spanId)));
@@ -553,7 +582,8 @@ function LinkedEvidenceView({ pkg, chapter, activeEvidenceId, activeSpanId, visi
   const readerNodes = session.reader_nodes.filter((node) => node.evidence_ids.includes(activeId));
   const readerRelations = session.reader_relations.filter((relation) => relation.evidence_ids.includes(activeId));
   const open = (id: string) => { onEvidence(id); onPersist((s) => event(s, "linked_view_evidence_open", id, "evidence")); };
-  return <section className="linked-evidence-view"><div className="linked-evidence-rail" aria-label="已读原文证据缩略导航">{evidence.map((item, index) => <button title={`定位证据 ${index + 1}`} aria-label={`定位证据 ${index + 1}`} key={item.id} className={activeId === item.id ? "active" : ""} style={{ top: `${8 + index / Math.max(1, evidence.length - 1) * 84}%` }} onMouseEnter={() => item.span_ids[0] && onLinkedSpan(item.span_ids[0])} onClick={() => open(item.id)} />)}</div><div className="linked-evidence-list"><header><div><p className="view-kicker"><Link2 size={13} />Text link</p><b>已读证据锚点</b></div><small>{evidence.length} 处 · 当前第 {chapter} 节</small></header>{evidence.map((item, index) => <button className={activeId === item.id ? "active" : ""} key={item.id} onMouseEnter={() => item.span_ids[0] && onLinkedSpan(item.span_ids[0])} onClick={() => open(item.id)}><i>{String(index + 1).padStart(2, "0")}</i><span>{item.note || quote(pkg, item.id).slice(0, 32)}</span></button>)}</div><article className="linked-evidence-detail">{active ? <><header><span>Evidence {String(evidence.indexOf(active) + 1).padStart(2, "0")} · 原文是唯一权威</span><b>{active.note}</b></header><blockquote>{quote(pkg, active.id)}</blockquote><button onClick={() => open(active.id)}><Eye size={14} />在左侧原文中定位</button><div><span className="reader">我的线索 <b>{readerNodes.length}</b></span><span className="reader">我的关系 <b>{readerRelations.length}</b></span><span>系统引用 <b>{pkg.structural_relations.filter((relation) => relation.evidence_ids.includes(active.id)).length}</b></span></div>{readerNodes.length > 0 && <section className="linked-reader-notes"><small>与这处原文相连的我的组织</small>{readerNodes.map((node) => <p key={node.id}><b>{node.label}</b>{node.note}</p>)}</section>}</> : <p>滚动阅读原文后，进入地平线的证据会出现在这里。</p>}</article></section>;
+  const selectForComparison = () => { if (!active) return; onPersist((s) => event({ ...s, selected_evidence_ids: [...new Set([...s.selected_evidence_ids, active.id])] }, "comparison_select", active.id, "evidence")); };
+  return <section className="linked-evidence-view inspector-evidence-view"><header><div><p className="view-kicker"><Link2 size={13} />原文联动</p><b>已读证据</b></div><small>{evidence.length} 处 · 第 {chapter} 节</small></header>{active ? <article className="linked-evidence-detail"><header><span>证据 {String(evidence.indexOf(active) + 1).padStart(2, "0")} · 原文是唯一权威</span><b>{active.note || "原文证据"}</b></header><blockquote>{quote(pkg, active.id)}</blockquote><section className="evidence-actions"><button onClick={() => open(active.id)}><Eye size={14} />回到原文</button><button onClick={selectForComparison}><GitCompareArrows size={14} />选择比较</button></section><p className="evidence-why"><b>为什么值得检查？</b>{active.note || "这处细节已进入当前已读范围，可与其他原文位置比较。"}</p><div className="evidence-counts"><span className="reader">我的线索 <b>{readerNodes.length}</b></span><span className="reader">我的关系 <b>{readerRelations.length}</b></span><span>系统引用 <b>{pkg.structural_relations.filter((relation) => relation.evidence_ids.includes(active.id)).length}</b></span></div>{readerNodes.length > 0 && <section className="linked-reader-notes"><small>与这处原文相连的我的组织</small>{readerNodes.map((node) => <p key={node.id}><b>{node.label}</b>{node.note}</p>)}</section>}</article> : <p className="inspector-empty">继续阅读后，进入地平线的证据会在这里出现。</p>}<details className="linked-evidence-list"><summary>其他已读证据（{Math.max(0, evidence.length - 1)}）</summary>{evidence.filter((item) => item.id !== activeId).map((item, index) => <button key={item.id} onMouseEnter={() => item.span_ids[0] && onLinkedSpan(item.span_ids[0])} onMouseLeave={() => onLinkedSpan("")} onClick={() => open(item.id)}><i>{String(index + 1).padStart(2, "0")}</i><span>{item.note || quote(pkg, item.id).slice(0, 32)}</span></button>)}</details></section>;
 }
 
 function MeaningSpace({ pkg, chapter, session: rawSession, researchView, showSignals, showStructure, visibleSpanIds, activeSpanId, onLinkedSpan, onEvidence, onPersist, onOpenMyReading, onBeginInterpretation }: { pkg: WorkPackage; chapter: string; session: ReaderSession; researchView: boolean; showSignals: boolean; showStructure: boolean; visibleSpanIds: string[]; activeSpanId: string; onLinkedSpan: (spanId: string) => void; onEvidence: (id: string) => void; onPersist: (fn: (s: ReaderSession) => ReaderSession) => void; onOpenMyReading: () => void; onBeginInterpretation: (evidenceIds: string[], relationId: string) => void }) {
